@@ -1,0 +1,6 @@
+@Wumpus.Intake_HostAddress = http://localhost:5077
+
+GET {{Wumpus.Intake_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

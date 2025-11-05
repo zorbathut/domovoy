@@ -1,0 +1,84 @@
+﻿@page "/"
+@using Wumpus.Web.Services
+@inject CrashReportViewService CrashService
+
+<PageTitle>Dashboard - Wumpus</PageTitle>
+
+<h1>Crash Tracker Dashboard</h1>
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (stats != null && recentCrashes != null)
+{
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Crashes</h5>
+                    <p class="card-text display-4">@stats["TotalCrashes"]</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Unique Errors</h5>
+                    <p class="card-text display-4">@stats["UniqueErrors"]</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Platforms</h5>
+                    @foreach (var kvp in stats.Where(s => s.Key.StartsWith("Platform_")))
+                    {
+                        <div>@kvp.Key.Replace("Platform_", ""): @kvp.Value</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Recent Crashes</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Last Seen</th>
+                <th>Exception Type</th>
+                <th>Platform</th>
+                <th>Version</th>
+                <th>Count</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var crash in recentCrashes)
+            {
+                <tr>
+                    <td>@crash.LastSeen.ToLocalTime().ToString("g")</td>
+                    <td>@crash.ExceptionType</td>
+                    <td>@crash.Platform</td>
+                    <td>@crash.GameVersion</td>
+                    <td><span class="badge bg-danger">@crash.OccurrenceCount</span></td>
+                    <td><a href="/crashes/@crash.Id" class="btn btn-sm btn-primary">View</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Dictionary<string, int>? stats;
+    private List<CrashReportResponse>? recentCrashes;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        stats = await CrashService.GetCrashStatisticsAsync();
+        recentCrashes = await CrashService.GetRecentCrashesAsync(10);
+        isLoading = false;
+    }
+}

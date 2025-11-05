@@ -1,0 +1,16 @@
+# Development override - run only Postgres in Docker
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres
+
+services:
+  postgres:
+    # Keep postgres as-is
+
+  intake:
+    # Don't start intake by default in dev mode
+    profiles:
+      - full
+
+  web:
+    # Don't start web by default in dev mode
+    profiles:
+      - full

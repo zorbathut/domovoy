@@ -1,0 +1,135 @@
+@page "/crashes/{CrashId:guid}"
+@using Wumpus.Web.Services
+@inject CrashReportViewService CrashService
+@inject NavigationManager Navigation
+
+<PageTitle>Crash Detail - Wumpus</PageTitle>
+
+@if (isLoading)
+{
+    <p><em>Loading crash details...</em></p>
+}
+else if (crash != null)
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Crash Report Details</h1>
+        <button class="btn btn-secondary" @onclick="GoBack">Back to List</button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Overview</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Crash ID:</dt>
+                        <dd class="col-sm-8"><code>@crash.Id</code></dd>
+
+                        <dt class="col-sm-4">Exception Type:</dt>
+                        <dd class="col-sm-8"><code>@crash.ExceptionType</code></dd>
+
+                        <dt class="col-sm-4">Platform:</dt>
+                        <dd class="col-sm-8">@crash.Platform</dd>
+
+                        <dt class="col-sm-4">Game Version:</dt>
+                        <dd class="col-sm-8">@crash.GameVersion</dd>
+
+                        <dt class="col-sm-4">Occurrences:</dt>
+                        <dd class="col-sm-8"><span class="badge bg-danger">@crash.OccurrenceCount</span></dd>
+
+                        <dt class="col-sm-4">First Seen:</dt>
+                        <dd class="col-sm-8">@crash.FirstSeen.ToLocalTime().ToString("g")</dd>
+
+                        <dt class="col-sm-4">Last Seen:</dt>
+                        <dd class="col-sm-8">@crash.LastSeen.ToLocalTime().ToString("g")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            @if (crash.SystemInfo != null && crash.SystemInfo.Any())
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>System Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            @foreach (var info in crash.SystemInfo)
+                            {
+                                <dt class="col-sm-4">@info.Key:</dt>
+                                <dd class="col-sm-8">@info.Value</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+
+            @if (crash.UserContext != null && crash.UserContext.Any())
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>User Context</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            @foreach (var context in crash.UserContext)
+                            {
+                                <dt class="col-sm-4">@context.Key:</dt>
+                                <dd class="col-sm-8">@context.Value</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5>Exception Message</h5>
+        </div>
+        <div class="card-body">
+            <p class="font-monospace">@crash.ExceptionMessage</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Stack Trace</h5>
+        </div>
+        <div class="card-body">
+            <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@crash.StackTrace</pre>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <h4>Crash Report Not Found</h4>
+        <p>The requested crash report could not be found.</p>
+        <button class="btn btn-primary" @onclick="GoBack">Go Back</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid CrashId { get; set; }
+
+    private CrashReportResponse? crash;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        crash = await CrashService.GetCrashByIdAsync(CrashId);
+        isLoading = false;
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/crashes");
+    }
+}

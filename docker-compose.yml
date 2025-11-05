@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: wumpus-postgres
+    environment:
+      POSTGRES_DB: wumpus
+      POSTGRES_USER: wumpus
+      POSTGRES_PASSWORD: wumpus
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wumpus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  intake:
+    build:
+      context: .
+      dockerfile: docker/Intake.Dockerfile
+    container_name: wumpus-intake
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=wumpus;Username=wumpus;Password=wumpus"
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Web.Dockerfile
+    container_name: wumpus-web
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5001
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=wumpus;Username=wumpus;Password=wumpus"
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

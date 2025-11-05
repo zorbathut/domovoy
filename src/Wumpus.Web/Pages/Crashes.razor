@@ -1,0 +1,95 @@
+@page "/crashes"
+@using Wumpus.Web.Services
+@inject CrashReportViewService CrashService
+
+<PageTitle>Crashes - Wumpus</PageTitle>
+
+<h1>All Crashes</h1>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>Platform:</label>
+        <select class="form-select" @bind="selectedPlatform">
+            <option value="">All Platforms</option>
+            <option value="Windows">Windows</option>
+            <option value="Linux">Linux</option>
+            <option value="Mac">Mac</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Game Version:</label>
+        <input type="text" class="form-control" @bind="selectedVersion" placeholder="e.g., 1.0.0" />
+    </div>
+    <div class="col-md-2">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary form-control" @onclick="ApplyFilters">Filter</button>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <p><em>Loading crashes...</em></p>
+}
+else if (crashes != null && crashes.Any())
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Last Seen</th>
+                <th>Exception Type</th>
+                <th>Message</th>
+                <th>Platform</th>
+                <th>Version</th>
+                <th>Count</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var crash in crashes)
+            {
+                <tr>
+                    <td>@crash.LastSeen.ToLocalTime().ToString("g")</td>
+                    <td><code>@crash.ExceptionType</code></td>
+                    <td>@(crash.ExceptionMessage.Length > 50 ? crash.ExceptionMessage.Substring(0, 50) + "..." : crash.ExceptionMessage)</td>
+                    <td>@crash.Platform</td>
+                    <td>@crash.GameVersion</td>
+                    <td><span class="badge bg-danger">@crash.OccurrenceCount</span></td>
+                    <td><a href="/crashes/@crash.Id" class="btn btn-sm btn-primary">Details</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No crashes found.</p>
+}
+
+@code {
+    private List<CrashReportResponse>? crashes;
+    private bool isLoading = true;
+    private string? selectedPlatform;
+    private string? selectedVersion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCrashes();
+    }
+
+    private async Task LoadCrashes()
+    {
+        isLoading = true;
+        crashes = await CrashService.GetRecentCrashesAsync(100);
+        isLoading = false;
+    }
+
+    private async Task ApplyFilters()
+    {
+        isLoading = true;
+        crashes = await CrashService.FilterCrashesAsync(
+            platform: string.IsNullOrEmpty(selectedPlatform) ? null : selectedPlatform,
+            gameVersion: string.IsNullOrEmpty(selectedVersion) ? null : selectedVersion
+        );
+        isLoading = false;
+    }
+}
