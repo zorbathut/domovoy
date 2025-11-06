@@ -69,19 +69,6 @@ public class WumpusClient : IDisposable
             UserContext = MergeInfo(_options.UserContext, userContext)
         };
 
-        return await SendCrashReportAsync(request, cancellationToken);
-    }
-
-    /// <summary>
-    /// Sends a crash report with the full request object.
-    /// </summary>
-    /// <param name="request">The crash report request to send.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The ID of the created crash report, or null if submission failed.</returns>
-    public async Task<Guid?> SendCrashReportAsync(
-        SubmitCrashReportRequest request,
-        CancellationToken cancellationToken = default)
-    {
         try
         {
             var response = await _httpClient.PostAsJsonAsync(
