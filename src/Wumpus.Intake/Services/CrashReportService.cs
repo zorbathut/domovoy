@@ -21,7 +21,7 @@ public class CrashReportService
 
     public async Task<Guid> ProcessCrashReportAsync(SubmitCrashReportRequest request)
     {
-        var stackTraceHash = ComputeStackTraceHash(request.StackTrace);
+        var stackTraceHash = ComputeStackTraceHash(request.Core.StackTrace);
         var now = DateTime.UtcNow;
 
         // Check if we've seen this crash before
@@ -48,11 +48,7 @@ public class CrashReportService
         {
             Id = Guid.NewGuid(),
             Timestamp = now,
-            GameVersion = request.GameVersion,
-            Platform = request.Platform,
-            ExceptionType = request.ExceptionType,
-            ExceptionMessage = request.ExceptionMessage,
-            StackTrace = request.StackTrace,
+            Core = request.Core,
             StackTraceHash = stackTraceHash,
             OccurrenceCount = 1,
             FirstSeen = now,
@@ -67,7 +63,7 @@ public class CrashReportService
         _logger.LogInformation(
             "Created new crash report {CrashId} for {ExceptionType}",
             crashReport.Id,
-            crashReport.ExceptionType);
+            crashReport.Core.ExceptionType);
 
         return crashReport.Id;
     }

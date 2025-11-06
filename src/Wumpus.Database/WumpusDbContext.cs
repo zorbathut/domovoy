@@ -22,30 +22,9 @@ public class WumpusDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.StackTraceHash);
             entity.HasIndex(e => e.Timestamp);
-            entity.HasIndex(e => e.Platform);
-            entity.HasIndex(e => e.GameVersion);
 
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.GameVersion)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            entity.Property(e => e.Platform)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            entity.Property(e => e.ExceptionType)
-                .IsRequired()
-                .HasMaxLength(500);
-
-            entity.Property(e => e.ExceptionMessage)
-                .IsRequired()
-                .HasMaxLength(2000);
-
-            entity.Property(e => e.StackTrace)
-                .IsRequired();
 
             entity.Property(e => e.StackTraceHash)
                 .IsRequired()
@@ -56,6 +35,33 @@ public class WumpusDbContext : DbContext
 
             entity.Property(e => e.UserContext)
                 .HasColumnType("jsonb");
+
+            // Configure Core as owned entity (value object)
+            entity.OwnsOne(e => e.Core, ownedBuilder =>
+            {
+                ownedBuilder.Property(c => c.GameVersion)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                ownedBuilder.Property(c => c.Platform)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                ownedBuilder.Property(c => c.ExceptionType)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                ownedBuilder.Property(c => c.ExceptionMessage)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+
+                ownedBuilder.Property(c => c.StackTrace)
+                    .IsRequired();
+
+                // Create indexes on owned entity properties
+                ownedBuilder.HasIndex(c => c.Platform);
+                ownedBuilder.HasIndex(c => c.GameVersion);
+            });
         });
     }
 }

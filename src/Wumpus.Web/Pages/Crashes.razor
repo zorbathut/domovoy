@@ -49,10 +49,10 @@ else if (crashes != null && crashes.Any())
             {
                 <tr>
                     <td>@crash.LastSeen.ToLocalTime().ToString("g")</td>
-                    <td><code>@crash.ExceptionType</code></td>
-                    <td>@(crash.ExceptionMessage.Length > 50 ? crash.ExceptionMessage.Substring(0, 50) + "..." : crash.ExceptionMessage)</td>
-                    <td>@crash.Platform</td>
-                    <td>@crash.GameVersion</td>
+                    <td><code>@crash.Core.ExceptionType</code></td>
+                    <td>@(crash.Core.ExceptionMessage.Length > 50 ? crash.Core.ExceptionMessage.Substring(0, 50) + "..." : crash.Core.ExceptionMessage)</td>
+                    <td>@crash.Core.Platform</td>
+                    <td>@crash.Core.GameVersion</td>
                     <td><span class="badge bg-danger">@crash.OccurrenceCount</span></td>
                     <td><a href="/crashes/@crash.Id" class="btn btn-sm btn-primary">Details</a></td>
                 </tr>

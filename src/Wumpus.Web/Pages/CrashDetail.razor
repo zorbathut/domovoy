@@ -28,13 +28,13 @@ else if (crash != null)
                         <dd class="col-sm-8"><code>@crash.Id</code></dd>
 
                         <dt class="col-sm-4">Exception Type:</dt>
-                        <dd class="col-sm-8"><code>@crash.ExceptionType</code></dd>
+                        <dd class="col-sm-8"><code>@crash.Core.ExceptionType</code></dd>
 
                         <dt class="col-sm-4">Platform:</dt>
-                        <dd class="col-sm-8">@crash.Platform</dd>
+                        <dd class="col-sm-8">@crash.Core.Platform</dd>
 
                         <dt class="col-sm-4">Game Version:</dt>
-                        <dd class="col-sm-8">@crash.GameVersion</dd>
+                        <dd class="col-sm-8">@crash.Core.GameVersion</dd>
 
                         <dt class="col-sm-4">Occurrences:</dt>
                         <dd class="col-sm-8"><span class="badge bg-danger">@crash.OccurrenceCount</span></dd>
@@ -93,7 +93,7 @@ else if (crash != null)
             <h5>Exception Message</h5>
         </div>
         <div class="card-body">
-            <p class="font-monospace">@crash.ExceptionMessage</p>
+            <p class="font-monospace">@crash.Core.ExceptionMessage</p>
         </div>
     </div>
 
@@ -102,7 +102,7 @@ else if (crash != null)
             <h5>Stack Trace</h5>
         </div>
         <div class="card-body">
-            <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@crash.StackTrace</pre>
+            <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@crash.Core.StackTrace</pre>
         </div>
     </div>
 }

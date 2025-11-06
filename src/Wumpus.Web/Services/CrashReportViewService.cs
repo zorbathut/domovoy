@@ -35,7 +35,7 @@ public class CrashReportViewService
         var totalCrashes = await _context.CrashReports.SumAsync(c => c.OccurrenceCount);
         var uniqueErrors = await _context.CrashReports.CountAsync();
         var platforms = await _context.CrashReports
-            .GroupBy(c => c.Platform)
+            .GroupBy(c => c.Core.Platform)
             .Select(g => new { Platform = g.Key, Count = g.Sum(c => c.OccurrenceCount) })
             .ToDictionaryAsync(x => x.Platform, x => x.Count);
 
@@ -62,10 +62,10 @@ public class CrashReportViewService
         var query = _context.CrashReports.AsQueryable();
 
         if (!string.IsNullOrEmpty(platform))
-            query = query.Where(c => c.Platform == platform);
+            query = query.Where(c => c.Core.Platform == platform);
 
         if (!string.IsNullOrEmpty(gameVersion))
-            query = query.Where(c => c.GameVersion == gameVersion);
+            query = query.Where(c => c.Core.GameVersion == gameVersion);
 
         if (startDate.HasValue)
             query = query.Where(c => c.Timestamp >= startDate.Value);
@@ -86,11 +86,7 @@ public class CrashReportViewService
         {
             Id = crash.Id,
             Timestamp = crash.Timestamp,
-            GameVersion = crash.GameVersion,
-            Platform = crash.Platform,
-            ExceptionType = crash.ExceptionType,
-            ExceptionMessage = crash.ExceptionMessage,
-            StackTrace = crash.StackTrace,
+            Core = crash.Core,
             OccurrenceCount = crash.OccurrenceCount,
             FirstSeen = crash.FirstSeen,
             LastSeen = crash.LastSeen,

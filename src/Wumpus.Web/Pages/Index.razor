@@ -59,9 +59,9 @@ else if (stats != null && recentCrashes != null)
             {
                 <tr>
                     <td>@crash.LastSeen.ToLocalTime().ToString("g")</td>
-                    <td>@crash.ExceptionType</td>
-                    <td>@crash.Platform</td>
-                    <td>@crash.GameVersion</td>
+                    <td>@crash.Core.ExceptionType</td>
+                    <td>@crash.Core.Platform</td>
+                    <td>@crash.Core.GameVersion</td>
                     <td><span class="badge bg-danger">@crash.OccurrenceCount</span></td>
                     <td><a href="/crashes/@crash.Id" class="btn btn-sm btn-primary">View</a></td>
                 </tr>
