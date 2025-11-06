@@ -48,3 +48,9 @@ app.MapHealthChecks("/health");
 Log.Information("Wumpus Web UI starting...");
 app.Run();
 Log.CloseAndFlush();
+
+// Make Program accessible to tests
+namespace Wumpus.Web
+{
+    public partial class Program { }
+}

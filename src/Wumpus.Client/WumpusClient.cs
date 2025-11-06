@@ -12,6 +12,7 @@ public class WumpusClient : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly WumpusClientOptions _options;
+    private readonly bool _disposeHttpClient;
 
     /// <summary>
     /// Creates a new instance of WumpusClient with the specified options.
@@ -34,6 +35,20 @@ public class WumpusClient : IDisposable
             BaseAddress = new Uri(options.ServerUrl.TrimEnd('/')),
             Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds)
         };
+        _disposeHttpClient = true;
+    }
+
+    /// <summary>
+    /// Creates a new instance of WumpusClient with the specified options and HttpClient.
+    /// Useful for testing scenarios.
+    /// </summary>
+    /// <param name="options">The client options.</param>
+    /// <param name="httpClient">The HttpClient to use for requests. Will not be disposed by this instance.</param>
+    public WumpusClient(WumpusClientOptions options, HttpClient httpClient)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _disposeHttpClient = false;
     }
 
     /// <summary>
@@ -141,6 +156,9 @@ public class WumpusClient : IDisposable
 
     public void Dispose()
     {
-        _httpClient?.Dispose();
+        if (_disposeHttpClient)
+        {
+            _httpClient?.Dispose();
+        }
     }
 }

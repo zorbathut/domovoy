@@ -50,3 +50,9 @@ using (var scope = app.Services.CreateScope())
 Log.Information("Wumpus Intake API starting...");
 app.Run();
 Log.CloseAndFlush();
+
+// Make Program accessible to tests
+namespace Wumpus.Intake
+{
+    public partial class Program { }
+}

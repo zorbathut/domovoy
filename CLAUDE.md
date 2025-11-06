@@ -71,9 +71,64 @@ dotnet ef database update
 ```
 
 ### Testing
+
+**Prerequisites:** PostgreSQL must be running (via docker-compose) before running tests.
+
 ```bash
+# Start PostgreSQL for tests
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres
+
+# Run all tests
 dotnet test
+
+# Run tests with detailed output
+dotnet test --verbosity normal
+
+# Run specific test class
+dotnet test --filter "FullyQualifiedName~IntakeApiTests"
 ```
+
+#### Test Project Structure
+
+The solution includes a single test project `Wumpus.Tests` that contains integration tests for all components:
+
+- **IntakeApiTests** - Tests the Intake API HTTP endpoints, database persistence, and deduplication logic
+- **CrashReportServiceTests** - Tests the CrashReportService directly, including stack trace hashing and deduplication
+- **WumpusClientTests** - Tests the client library's end-to-end integration with the Intake API
+- **WebUiTests** - Tests Blazor components using bUnit, verifying UI rendering and data display
+
+#### Test Database
+
+Tests use a separate `wumpus_test` database to avoid interfering with development data:
+
+- The `DatabaseFixture` (in `tests/Wumpus.Tests/Infrastructure/DatabaseFixture.cs`) manages the test database lifecycle
+- The test database is dropped and recreated before each test run to ensure clean state
+- Tests clean up after themselves using `IAsyncLifetime.DisposeAsync()`
+- Connection string: `Host=localhost;Database=wumpus_test;Username=wumpus;Password=wumpus`
+
+#### Test Infrastructure
+
+The test project includes several infrastructure components:
+
+- **IntakeApiFactory** - Custom `WebApplicationFactory` for testing the Intake API
+- **WebUiFactory** - Custom `WebApplicationFactory` for testing the Web UI
+- **DatabaseFixture** - Manages test database creation, cleanup, and provides helper methods
+- **TestDataBuilder** - Fluent builder for creating test crash report data
+
+#### What the Tests Cover
+
+1. **API Integration** - Full HTTP request/response cycle including serialization, validation, and error handling
+2. **Database Operations** - Actual PostgreSQL queries, migrations, and data persistence
+3. **Deduplication Logic** - Stack trace hashing (first 5 frames) and crash grouping behavior
+4. **Client Library** - End-to-end crash report submission from client to database
+5. **UI Components** - Blazor component rendering, data binding, and user interactions
+
+#### Running Tests Locally
+
+1. Ensure PostgreSQL is running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres`
+2. Run tests: `dotnet test`
+3. The first test run will create the `wumpus_test` database automatically
+4. Each test class cleans up after itself, so tests can be run repeatedly
 
 ## Architecture Details
 

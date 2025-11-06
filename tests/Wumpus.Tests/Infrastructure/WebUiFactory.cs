@@ -1,0 +1,39 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Wumpus.Database;
+
+namespace Wumpus.Tests.Infrastructure;
+
+/// <summary>
+/// Custom WebApplicationFactory for Wumpus Web UI integration tests.
+/// Overrides the database connection to use the test database.
+/// </summary>
+public class WebUiFactory : WebApplicationFactory<Wumpus.Web.Program>
+{
+    private const string TestConnectionString = "Host=localhost;Database=wumpus_test;Username=wumpus;Password=wumpus";
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            // Remove the existing DbContext registration
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<WumpusDbContext>));
+
+            if (descriptor != null)
+            {
+                services.Remove(descriptor);
+            }
+
+            // Add DbContext with test database connection string
+            services.AddDbContext<WumpusDbContext>(options =>
+            {
+                options.UseNpgsql(TestConnectionString);
+            });
+        });
+
+        builder.UseEnvironment("Development");
+    }
+}
