@@ -201,7 +201,7 @@ Both services use Serilog configured via `appsettings.json`. Structured logging 
 
 ## Client Library Usage
 
-The `Wumpus.Client` project provides a simple client for games to send events and errors:
+The `Wumpus.Client` project provides a simple client for games to send events and errors.
 
 ### Sending Events
 
@@ -216,29 +216,36 @@ var options = new WumpusClientOptions
 using var client = new WumpusClient(options);
 
 // Send a game event
-await client.SendEventAsync(
-    name: "LevelCompleted",
-    category: "Gameplay",
-    value: 1,
-    userId: "player123",
-    metadata: new Dictionary<string, object>
+var eventRequest = new SubmitEventRequest
+{
+    Name = "LevelCompleted",
+    Category = "Gameplay",
+    Value = 1,
+    UserId = "player123",
+    Metadata = new Dictionary<string, object>
     {
         { "level", 5 },
-        { "time", 120.5 }
+        { "timeSeconds", 120.5 }
     }
-);
+};
+
+await client.SendEventAsync(eventRequest);
 ```
 
 ### Sending Errors
 
 ```csharp
 // Send a custom error
-await client.SendErrorAsync(
-    message: "Failed to load texture",
-    severity: "Error",
-    code: "TEX001",
-    exceptionType: "TextureLoadException"
-);
+var errorRequest = new SubmitErrorRequest
+{
+    Severity = "Error",
+    Code = "TEX001",
+    Message = "Failed to load texture",
+    ExceptionType = "TextureLoadException",
+    Context = "Level 5 initialization"
+};
+
+await client.SendErrorAsync(errorRequest);
 
 // Send a crash report from an exception (convenience method)
 try
@@ -247,7 +254,7 @@ try
 }
 catch (Exception ex)
 {
-    await client.SendCrashAsync(ex);
+    await client.SendCrashAsync(ex);  // Builds SubmitErrorRequest automatically
 }
 ```
 
@@ -256,9 +263,9 @@ catch (Exception ex)
 For scenarios where you don't want to wait for the result:
 
 ```csharp
-client.SendEventFireAndForget("PlayerJoined", "Multiplayer");
-client.SendErrorFireAndForget("Minor issue", severity: "Warning");
+client.SendEventFireAndForget(eventRequest);
+client.SendErrorFireAndForget(errorRequest);
 client.SendCrashFireAndForget(exception);
 ```
 
-The client is designed to fail silently (returns null on error) to avoid telemetry from crashing the game.
+**Note**: The client automatically sets `GameVersion` and `Platform` from the `WumpusClientOptions`, so you don't need to set these fields in the request DTOs. The client is designed to fail silently (returns null on error) to avoid telemetry from crashing the game.

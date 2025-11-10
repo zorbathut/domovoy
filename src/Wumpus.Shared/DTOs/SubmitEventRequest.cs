@@ -6,11 +6,11 @@ public class SubmitEventRequest
 {
     [Required]
     [MaxLength(50)]
-    public required string GameVersion { get; set; }
+    public string GameVersion { get; set; } = null!;
 
     [Required]
     [MaxLength(50)]
-    public required string Platform { get; set; }
+    public string Platform { get; set; } = null!;
 
     [Required]
     [MaxLength(200)]

@@ -1,3 +1,5 @@
+using Wumpus.Shared.DTOs;
+
 namespace Wumpus.Client.Examples;
 
 /// <summary>
@@ -6,9 +8,9 @@ namespace Wumpus.Client.Examples;
 public static class Examples
 {
     /// <summary>
-    /// Example 1: Basic usage
+    /// Example 1: Sending a crash report from an exception
     /// </summary>
-    public static async Task BasicUsageExample()
+    public static async Task BasicCrashExample()
     {
         var options = new WumpusClientOptions
         {
@@ -31,33 +33,66 @@ public static class Examples
     }
 
     /// <summary>
-    /// Example 2: Using the client with different configuration
+    /// Example 2: Sending a custom error
     /// </summary>
-    public static async Task ClientWithCustomConfigExample()
+    public static async Task SendErrorExample()
     {
         var options = new WumpusClientOptions
         {
             ServerUrl = "http://localhost:5000",
-            AppVersion = "2.0.0",
-            Platform = "Linux",
-            TimeoutSeconds = 60 // Custom timeout
+            AppVersion = "1.0.0",
+            Platform = "Windows"
         };
 
         using var client = new WumpusClient(options);
 
-        try
+        var errorRequest = new SubmitErrorRequest
         {
-            ThrowExampleException();
-        }
-        catch (Exception ex)
-        {
-            var crashId = await client.SendCrashAsync(ex);
-            Console.WriteLine($"Crash reported with ID: {crashId}");
-        }
+            Severity = "Error",
+            Code = "TEX001",
+            Message = "Failed to load texture",
+            ExceptionType = "TextureLoadException",
+            Context = "Level 5 initialization"
+        };
+
+        var errorId = await client.SendErrorAsync(errorRequest);
+        Console.WriteLine($"Error reported with ID: {errorId}");
     }
 
     /// <summary>
-    /// Example 3: Fire and forget (non-blocking)
+    /// Example 3: Sending game events
+    /// </summary>
+    public static async Task SendEventExample()
+    {
+        var options = new WumpusClientOptions
+        {
+            ServerUrl = "http://localhost:5000",
+            AppVersion = "1.0.0",
+            Platform = "Windows"
+        };
+
+        using var client = new WumpusClient(options);
+
+        var eventRequest = new SubmitEventRequest
+        {
+            Name = "LevelCompleted",
+            Category = "Gameplay",
+            Value = 1,
+            UserId = "player123",
+            Metadata = new Dictionary<string, object>
+            {
+                { "level", 5 },
+                { "timeSeconds", 120.5 },
+                { "score", 9500 }
+            }
+        };
+
+        var eventId = await client.SendEventAsync(eventRequest);
+        Console.WriteLine($"Event reported with ID: {eventId}");
+    }
+
+    /// <summary>
+    /// Example 4: Fire and forget (non-blocking)
     /// </summary>
     public static void FireAndForgetExample()
     {
@@ -78,10 +113,18 @@ public static class Examples
             client.SendCrashFireAndForget(ex);
             Console.WriteLine("Crash report queued for sending");
         }
+
+        // Fire and forget for events
+        var eventRequest = new SubmitEventRequest
+        {
+            Name = "PlayerJoined",
+            Category = "Multiplayer"
+        };
+        client.SendEventFireAndForget(eventRequest);
     }
 
     /// <summary>
-    /// Example 4: Multiple concurrent reports
+    /// Example 5: Multiple concurrent reports
     /// </summary>
     public static async Task ConcurrentReportsExample()
     {
