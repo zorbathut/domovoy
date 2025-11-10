@@ -17,7 +17,7 @@ public class CrashReportViewService
     public async Task<List<CrashReportResponse>> GetRecentCrashesAsync(int limit = 50)
     {
         var crashes = await _context.CrashReports
-            .OrderByDescending(c => c.LastSeen)
+            .OrderByDescending(c => c.Timestamp)
             .Take(limit)
             .ToListAsync();
 
@@ -32,11 +32,11 @@ public class CrashReportViewService
 
     public async Task<Dictionary<string, int>> GetCrashStatisticsAsync()
     {
-        var totalCrashes = await _context.CrashReports.SumAsync(c => c.OccurrenceCount);
+        var totalCrashes = await _context.CrashReports.CountAsync();
         var uniqueErrors = await _context.CrashReports.CountAsync();
         var platforms = await _context.CrashReports
             .GroupBy(c => c.Core.Platform)
-            .Select(g => new { Platform = g.Key, Count = g.Sum(c => c.OccurrenceCount) })
+            .Select(g => new { Platform = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Platform, x => x.Count);
 
         var stats = new Dictionary<string, int>
@@ -74,7 +74,7 @@ public class CrashReportViewService
             query = query.Where(c => c.Timestamp <= endDate.Value);
 
         var crashes = await query
-            .OrderByDescending(c => c.LastSeen)
+            .OrderByDescending(c => c.Timestamp)
             .ToListAsync();
 
         return crashes.Select(MapToResponse).ToList();
@@ -86,16 +86,7 @@ public class CrashReportViewService
         {
             Id = crash.Id,
             Timestamp = crash.Timestamp,
-            Core = crash.Core,
-            OccurrenceCount = crash.OccurrenceCount,
-            FirstSeen = crash.FirstSeen,
-            LastSeen = crash.LastSeen,
-            SystemInfo = crash.SystemInfo != null
-                ? JsonSerializer.Deserialize<Dictionary<string, string>>(crash.SystemInfo)
-                : null,
-            UserContext = crash.UserContext != null
-                ? JsonSerializer.Deserialize<Dictionary<string, string>>(crash.UserContext)
-                : null
+            Core = crash.Core
         };
     }
 }

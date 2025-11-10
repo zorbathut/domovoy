@@ -55,14 +55,10 @@ public class WumpusClient : IDisposable
     /// Sends a crash report for the specified exception.
     /// </summary>
     /// <param name="exception">The exception to report.</param>
-    /// <param name="systemInfo">Optional additional system information.</param>
-    /// <param name="userContext">Optional additional user context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The ID of the created crash report, or null if submission failed.</returns>
     public async Task<Guid?> SendCrashReportAsync(
         Exception exception,
-        Dictionary<string, string>? systemInfo = null,
-        Dictionary<string, string>? userContext = null,
         CancellationToken cancellationToken = default)
     {
         if (exception == null)
@@ -79,9 +75,7 @@ public class WumpusClient : IDisposable
                     ? exception.Message.Substring(0, 2000)
                     : exception.Message,
                 StackTrace = exception.ToString()
-            },
-            SystemInfo = MergeInfo(_options.SystemInfo, systemInfo),
-            UserContext = MergeInfo(_options.UserContext, userContext)
+            }
         };
 
         try
@@ -128,30 +122,6 @@ public class WumpusClient : IDisposable
                 // Silently fail
             }
         });
-    }
-
-    private static Dictionary<string, string>? MergeInfo(
-        Dictionary<string, string>? global,
-        Dictionary<string, string>? local)
-    {
-        if (global == null && local == null)
-            return null;
-
-        var result = new Dictionary<string, string>();
-
-        if (global != null)
-        {
-            foreach (var kvp in global)
-                result[kvp.Key] = kvp.Value;
-        }
-
-        if (local != null)
-        {
-            foreach (var kvp in local)
-                result[kvp.Key] = kvp.Value;
-        }
-
-        return result.Count > 0 ? result : null;
     }
 
     public void Dispose()

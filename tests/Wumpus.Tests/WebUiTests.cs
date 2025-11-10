@@ -75,10 +75,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionMessage = "Object reference not set",
                 StackTrace = "at Game.Player.Move()"
             },
-            StackTraceHash = "testhash",
-            OccurrenceCount = 5,
-            FirstSeen = DateTime.UtcNow.AddHours(-2),
-            LastSeen = DateTime.UtcNow
+            StackTraceHash = "testhash"
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -92,7 +89,6 @@ public class WebUiTests : IAsyncLifetime
         markup.Should().Contain("System.NullReferenceException");
         markup.Should().Contain("Windows");
         markup.Should().Contain("1.5.0");
-        markup.Should().Contain("5"); // OccurrenceCount
     }
 
     [Fact]
@@ -124,12 +120,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionMessage = "Invalid argument provided",
                 StackTrace = "at Game.Combat.Attack()\nat Game.Player.DoAction()"
             },
-            StackTraceHash = "detailhash",
-            OccurrenceCount = 3,
-            FirstSeen = DateTime.UtcNow.AddDays(-1),
-            LastSeen = DateTime.UtcNow,
-            SystemInfo = "{\"OS\":\"Ubuntu 22.04\",\"RAM\":\"16GB\"}",
-            UserContext = "{\"UserId\":\"user123\",\"Level\":\"5\"}"
+            StackTraceHash = "detailhash"
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -146,10 +137,7 @@ public class WebUiTests : IAsyncLifetime
         markup.Should().Contain("Invalid argument provided");
         markup.Should().Contain("Linux");
         markup.Should().Contain("2.0.0");
-        markup.Should().Contain("3"); // OccurrenceCount
         markup.Should().Contain("at Game.Combat.Attack()");
-        markup.Should().Contain("Ubuntu 22.04");
-        markup.Should().Contain("user123");
     }
 
     [Fact]
@@ -189,10 +177,7 @@ public class WebUiTests : IAsyncLifetime
                     ExceptionMessage = "Null ref 1",
                     StackTrace = "stack1"
                 },
-                StackTraceHash = "hash1",
-                OccurrenceCount = 1,
-                FirstSeen = DateTime.UtcNow,
-                LastSeen = DateTime.UtcNow
+                StackTraceHash = "hash1"
             },
             new CrashReport
             {
@@ -206,10 +191,7 @@ public class WebUiTests : IAsyncLifetime
                     ExceptionMessage = "Arg exception",
                     StackTrace = "stack2"
                 },
-                StackTraceHash = "hash2",
-                OccurrenceCount = 2,
-                FirstSeen = DateTime.UtcNow,
-                LastSeen = DateTime.UtcNow
+                StackTraceHash = "hash2"
             },
             new CrashReport
             {
@@ -223,10 +205,7 @@ public class WebUiTests : IAsyncLifetime
                     ExceptionMessage = "Invalid op",
                     StackTrace = "stack3"
                 },
-                StackTraceHash = "hash3",
-                OccurrenceCount = 10,
-                FirstSeen = DateTime.UtcNow,
-                LastSeen = DateTime.UtcNow
+                StackTraceHash = "hash3"
             }
         };
 
@@ -266,10 +245,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionMessage = "Test message",
                 StackTrace = "Test stack"
             },
-            StackTraceHash = "testhash",
-            OccurrenceCount = 1,
-            FirstSeen = DateTime.UtcNow,
-            LastSeen = DateTime.UtcNow
+            StackTraceHash = "testhash"
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -303,10 +279,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionMessage = "Test message",
                 StackTrace = "Test stack"
             },
-            StackTraceHash = "testhash",
-            OccurrenceCount = 1,
-            FirstSeen = DateTime.UtcNow,
-            LastSeen = DateTime.UtcNow
+            StackTraceHash = "testhash"
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -334,20 +307,14 @@ public class WebUiTests : IAsyncLifetime
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
                 Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Windows", ExceptionType = "E1", ExceptionMessage = "M1", StackTrace = "S1" },
-                StackTraceHash = "h1",
-                OccurrenceCount = 1,
-                FirstSeen = DateTime.UtcNow,
-                LastSeen = DateTime.UtcNow
+                StackTraceHash = "h1"
             },
             new CrashReport
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
                 Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Linux", ExceptionType = "E2", ExceptionMessage = "M2", StackTrace = "S2" },
-                StackTraceHash = "h2",
-                OccurrenceCount = 1,
-                FirstSeen = DateTime.UtcNow,
-                LastSeen = DateTime.UtcNow
+                StackTraceHash = "h2"
             }
         };
         dbContext.CrashReports.AddRange(crashes);

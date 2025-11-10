@@ -16,9 +16,7 @@ public class TestDataBuilder
         string? platform = null,
         string? exceptionType = null,
         string? exceptionMessage = null,
-        string? stackTrace = null,
-        Dictionary<string, string>? systemInfo = null,
-        Dictionary<string, string>? userContext = null)
+        string? stackTrace = null)
     {
         return new SubmitCrashReportRequest
         {
@@ -29,9 +27,7 @@ public class TestDataBuilder
                 ExceptionType = exceptionType ?? "System.NullReferenceException",
                 ExceptionMessage = exceptionMessage ?? "Object reference not set to an instance of an object.",
                 StackTrace = stackTrace ?? CreateDefaultStackTrace()
-            },
-            SystemInfo = systemInfo ?? CreateDefaultSystemInfo(),
-            UserContext = userContext ?? CreateDefaultUserContext()
+            }
         };
     }
 
@@ -84,28 +80,5 @@ public class TestDataBuilder
    at Game.Program.Main(String[] args) in C:\Game\Program.cs:line 18
    at System.AppDomain.ExecuteAssembly(String assemblyFile)
    at Microsoft.VisualStudio.HostingProcess.HostProc.RunUsersAssembly()";
-    }
-
-    private static Dictionary<string, string> CreateDefaultSystemInfo()
-    {
-        return new Dictionary<string, string>
-        {
-            { "OS", "Windows 10 Pro 64-bit" },
-            { "CPU", "Intel Core i7-9700K @ 3.60GHz" },
-            { "RAM", "16 GB" },
-            { "GPU", "NVIDIA GeForce RTX 2070" },
-            { "Resolution", "1920x1080" }
-        };
-    }
-
-    private static Dictionary<string, string> CreateDefaultUserContext()
-    {
-        return new Dictionary<string, string>
-        {
-            { "UserId", "user_12345" },
-            { "SessionId", "session_67890" },
-            { "Level", "Level_3" },
-            { "PlayTime", "145.5" }
-        };
     }
 }

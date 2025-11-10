@@ -30,12 +30,6 @@ public class WumpusDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(64);
 
-            entity.Property(e => e.SystemInfo)
-                .HasColumnType("jsonb");
-
-            entity.Property(e => e.UserContext)
-                .HasColumnType("jsonb");
-
             // Configure Core as owned entity (value object)
             entity.OwnsOne(e => e.Core, ownedBuilder =>
             {

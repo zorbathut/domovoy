@@ -48,11 +48,8 @@ public class CrashReportServiceTests : IAsyncLifetime
 
         var savedCrash = await _dbContext.CrashReports.FindAsync(crashId);
         savedCrash.Should().NotBeNull();
-        savedCrash!.OccurrenceCount.Should().Be(1);
-        savedCrash.Core.GameVersion.Should().Be("1.0.0");
+        savedCrash!.Core.GameVersion.Should().Be("1.0.0");
         savedCrash.Core.Platform.Should().Be("Windows");
-        savedCrash.FirstSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        savedCrash.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -64,10 +61,6 @@ public class CrashReportServiceTests : IAsyncLifetime
 
         // Act - Process first crash
         var crashId1 = await _service.ProcessCrashReportAsync(request1);
-        var firstSeen = (await _dbContext.CrashReports.FindAsync(crashId1))!.FirstSeen;
-
-        // Wait to ensure different LastSeen timestamp
-        await Task.Delay(100);
 
         // Process duplicate crash
         var crashId2 = await _service.ProcessCrashReportAsync(request2);
@@ -77,9 +70,6 @@ public class CrashReportServiceTests : IAsyncLifetime
 
         var savedCrash = await _dbContext.CrashReports.FindAsync(crashId1);
         savedCrash.Should().NotBeNull();
-        savedCrash!.OccurrenceCount.Should().Be(2);
-        savedCrash.FirstSeen.Should().Be(firstSeen, "FirstSeen should not change");
-        savedCrash.LastSeen.Should().BeAfter(firstSeen, "LastSeen should be updated");
     }
 
     [Fact]
@@ -136,7 +126,6 @@ public class CrashReportServiceTests : IAsyncLifetime
 
         var savedCrash = await _dbContext.CrashReports.FindAsync(crashId1);
         savedCrash.Should().NotBeNull();
-        savedCrash!.OccurrenceCount.Should().Be(2);
     }
 
     [Fact]
@@ -165,79 +154,4 @@ public class CrashReportServiceTests : IAsyncLifetime
         crash1!.StackTraceHash.Should().NotBe(crash2!.StackTraceHash);
     }
 
-    [Fact]
-    public async Task ProcessCrashReportAsync_MultipleOccurrences_IncrementsCountCorrectly()
-    {
-        // Arrange
-        var request = TestDataBuilder.CreateCrashReport();
-        const int occurrenceCount = 10;
-
-        // Act - Submit the same crash multiple times
-        Guid? crashId = null;
-        for (int i = 0; i < occurrenceCount; i++)
-        {
-            var id = await _service.ProcessCrashReportAsync(request);
-            if (crashId == null)
-            {
-                crashId = id;
-            }
-            else
-            {
-                id.Should().Be(crashId.Value);
-            }
-
-            await Task.Delay(10); // Small delay for timestamp variation
-        }
-
-        // Assert
-        var savedCrash = await _dbContext.CrashReports.FindAsync(crashId!.Value);
-        savedCrash.Should().NotBeNull();
-        savedCrash!.OccurrenceCount.Should().Be(occurrenceCount);
-    }
-
-    [Fact]
-    public async Task ProcessCrashReportAsync_WithSystemInfo_StoresAsJson()
-    {
-        // Arrange
-        var systemInfo = new Dictionary<string, string>
-        {
-            { "OS", "Ubuntu 22.04" },
-            { "CPU", "AMD Ryzen 9 5900X" },
-            { "RAM", "32 GB" }
-        };
-        var request = TestDataBuilder.CreateCrashReport(systemInfo: systemInfo);
-
-        // Act
-        var crashId = await _service.ProcessCrashReportAsync(request);
-
-        // Assert
-        var savedCrash = await _dbContext.CrashReports.FindAsync(crashId);
-        savedCrash.Should().NotBeNull();
-        savedCrash!.SystemInfo.Should().NotBeNullOrEmpty();
-        savedCrash.SystemInfo.Should().Contain("Ubuntu 22.04");
-        savedCrash.SystemInfo.Should().Contain("AMD Ryzen 9 5900X");
-    }
-
-    [Fact]
-    public async Task ProcessCrashReportAsync_WithUserContext_StoresAsJson()
-    {
-        // Arrange
-        var userContext = new Dictionary<string, string>
-        {
-            { "UserId", "test_user_123" },
-            { "Level", "Boss_Fight_3" },
-            { "PlayTime", "247.5" }
-        };
-        var request = TestDataBuilder.CreateCrashReport(userContext: userContext);
-
-        // Act
-        var crashId = await _service.ProcessCrashReportAsync(request);
-
-        // Assert
-        var savedCrash = await _dbContext.CrashReports.FindAsync(crashId);
-        savedCrash.Should().NotBeNull();
-        savedCrash!.UserContext.Should().NotBeNullOrEmpty();
-        savedCrash.UserContext.Should().Contain("test_user_123");
-        savedCrash.UserContext.Should().Contain("Boss_Fight_3");
-    }
 }

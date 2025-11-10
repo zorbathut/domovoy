@@ -36,55 +36,11 @@ else if (crash != null)
                         <dt class="col-sm-4">Game Version:</dt>
                         <dd class="col-sm-8">@crash.Core.GameVersion</dd>
 
-                        <dt class="col-sm-4">Occurrences:</dt>
-                        <dd class="col-sm-8"><span class="badge bg-danger">@crash.OccurrenceCount</span></dd>
-
-                        <dt class="col-sm-4">First Seen:</dt>
-                        <dd class="col-sm-8">@crash.FirstSeen.ToLocalTime().ToString("g")</dd>
-
-                        <dt class="col-sm-4">Last Seen:</dt>
-                        <dd class="col-sm-8">@crash.LastSeen.ToLocalTime().ToString("g")</dd>
+                        <dt class="col-sm-4">Timestamp:</dt>
+                        <dd class="col-sm-8">@crash.Timestamp.ToLocalTime().ToString("g")</dd>
                     </dl>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-6">
-            @if (crash.SystemInfo != null && crash.SystemInfo.Any())
-            {
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5>System Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <dl class="row">
-                            @foreach (var info in crash.SystemInfo)
-                            {
-                                <dt class="col-sm-4">@info.Key:</dt>
-                                <dd class="col-sm-8">@info.Value</dd>
-                            }
-                        </dl>
-                    </div>
-                </div>
-            }
-
-            @if (crash.UserContext != null && crash.UserContext.Any())
-            {
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5>User Context</h5>
-                    </div>
-                    <div class="card-body">
-                        <dl class="row">
-                            @foreach (var context in crash.UserContext)
-                            {
-                                <dt class="col-sm-4">@context.Key:</dt>
-                                <dd class="col-sm-8">@context.Value</dd>
-                            }
-                        </dl>
-                    </div>
-                </div>
-            }
         </div>
     </div>
 

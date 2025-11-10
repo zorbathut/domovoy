@@ -24,14 +24,4 @@ public class WumpusClientOptions
     /// Timeout for HTTP requests in seconds. Default is 30 seconds.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 30;
-
-    /// <summary>
-    /// Additional system information to include with every crash report.
-    /// </summary>
-    public Dictionary<string, string>? SystemInfo { get; set; }
-
-    /// <summary>
-    /// Additional user context to include with every crash report.
-    /// </summary>
-    public Dictionary<string, string>? UserContext { get; set; }
 }

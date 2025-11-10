@@ -30,15 +30,13 @@ public class CrashReportService
 
         if (existingReport != null)
         {
-            // Update existing report
-            existingReport.OccurrenceCount++;
-            existingReport.LastSeen = now;
+            // Update existing report timestamp
+            existingReport.Timestamp = now;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Updated existing crash report {CrashId}. New occurrence count: {Count}",
-                existingReport.Id,
-                existingReport.OccurrenceCount);
+                "Updated existing crash report {CrashId}",
+                existingReport.Id);
 
             return existingReport.Id;
         }
@@ -49,12 +47,7 @@ public class CrashReportService
             Id = Guid.NewGuid(),
             Timestamp = now,
             Core = request.Core,
-            StackTraceHash = stackTraceHash,
-            OccurrenceCount = 1,
-            FirstSeen = now,
-            LastSeen = now,
-            SystemInfo = request.SystemInfo != null ? JsonSerializer.Serialize(request.SystemInfo) : null,
-            UserContext = request.UserContext != null ? JsonSerializer.Serialize(request.UserContext) : null
+            StackTraceHash = stackTraceHash
         };
 
         _context.CrashReports.Add(crashReport);

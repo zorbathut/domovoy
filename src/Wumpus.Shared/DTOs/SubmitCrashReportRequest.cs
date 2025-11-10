@@ -7,7 +7,4 @@ public class SubmitCrashReportRequest
 {
     [Required]
     public required CrashReportCore Core { get; set; }
-
-    public Dictionary<string, string>? SystemInfo { get; set; }
-    public Dictionary<string, string>? UserContext { get; set; }
 }

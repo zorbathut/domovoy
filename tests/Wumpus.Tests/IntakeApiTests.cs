@@ -81,9 +81,6 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         savedCrash!.Core.GameVersion.Should().Be("2.0.0");
         savedCrash.Core.Platform.Should().Be("Linux");
         savedCrash.Core.ExceptionType.Should().Be("System.InvalidOperationException");
-        savedCrash.OccurrenceCount.Should().Be(1);
-        savedCrash.FirstSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        savedCrash.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -97,9 +94,6 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var response1 = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport1);
         var crashId1 = await ExtractCrashIdFromResponse(response1);
 
-        // Wait a moment to ensure different timestamps
-        await Task.Delay(100);
-
         // Submit second crash with same stack trace
         var response2 = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport2);
         var crashId2 = await ExtractCrashIdFromResponse(response2);
@@ -107,13 +101,11 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         // Assert - Both should return the same crash ID
         crashId1.Should().Be(crashId2);
 
-        // Verify only one crash report exists with incremented count
+        // Verify only one crash report exists
         await using var dbContext = _dbFixture.CreateDbContext();
         var savedCrash = await dbContext.CrashReports.FindAsync(crashId1);
 
         savedCrash.Should().NotBeNull();
-        savedCrash!.OccurrenceCount.Should().Be(2);
-        savedCrash.LastSeen.Should().BeAfter(savedCrash.FirstSeen);
     }
 
     [Fact]
@@ -139,9 +131,7 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         crash1.Should().NotBeNull();
         crash2.Should().NotBeNull();
-        crash1!.OccurrenceCount.Should().Be(1);
-        crash2!.OccurrenceCount.Should().Be(1);
-        crash1.StackTraceHash.Should().NotBe(crash2.StackTraceHash);
+        crash1!.StackTraceHash.Should().NotBe(crash2!.StackTraceHash);
     }
 
     [Fact]
@@ -192,8 +182,6 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             {
                 currentCrashId.Should().Be(crashId.Value, "All submissions should deduplicate to the same crash");
             }
-
-            await Task.Delay(50); // Small delay to ensure different LastSeen timestamps
         }
 
         // Assert
@@ -201,7 +189,6 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var savedCrash = await dbContext.CrashReports.FindAsync(crashId!.Value);
 
         savedCrash.Should().NotBeNull();
-        savedCrash!.OccurrenceCount.Should().Be(submissionCount);
     }
 }
 
