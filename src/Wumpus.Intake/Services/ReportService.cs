@@ -23,8 +23,7 @@ public class ReportService
         {
             Id = Guid.NewGuid(),
             Timestamp = now,
-            GameVersion = request.GameVersion,
-            Platform = request.Platform,
+            Standard = request.Standard,
             Data = request.Data
         };
 
@@ -47,8 +46,7 @@ public class ReportService
         {
             Id = Guid.NewGuid(),
             Timestamp = now,
-            GameVersion = request.GameVersion,
-            Platform = request.Platform,
+            Standard = request.Standard,
             Data = request.Data
         };
 

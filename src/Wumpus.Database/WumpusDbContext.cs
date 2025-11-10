@@ -30,16 +30,37 @@ public class WumpusDbContext : DbContext
 
             // Indexes on common fields
             entity.HasIndex(e => e.Timestamp);
-            entity.HasIndex(e => e.GameVersion);
-            entity.HasIndex(e => e.Platform);
 
-            entity.Property(e => e.GameVersion)
-                .IsRequired()
-                .HasMaxLength(50);
+            // Configure Standard payload as owned type
+            entity.OwnsOne(e => e.Standard, owned =>
+            {
+                owned.Property(s => s.GameVersion)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-            entity.Property(e => e.Platform)
-                .IsRequired()
-                .HasMaxLength(50);
+                owned.Property(s => s.Platform)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                owned.Property(s => s.UserId)
+                    .IsRequired();
+
+                owned.Property(s => s.ComputerId)
+                    .IsRequired();
+
+                owned.Property(s => s.GameId)
+                    .IsRequired();
+
+                owned.Property(s => s.SequenceId)
+                    .IsRequired();
+
+                // Indexes on standard payload fields
+                owned.HasIndex(s => s.GameVersion);
+                owned.HasIndex(s => s.Platform);
+                owned.HasIndex(s => s.UserId);
+                owned.HasIndex(s => s.ComputerId);
+                owned.HasIndex(s => s.GameId);
+            });
         });
 
         // Configure Event entity - maps to Events table

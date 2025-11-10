@@ -28,6 +28,15 @@ public class WumpusClient : IDisposable
         if (string.IsNullOrWhiteSpace(options.Platform))
             throw new ArgumentException("Platform is required", nameof(options));
 
+        if (options.UserId == Guid.Empty)
+            throw new ArgumentException("UserId is required", nameof(options));
+
+        if (options.ComputerId == Guid.Empty)
+            throw new ArgumentException("ComputerId is required", nameof(options));
+
+        if (options.GameId == Guid.Empty)
+            throw new ArgumentException("GameId is required", nameof(options));
+
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(options.ServerUrl.TrimEnd('/')),
@@ -50,7 +59,7 @@ public class WumpusClient : IDisposable
     /// <summary>
     /// Sends a game event.
     /// </summary>
-    /// <param name="request">The event request (GameVersion and Platform will be set from client options)</param>
+    /// <param name="request">The event request (Standard payload will be set from client options)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if submission succeeded, false otherwise.</returns>
     public async Task<bool> SendEventAsync(
@@ -60,9 +69,16 @@ public class WumpusClient : IDisposable
         if (request == null)
             throw new ArgumentNullException(nameof(request));
 
-        // Set client options
-        request.GameVersion = _options.AppVersion;
-        request.Platform = _options.Platform;
+        // Set standard payload from client options
+        request.Standard = new Shared.Models.StandardPayload
+        {
+            GameVersion = _options.AppVersion,
+            Platform = _options.Platform,
+            UserId = _options.UserId,
+            ComputerId = _options.ComputerId,
+            GameId = _options.GameId,
+            SequenceId = Guid.NewGuid() // Generate unique sequence ID for each request
+        };
 
         return await SendRequestAsync("/api/v1/reports/event", request, cancellationToken);
     }
@@ -70,7 +86,7 @@ public class WumpusClient : IDisposable
     /// <summary>
     /// Sends an error report.
     /// </summary>
-    /// <param name="request">The error request (GameVersion and Platform will be set from client options)</param>
+    /// <param name="request">The error request (Standard payload will be set from client options)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if submission succeeded, false otherwise.</returns>
     public async Task<bool> SendErrorAsync(
@@ -80,9 +96,16 @@ public class WumpusClient : IDisposable
         if (request == null)
             throw new ArgumentNullException(nameof(request));
 
-        // Set client options
-        request.GameVersion = _options.AppVersion;
-        request.Platform = _options.Platform;
+        // Set standard payload from client options
+        request.Standard = new Shared.Models.StandardPayload
+        {
+            GameVersion = _options.AppVersion,
+            Platform = _options.Platform,
+            UserId = _options.UserId,
+            ComputerId = _options.ComputerId,
+            GameId = _options.GameId,
+            SequenceId = Guid.NewGuid() // Generate unique sequence ID for each request
+        };
 
         // Truncate message if needed
         if (request.Data.Message != null && request.Data.Message.Length > 2000)
@@ -107,6 +130,7 @@ public class WumpusClient : IDisposable
 
         var request = new SubmitErrorRequest
         {
+            Standard = new Shared.Models.StandardPayload(), // Will be set in SendErrorAsync
             Data = new Shared.Models.ErrorPayload
             {
                 Severity = Shared.Models.Severity.Fatal,

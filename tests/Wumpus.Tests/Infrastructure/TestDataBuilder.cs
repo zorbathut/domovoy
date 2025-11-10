@@ -17,12 +17,22 @@ public class TestDataBuilder
         string? exceptionType = null,
         string? message = null,
         string? stackTrace = null,
-        Severity? severity = null)
+        Severity? severity = null,
+        Guid? userId = null,
+        Guid? computerId = null,
+        Guid? gameId = null)
     {
         return new SubmitErrorRequest
         {
-            GameVersion = gameVersion ?? "1.0.0",
-            Platform = platform ?? "Windows",
+            Standard = new StandardPayload
+            {
+                GameVersion = gameVersion ?? "1.0.0",
+                Platform = platform ?? "Windows",
+                UserId = userId ?? Guid.NewGuid(),
+                ComputerId = computerId ?? Guid.NewGuid(),
+                GameId = gameId ?? Guid.NewGuid(),
+                SequenceId = Guid.NewGuid()
+            },
             Data = new ErrorPayload
             {
                 Severity = severity ?? Severity.Fatal,
@@ -63,8 +73,15 @@ public class TestDataBuilder
     {
         return new SubmitErrorRequest
         {
-            GameVersion = "",
-            Platform = "",
+            Standard = new StandardPayload
+            {
+                GameVersion = "",
+                Platform = "",
+                UserId = Guid.Empty,
+                ComputerId = Guid.Empty,
+                GameId = Guid.Empty,
+                SequenceId = Guid.Empty
+            },
             Data = new ErrorPayload
             {
                 Severity = Severity.Error,

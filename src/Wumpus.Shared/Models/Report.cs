@@ -9,10 +9,5 @@ public abstract class Report
     public ReportType ReportType { get; protected set; }
 
     [Required]
-    [MaxLength(50)]
-    public string GameVersion { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(50)]
-    public string Platform { get; set; } = string.Empty;
+    public StandardPayload Standard { get; set; } = new();
 }

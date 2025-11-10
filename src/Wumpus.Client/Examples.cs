@@ -16,7 +16,10 @@ public static class Examples
         {
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         using var client = new WumpusClient(options);
@@ -41,13 +44,17 @@ public static class Examples
         {
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         using var client = new WumpusClient(options);
 
         var errorRequest = new SubmitErrorRequest
         {
+            Standard = new Wumpus.Shared.Models.StandardPayload(), // Will be set by client
             Data = new Wumpus.Shared.Models.ErrorPayload
             {
                 Severity = Wumpus.Shared.Models.Severity.Error,
@@ -71,13 +78,17 @@ public static class Examples
         {
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         using var client = new WumpusClient(options);
 
         var eventRequest = new SubmitEventRequest
         {
+            Standard = new Wumpus.Shared.Models.StandardPayload(), // Will be set by client
             Data = new Wumpus.Shared.Models.EventPayload
             {
                 Name = "LevelCompleted",
@@ -106,7 +117,10 @@ public static class Examples
         {
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
-            Platform = "macOS"
+            Platform = "macOS",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         });
 
         try
@@ -123,6 +137,7 @@ public static class Examples
         // Fire and forget for events
         var eventRequest = new SubmitEventRequest
         {
+            Standard = new Wumpus.Shared.Models.StandardPayload(), // Will be set by client
             Data = new Wumpus.Shared.Models.EventPayload
             {
                 Name = "PlayerJoined",
@@ -141,7 +156,10 @@ public static class Examples
         {
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         });
 
         Exception[] exceptions =

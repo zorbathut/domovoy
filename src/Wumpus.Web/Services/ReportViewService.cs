@@ -72,7 +72,7 @@ public class ReportViewService
         var totalErrors = await _context.Errors.CountAsync();
 
         var platforms = await _context.Reports
-            .GroupBy(r => r.Platform)
+            .GroupBy(r => r.Standard.Platform)
             .Select(g => new { Platform = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Platform, x => x.Count);
 
@@ -109,10 +109,10 @@ public class ReportViewService
             query = query.Where(e => e.Data.UserId == userId);
 
         if (!string.IsNullOrEmpty(platform))
-            query = query.Where(e => e.Platform == platform);
+            query = query.Where(e => e.Standard.Platform == platform);
 
         if (!string.IsNullOrEmpty(gameVersion))
-            query = query.Where(e => e.GameVersion == gameVersion);
+            query = query.Where(e => e.Standard.GameVersion == gameVersion);
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);
@@ -139,10 +139,10 @@ public class ReportViewService
             query = query.Where(e => e.Data.Severity == severity.Value);
 
         if (!string.IsNullOrEmpty(platform))
-            query = query.Where(e => e.Platform == platform);
+            query = query.Where(e => e.Standard.Platform == platform);
 
         if (!string.IsNullOrEmpty(gameVersion))
-            query = query.Where(e => e.GameVersion == gameVersion);
+            query = query.Where(e => e.Standard.GameVersion == gameVersion);
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);

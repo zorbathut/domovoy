@@ -66,8 +66,15 @@ public class WebUiTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             Timestamp = DateTime.UtcNow,
-            GameVersion = "1.5.0",
-            Platform = "Windows",
+            Standard = new StandardPayload
+            {
+                GameVersion = "1.5.0",
+                Platform = "Windows",
+                UserId = Guid.NewGuid(),
+                ComputerId = Guid.NewGuid(),
+                GameId = Guid.NewGuid(),
+                SequenceId = Guid.NewGuid()
+            },
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
@@ -111,8 +118,15 @@ public class WebUiTests : IAsyncLifetime
         {
             Id = errorId,
             Timestamp = DateTime.UtcNow,
-            GameVersion = "2.0.0",
-            Platform = "Linux",
+            Standard = new StandardPayload
+            {
+                GameVersion = "2.0.0",
+                Platform = "Linux",
+                UserId = Guid.NewGuid(),
+                ComputerId = Guid.NewGuid(),
+                GameId = Guid.NewGuid(),
+                SequenceId = Guid.NewGuid()
+            },
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
@@ -168,8 +182,15 @@ public class WebUiTests : IAsyncLifetime
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                GameVersion = "1.0.0",
-                Platform = "Windows",
+                Standard = new StandardPayload
+                {
+                    GameVersion = "1.0.0",
+                    Platform = "Windows",
+                    UserId = Guid.NewGuid(),
+                    ComputerId = Guid.NewGuid(),
+                    GameId = Guid.NewGuid(),
+                    SequenceId = Guid.NewGuid()
+                },
                 Data = new ErrorPayload
                 {
                     Severity = Severity.Fatal,
@@ -182,8 +203,15 @@ public class WebUiTests : IAsyncLifetime
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                GameVersion = "1.0.0",
-                Platform = "Linux",
+                Standard = new StandardPayload
+                {
+                    GameVersion = "1.0.0",
+                    Platform = "Linux",
+                    UserId = Guid.NewGuid(),
+                    ComputerId = Guid.NewGuid(),
+                    GameId = Guid.NewGuid(),
+                    SequenceId = Guid.NewGuid()
+                },
                 Data = new ErrorPayload
                 {
                     Severity = Severity.Error,
@@ -196,8 +224,15 @@ public class WebUiTests : IAsyncLifetime
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                GameVersion = "2.0.0",
-                Platform = "macOS",
+                Standard = new StandardPayload
+                {
+                    GameVersion = "2.0.0",
+                    Platform = "macOS",
+                    UserId = Guid.NewGuid(),
+                    ComputerId = Guid.NewGuid(),
+                    GameId = Guid.NewGuid(),
+                    SequenceId = Guid.NewGuid()
+                },
                 Data = new ErrorPayload
                 {
                     Severity = Severity.Fatal,
@@ -236,8 +271,15 @@ public class WebUiTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             Timestamp = DateTime.UtcNow,
-            GameVersion = "1.0.0",
-            Platform = "Windows",
+            Standard = new StandardPayload
+            {
+                GameVersion = "1.0.0",
+                Platform = "Windows",
+                UserId = Guid.NewGuid(),
+                ComputerId = Guid.NewGuid(),
+                GameId = Guid.NewGuid(),
+                SequenceId = Guid.NewGuid()
+            },
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
@@ -270,8 +312,15 @@ public class WebUiTests : IAsyncLifetime
         {
             Id = errorId,
             Timestamp = DateTime.UtcNow,
-            GameVersion = "1.0.0",
-            Platform = "Windows",
+            Standard = new StandardPayload
+            {
+                GameVersion = "1.0.0",
+                Platform = "Windows",
+                UserId = Guid.NewGuid(),
+                ComputerId = Guid.NewGuid(),
+                GameId = Guid.NewGuid(),
+                SequenceId = Guid.NewGuid()
+            },
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
@@ -305,16 +354,30 @@ public class WebUiTests : IAsyncLifetime
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                GameVersion = "1.0.0",
-                Platform = "Windows",
+                Standard = new StandardPayload
+                {
+                    GameVersion = "1.0.0",
+                    Platform = "Windows",
+                    UserId = Guid.NewGuid(),
+                    ComputerId = Guid.NewGuid(),
+                    GameId = Guid.NewGuid(),
+                    SequenceId = Guid.NewGuid()
+                },
                 Data = new ErrorPayload { Severity = Severity.Fatal, ExceptionType = "E1", Message = "M1", StackTrace = "S1" }
             },
             new Error
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                GameVersion = "1.0.0",
-                Platform = "Linux",
+                Standard = new StandardPayload
+                {
+                    GameVersion = "1.0.0",
+                    Platform = "Linux",
+                    UserId = Guid.NewGuid(),
+                    ComputerId = Guid.NewGuid(),
+                    GameId = Guid.NewGuid(),
+                    SequenceId = Guid.NewGuid()
+                },
                 Data = new ErrorPayload { Severity = Severity.Error, ExceptionType = "E2", Message = "M2", StackTrace = "S2" }
             }
         };
@@ -326,6 +389,6 @@ public class WebUiTests : IAsyncLifetime
 
         // Assert
         results.Should().HaveCount(1);
-        results[0].Platform.Should().Be("Windows");
+        results[0].Standard.Platform.Should().Be("Windows");
     }
 }

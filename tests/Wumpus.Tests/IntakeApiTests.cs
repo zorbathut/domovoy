@@ -66,7 +66,7 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         await using var dbContext = _dbFixture.CreateDbContext();
         var savedError = await dbContext.Errors
-            .Where(e => e.GameVersion == "2.0.0" && e.Platform == "Linux")
+            .Where(e => e.Standard.GameVersion == "2.0.0" && e.Standard.Platform == "Linux")
             .FirstOrDefaultAsync();
 
         savedError.Should().NotBeNull();

@@ -49,8 +49,8 @@ public class ReportServiceTests : IAsyncLifetime
 
         var savedError = await _dbContext.Errors.FindAsync(errorId);
         savedError.Should().NotBeNull();
-        savedError!.GameVersion.Should().Be("1.0.0");
-        savedError.Platform.Should().Be("Windows");
+        savedError!.Standard.GameVersion.Should().Be("1.0.0");
+        savedError.Standard.Platform.Should().Be("Windows");
         savedError.Data.Severity.Should().Be(Severity.Fatal);
     }
 

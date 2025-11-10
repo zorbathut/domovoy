@@ -11,7 +11,7 @@ public class WumpusClientOptions
     public required string ServerUrl { get; set; }
 
     /// <summary>
-    /// The application version to include in crash reports.
+    /// The application version to include in reports.
     /// </summary>
     public required string AppVersion { get; set; }
 
@@ -19,6 +19,21 @@ public class WumpusClientOptions
     /// The platform identifier (e.g., "Windows", "Linux", "macOS", "Android", "iOS").
     /// </summary>
     public required string Platform { get; set; }
+
+    /// <summary>
+    /// Unique identifier for the user.
+    /// </summary>
+    public required Guid UserId { get; set; }
+
+    /// <summary>
+    /// Unique identifier for the computer/device.
+    /// </summary>
+    public required Guid ComputerId { get; set; }
+
+    /// <summary>
+    /// Unique identifier for the game instance.
+    /// </summary>
+    public required Guid GameId { get; set; }
 
     /// <summary>
     /// Timeout for HTTP requests in seconds. Default is 30 seconds.

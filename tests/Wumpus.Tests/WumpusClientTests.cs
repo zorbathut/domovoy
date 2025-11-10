@@ -42,7 +42,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             ServerUrl = _serverUrl,
             AppVersion = "1.5.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         var httpClient = _factory.CreateClient();
@@ -64,7 +67,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             ServerUrl = _serverUrl,
             AppVersion = "2.0.0",
-            Platform = "Linux"
+            Platform = "Linux",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         var httpClient = _factory.CreateClient();
@@ -79,7 +85,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         await using var dbContext = _dbFixture.CreateDbContext();
         var savedError = await dbContext.Errors
-            .Where(e => e.GameVersion == "2.0.0" && e.Platform == "Linux")
+            .Where(e => e.Standard.GameVersion == "2.0.0" && e.Standard.Platform == "Linux")
             .FirstOrDefaultAsync();
 
         savedError.Should().NotBeNull();
@@ -97,7 +103,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             ServerUrl = _serverUrl,
             AppVersion = "1.0.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         var httpClient = _factory.CreateClient();
@@ -146,7 +155,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             ServerUrl = "",
             AppVersion = "1.0.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         // Act & Assert
@@ -163,7 +175,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             ServerUrl = "http://localhost",
             AppVersion = "",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         // Act & Assert
@@ -180,7 +195,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             ServerUrl = "http://localhost",
             AppVersion = "1.0.0",
-            Platform = ""
+            Platform = "",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         // Act & Assert
@@ -197,7 +215,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             ServerUrl = _serverUrl,
             AppVersion = "1.0.0",
-            Platform = "Windows"
+            Platform = "Windows",
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid()
         };
 
         using var client = new WumpusClient(options);
