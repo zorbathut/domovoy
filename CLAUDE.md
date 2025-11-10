@@ -130,6 +130,8 @@ The test project includes several infrastructure components:
 3. The first test run will create the `wumpus_test` database automatically
 4. Each test class cleans up after itself, so tests can be run repeatedly
 
+**Note**: Tests are configured to run sequentially (not in parallel) via `xunit.runner.json` because they share a single test database. This ensures reliability but makes tests slightly slower (~2-4 seconds total).
+
 ## Architecture Details
 
 ### Service Communication

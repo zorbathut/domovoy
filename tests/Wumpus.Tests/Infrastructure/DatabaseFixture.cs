@@ -80,6 +80,13 @@ public class DatabaseFixture : IAsyncLifetime
             // If database doesn't exist, that's fine
             Console.WriteLine($"Note: Could not drop database (may not exist): {ex.Message}");
         }
+        finally
+        {
+            // Clear Npgsql connection pool to prevent reusing terminated connections
+            // This is critical because pg_terminate_backend() kills connections,
+            // but Npgsql's connection pool doesn't know they're dead
+            NpgsqlConnection.ClearAllPools();
+        }
     }
 
     private async Task CreateDatabaseAsync()
