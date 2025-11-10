@@ -27,8 +27,8 @@ public static class Examples
         }
         catch (Exception ex)
         {
-            var crashId = await client.SendCrashAsync(ex);
-            Console.WriteLine($"Crash reported with ID: {crashId}");
+            var success = await client.SendCrashAsync(ex);
+            Console.WriteLine($"Crash reported: {(success ? "Success" : "Failed")}");
         }
     }
 
@@ -55,8 +55,8 @@ public static class Examples
             Context = "Level 5 initialization"
         };
 
-        var errorId = await client.SendErrorAsync(errorRequest);
-        Console.WriteLine($"Error reported with ID: {errorId}");
+        var success = await client.SendErrorAsync(errorRequest);
+        Console.WriteLine($"Error reported: {(success ? "Success" : "Failed")}");
     }
 
     /// <summary>
@@ -87,8 +87,8 @@ public static class Examples
             }
         };
 
-        var eventId = await client.SendEventAsync(eventRequest);
-        Console.WriteLine($"Event reported with ID: {eventId}");
+        var success = await client.SendEventAsync(eventRequest);
+        Console.WriteLine($"Event reported: {(success ? "Success" : "Failed")}");
     }
 
     /// <summary>
@@ -144,11 +144,11 @@ public static class Examples
 
         // Send multiple reports concurrently
         var tasks = exceptions.Select(ex => client.SendCrashAsync(ex));
-        var crashIds = await Task.WhenAll(tasks);
+        var results = await Task.WhenAll(tasks);
 
-        foreach (var crashId in crashIds.Where(id => id.HasValue))
+        for (int i = 0; i < results.Length; i++)
         {
-            Console.WriteLine($"Crash reported: {crashId}");
+            Console.WriteLine($"Crash {i + 1}: {(results[i] ? "Success" : "Failed")}");
         }
     }
 

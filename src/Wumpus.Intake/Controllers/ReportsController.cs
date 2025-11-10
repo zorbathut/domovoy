@@ -22,13 +22,13 @@ public class ReportsController : ControllerBase
     {
         try
         {
-            var id = await _service.ProcessEventAsync(request);
-            return Accepted(new { id });
+            await _service.ProcessEventAsync(request);
+            return Accepted();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process event report");
-            return StatusCode(500, new { error = "Failed to process event report" });
+            return StatusCode(500);
         }
     }
 
@@ -37,13 +37,13 @@ public class ReportsController : ControllerBase
     {
         try
         {
-            var id = await _service.ProcessErrorAsync(request);
-            return Accepted(new { id });
+            await _service.ProcessErrorAsync(request);
+            return Accepted();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process error report");
-            return StatusCode(500, new { error = "Failed to process error report" });
+            return StatusCode(500);
         }
     }
 }

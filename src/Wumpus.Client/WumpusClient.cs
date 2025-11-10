@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using System.Text.Json;
 using Wumpus.Shared.DTOs;
 
 namespace Wumpus.Client;
@@ -53,8 +52,8 @@ public class WumpusClient : IDisposable
     /// </summary>
     /// <param name="request">The event request (GameVersion and Platform will be set from client options)</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The ID of the created event, or null if submission failed.</returns>
-    public async Task<Guid?> SendEventAsync(
+    /// <returns>True if submission succeeded, false otherwise.</returns>
+    public async Task<bool> SendEventAsync(
         SubmitEventRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -73,8 +72,8 @@ public class WumpusClient : IDisposable
     /// </summary>
     /// <param name="request">The error request (GameVersion and Platform will be set from client options)</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The ID of the created error, or null if submission failed.</returns>
-    public async Task<Guid?> SendErrorAsync(
+    /// <returns>True if submission succeeded, false otherwise.</returns>
+    public async Task<bool> SendErrorAsync(
         SubmitErrorRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -98,8 +97,8 @@ public class WumpusClient : IDisposable
     /// </summary>
     /// <param name="exception">The exception to report</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The ID of the created crash report, or null if submission failed.</returns>
-    public async Task<Guid?> SendCrashAsync(
+    /// <returns>True if submission succeeded, false otherwise.</returns>
+    public async Task<bool> SendCrashAsync(
         Exception exception,
         CancellationToken cancellationToken = default)
     {
@@ -174,7 +173,7 @@ public class WumpusClient : IDisposable
         });
     }
 
-    private async Task<Guid?> SendRequestAsync<T>(
+    private async Task<bool> SendRequestAsync<T>(
         string endpoint,
         T request,
         CancellationToken cancellationToken)
@@ -186,23 +185,12 @@ public class WumpusClient : IDisposable
                 request,
                 cancellationToken);
 
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                var result = JsonSerializer.Deserialize<JsonElement>(content);
-
-                if (result.TryGetProperty("id", out var idProperty))
-                {
-                    return Guid.Parse(idProperty.GetString()!);
-                }
-            }
-
-            return null;
+            return response.IsSuccessStatusCode;
         }
         catch
         {
             // Silently fail - we don't want reporting to crash the app
-            return null;
+            return false;
         }
     }
 

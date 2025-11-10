@@ -1,8 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Wumpus.Database;
 using Wumpus.Shared.DTOs;
 using Wumpus.Tests.Infrastructure;
@@ -36,15 +35,8 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         await _dbFixture.ClearReportsAsync();
     }
 
-    private static async Task<Guid> ExtractIdFromResponse(HttpResponseMessage response)
-    {
-        var json = await response.Content.ReadAsStringAsync();
-        var doc = JsonDocument.Parse(json);
-        return Guid.Parse(doc.RootElement.GetProperty("id").GetString()!);
-    }
-
     [Fact]
-    public async Task SubmitErrorReport_WithValidData_ReturnsAcceptedWithErrorId()
+    public async Task SubmitErrorReport_WithValidData_ReturnsAccepted()
     {
         // Arrange
         var errorReport = TestDataBuilder.CreateErrorReport();
@@ -54,9 +46,6 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
-
-        var errorId = await ExtractIdFromResponse(response);
-        errorId.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -71,16 +60,17 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         // Act
         var response = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport);
-        var errorId = await ExtractIdFromResponse(response);
 
         // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedError = await dbContext.Errors.FindAsync(errorId);
+        var savedError = await dbContext.Errors
+            .Where(e => e.GameVersion == "2.0.0" && e.Platform == "Linux")
+            .FirstOrDefaultAsync();
 
         savedError.Should().NotBeNull();
-        savedError!.GameVersion.Should().Be("2.0.0");
-        savedError.Platform.Should().Be("Linux");
-        savedError.Data.ExceptionType.Should().Be("System.InvalidOperationException");
+        savedError!.Data.ExceptionType.Should().Be("System.InvalidOperationException");
     }
 
     [Fact]
@@ -92,22 +82,17 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         // Act - Submit first error
         var response1 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport1);
-        var errorId1 = await ExtractIdFromResponse(response1);
+        response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         // Submit second error with same stack trace
         var response2 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport2);
-        var errorId2 = await ExtractIdFromResponse(response2);
+        response2.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         // Assert - Should create separate records even with identical stack traces
-        errorId1.Should().NotBe(errorId2);
-
-        // Verify two error reports exist
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedError1 = await dbContext.Errors.FindAsync(errorId1);
-        var savedError2 = await dbContext.Errors.FindAsync(errorId2);
+        var errorCount = await dbContext.Errors.CountAsync();
 
-        savedError1.Should().NotBeNull();
-        savedError2.Should().NotBeNull();
+        errorCount.Should().Be(2);
     }
 
     [Fact]
@@ -119,20 +104,16 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         // Act
         var response1 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport1);
-        var errorId1 = await ExtractIdFromResponse(response1);
+        response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         var response2 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport2);
-        var errorId2 = await ExtractIdFromResponse(response2);
+        response2.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         // Assert - Should create two different error reports
-        errorId1.Should().NotBe(errorId2);
-
         await using var dbContext = _dbFixture.CreateDbContext();
-        var error1 = await dbContext.Errors.FindAsync(errorId1);
-        var error2 = await dbContext.Errors.FindAsync(errorId2);
+        var errorCount = await dbContext.Errors.CountAsync();
 
-        error1.Should().NotBeNull();
-        error2.Should().NotBeNull();
+        errorCount.Should().Be(2);
     }
 
     [Fact]
@@ -169,25 +150,17 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         const int submissionCount = 5;
 
         // Act - Submit the same error 5 times
-        var errorIds = new List<Guid>();
         for (int i = 0; i < submissionCount; i++)
         {
             var response = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport);
-            var currentErrorId = await ExtractIdFromResponse(response);
-            errorIds.Add(currentErrorId);
+            response.StatusCode.Should().Be(HttpStatusCode.Accepted);
         }
 
-        // Assert - All IDs should be unique
-        errorIds.Should().OnlyHaveUniqueItems("Each submission should create a new error report");
-        errorIds.Should().HaveCount(submissionCount);
-
-        // Verify all error reports exist in database
+        // Assert - Should have created 5 separate records
         await using var dbContext = _dbFixture.CreateDbContext();
-        foreach (var errorId in errorIds)
-        {
-            var savedError = await dbContext.Errors.FindAsync(errorId);
-            savedError.Should().NotBeNull();
-        }
+        var errorCount = await dbContext.Errors.CountAsync();
+
+        errorCount.Should().Be(submissionCount);
     }
 }
 
