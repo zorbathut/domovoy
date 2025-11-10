@@ -127,7 +127,7 @@ public class ReportViewService
 
     // Filter errors
     public async Task<List<Error>> FilterErrorsAsync(
-        string? severity = null,
+        Severity? severity = null,
         string? platform = null,
         string? gameVersion = null,
         DateTime? startDate = null,
@@ -135,8 +135,8 @@ public class ReportViewService
     {
         var query = _context.Errors.AsQueryable();
 
-        if (!string.IsNullOrEmpty(severity))
-            query = query.Where(e => e.Data.Severity == severity);
+        if (severity.HasValue)
+            query = query.Where(e => e.Data.Severity == severity.Value);
 
         if (!string.IsNullOrEmpty(platform))
             query = query.Where(e => e.Platform == platform);

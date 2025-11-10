@@ -17,7 +17,7 @@ public class TestDataBuilder
         string? exceptionType = null,
         string? message = null,
         string? stackTrace = null,
-        string? severity = null)
+        Severity? severity = null)
     {
         return new SubmitErrorRequest
         {
@@ -25,7 +25,7 @@ public class TestDataBuilder
             Platform = platform ?? "Windows",
             Data = new ErrorPayload
             {
-                Severity = severity ?? "Fatal",
+                Severity = severity ?? Severity.Fatal,
                 ExceptionType = exceptionType ?? "System.NullReferenceException",
                 Message = message ?? "Object reference not set to an instance of an object.",
                 StackTrace = stackTrace ?? CreateDefaultStackTrace()
@@ -57,6 +57,7 @@ public class TestDataBuilder
 
     /// <summary>
     /// Creates an error report with invalid data (empty required fields).
+    /// Note: Severity is always valid since it's an enum.
     /// </summary>
     public static SubmitErrorRequest CreateInvalidErrorReport()
     {
@@ -66,7 +67,7 @@ public class TestDataBuilder
             Platform = "",
             Data = new ErrorPayload
             {
-                Severity = "",
+                Severity = Severity.Error,
                 Message = ""
             }
         };

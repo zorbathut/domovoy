@@ -109,7 +109,7 @@ public class WumpusClient : IDisposable
         {
             Data = new Shared.Models.ErrorPayload
             {
-                Severity = "Fatal",
+                Severity = Shared.Models.Severity.Fatal,
                 Message = exception.Message,
                 ExceptionType = exception.GetType().FullName ?? exception.GetType().Name,
                 StackTrace = exception.ToString()

@@ -50,7 +50,7 @@ public static class Examples
         {
             Data = new Wumpus.Shared.Models.ErrorPayload
             {
-                Severity = "Error",
+                Severity = Wumpus.Shared.Models.Severity.Error,
                 Code = "TEX001",
                 Message = "Failed to load texture",
                 ExceptionType = "TextureLoadException",

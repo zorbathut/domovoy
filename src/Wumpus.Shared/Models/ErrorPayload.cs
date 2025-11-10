@@ -9,8 +9,7 @@ namespace Wumpus.Shared.Models;
 public class ErrorPayload
 {
     [Required]
-    [MaxLength(20)]
-    public string Severity { get; set; } = "Error";
+    public Severity Severity { get; set; } = Severity.Error;
 
     [MaxLength(100)]
     public string? Code { get; set; }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wumpus.Database;
 using Wumpus.Intake.Services;
+using Wumpus.Shared.Models;
 using Wumpus.Tests.Infrastructure;
 using Xunit;
 
@@ -50,7 +51,7 @@ public class ReportServiceTests : IAsyncLifetime
         savedError.Should().NotBeNull();
         savedError!.GameVersion.Should().Be("1.0.0");
         savedError.Platform.Should().Be("Windows");
-        savedError.Data.Severity.Should().Be("Fatal");
+        savedError.Data.Severity.Should().Be(Severity.Fatal);
     }
 
     [Fact]

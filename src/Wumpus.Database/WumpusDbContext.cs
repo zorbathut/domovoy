@@ -80,6 +80,7 @@ public class WumpusDbContext : DbContext
             {
                 owned.Property(d => d.Severity)
                     .IsRequired()
+                    .HasConversion<string>()
                     .HasMaxLength(20);
 
                 owned.Property(d => d.Code)
