@@ -20,15 +20,10 @@ public class WumpusDbContext : DbContext
         modelBuilder.Entity<CrashReport>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.StackTraceHash);
             entity.HasIndex(e => e.Timestamp);
 
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.StackTraceHash)
-                .IsRequired()
-                .HasMaxLength(64);
 
             // Configure Core as owned entity (value object)
             entity.OwnsOne(e => e.Core, ownedBuilder =>

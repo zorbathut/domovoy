@@ -90,7 +90,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
 
     [Fact]
-    public async Task SendCrashReportAsync_SameExceptionTwice_Deduplicates()
+    public async Task SendCrashReportAsync_SameExceptionTwice_CreatesNewRecords()
     {
         // Arrange
         var options = new WumpusClientOptions
@@ -107,7 +107,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         Exception? capturedException = null;
         try
         {
-            throw new InvalidOperationException("Deduplication test");
+            throw new InvalidOperationException("Test exception");
         }
         catch (Exception ex)
         {
@@ -118,13 +118,17 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var crashId1 = await client.SendCrashReportAsync(capturedException!);
         var crashId2 = await client.SendCrashReportAsync(capturedException!);
 
-        // Assert - Should return the same crash ID
-        crashId1.Should().Be(crashId2);
+        // Assert - Should create separate records even with identical exceptions
+        crashId1.Should().NotBeNull();
+        crashId2.Should().NotBeNull();
+        crashId1.Should().NotBe(crashId2.Value);
 
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedCrash = await dbContext.CrashReports.FindAsync(crashId1!.Value);
+        var savedCrash1 = await dbContext.CrashReports.FindAsync(crashId1!.Value);
+        var savedCrash2 = await dbContext.CrashReports.FindAsync(crashId2!.Value);
 
-        savedCrash.Should().NotBeNull();
+        savedCrash1.Should().NotBeNull();
+        savedCrash2.Should().NotBeNull();
     }
 
     [Fact]

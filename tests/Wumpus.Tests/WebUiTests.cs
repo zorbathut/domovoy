@@ -74,8 +74,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionType = "System.NullReferenceException",
                 ExceptionMessage = "Object reference not set",
                 StackTrace = "at Game.Player.Move()"
-            },
-            StackTraceHash = "testhash"
+            }
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -119,8 +118,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionType = "System.ArgumentException",
                 ExceptionMessage = "Invalid argument provided",
                 StackTrace = "at Game.Combat.Attack()\nat Game.Player.DoAction()"
-            },
-            StackTraceHash = "detailhash"
+            }
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -176,8 +174,7 @@ public class WebUiTests : IAsyncLifetime
                     ExceptionType = "System.NullReferenceException",
                     ExceptionMessage = "Null ref 1",
                     StackTrace = "stack1"
-                },
-                StackTraceHash = "hash1"
+                }
             },
             new CrashReport
             {
@@ -190,8 +187,7 @@ public class WebUiTests : IAsyncLifetime
                     ExceptionType = "System.ArgumentException",
                     ExceptionMessage = "Arg exception",
                     StackTrace = "stack2"
-                },
-                StackTraceHash = "hash2"
+                }
             },
             new CrashReport
             {
@@ -204,8 +200,7 @@ public class WebUiTests : IAsyncLifetime
                     ExceptionType = "System.InvalidOperationException",
                     ExceptionMessage = "Invalid op",
                     StackTrace = "stack3"
-                },
-                StackTraceHash = "hash3"
+                }
             }
         };
 
@@ -244,8 +239,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionType = "Test.Exception",
                 ExceptionMessage = "Test message",
                 StackTrace = "Test stack"
-            },
-            StackTraceHash = "testhash"
+            }
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -278,8 +272,7 @@ public class WebUiTests : IAsyncLifetime
                 ExceptionType = "Test.Exception",
                 ExceptionMessage = "Test message",
                 StackTrace = "Test stack"
-            },
-            StackTraceHash = "testhash"
+            }
         };
         dbContext.CrashReports.Add(crash);
         await dbContext.SaveChangesAsync();
@@ -306,15 +299,13 @@ public class WebUiTests : IAsyncLifetime
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Windows", ExceptionType = "E1", ExceptionMessage = "M1", StackTrace = "S1" },
-                StackTraceHash = "h1"
+                Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Windows", ExceptionType = "E1", ExceptionMessage = "M1", StackTrace = "S1" }
             },
             new CrashReport
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Linux", ExceptionType = "E2", ExceptionMessage = "M2", StackTrace = "S2" },
-                StackTraceHash = "h2"
+                Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Linux", ExceptionType = "E2", ExceptionMessage = "M2", StackTrace = "S2" }
             }
         };
         dbContext.CrashReports.AddRange(crashes);

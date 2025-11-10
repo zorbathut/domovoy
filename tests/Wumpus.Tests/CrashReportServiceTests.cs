@@ -10,7 +10,7 @@ namespace Wumpus.Tests;
 
 /// <summary>
 /// Integration tests for the CrashReportService.
-/// Tests the core deduplication logic, hashing algorithm, and database operations.
+/// Tests crash report creation and database operations.
 /// </summary>
 [Collection("Database")]
 public class CrashReportServiceTests : IAsyncLifetime
@@ -53,7 +53,7 @@ public class CrashReportServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ProcessCrashReportAsync_DuplicateCrash_UpdatesExistingRecord()
+    public async Task ProcessCrashReportAsync_DuplicateCrash_CreatesNewRecord()
     {
         // Arrange
         var request1 = TestDataBuilder.CreateCrashReport();
@@ -65,11 +65,14 @@ public class CrashReportServiceTests : IAsyncLifetime
         // Process duplicate crash
         var crashId2 = await _service.ProcessCrashReportAsync(request2);
 
-        // Assert - Should return the same crash ID
-        crashId2.Should().Be(crashId1);
+        // Assert - Should create separate records even with identical crashes
+        crashId2.Should().NotBe(crashId1);
 
-        var savedCrash = await _dbContext.CrashReports.FindAsync(crashId1);
-        savedCrash.Should().NotBeNull();
+        var savedCrash1 = await _dbContext.CrashReports.FindAsync(crashId1);
+        var savedCrash2 = await _dbContext.CrashReports.FindAsync(crashId2);
+
+        savedCrash1.Should().NotBeNull();
+        savedCrash2.Should().NotBeNull();
     }
 
     [Fact]
@@ -91,67 +94,5 @@ public class CrashReportServiceTests : IAsyncLifetime
 
         crash1.Should().NotBeNull();
         crash2.Should().NotBeNull();
-        crash1!.StackTraceHash.Should().NotBe(crash2!.StackTraceHash);
     }
-
-    [Fact]
-    public async Task ProcessCrashReportAsync_StackTraceHashing_UsesFirst5Frames()
-    {
-        // Arrange - Two stack traces with same first 5 frames but different later frames
-        var stackTrace1 = @"   at Game.Player.PlayerController.Move(Vector3 direction) in C:\Game\Player\PlayerController.cs:line 42
-   at Game.Player.PlayerInputHandler.HandleInput() in C:\Game\Player\PlayerInputHandler.cs:line 78
-   at Game.Core.GameLoop.Update() in C:\Game\Core\GameLoop.cs:line 120
-   at Game.Core.GameLoop.Run() in C:\Game\Core\GameLoop.cs:line 55
-   at Game.Program.Main(String[] args) in C:\Game\Program.cs:line 18
-   at System.AppDomain.ExecuteAssembly(String assemblyFile)
-   at Microsoft.VisualStudio.HostingProcess.HostProc.RunUsersAssembly()";
-
-        var stackTrace2 = @"   at Game.Player.PlayerController.Move(Vector3 direction) in C:\Game\Player\PlayerController.cs:line 42
-   at Game.Player.PlayerInputHandler.HandleInput() in C:\Game\Player\PlayerInputHandler.cs:line 78
-   at Game.Core.GameLoop.Update() in C:\Game\Core\GameLoop.cs:line 120
-   at Game.Core.GameLoop.Run() in C:\Game\Core\GameLoop.cs:line 55
-   at Game.Program.Main(String[] args) in C:\Game\Program.cs:line 18
-   at DifferentNamespace.DifferentMethod()
-   at AnotherNamespace.AnotherMethod()";
-
-        var request1 = TestDataBuilder.CreateCrashReportWithStackTrace(stackTrace1);
-        var request2 = TestDataBuilder.CreateCrashReportWithStackTrace(stackTrace2);
-
-        // Act
-        var crashId1 = await _service.ProcessCrashReportAsync(request1);
-        var crashId2 = await _service.ProcessCrashReportAsync(request2);
-
-        // Assert - Should deduplicate because first 5 frames are identical
-        crashId1.Should().Be(crashId2, "Crashes with same first 5 frames should deduplicate");
-
-        var savedCrash = await _dbContext.CrashReports.FindAsync(crashId1);
-        savedCrash.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task ProcessCrashReportAsync_DifferentFirst5Frames_CreatesSeparateRecords()
-    {
-        // Arrange - Stack traces with different first frame
-        var stackTrace1 = @"   at Game.Player.PlayerController.Move(Vector3 direction) in C:\Game\Player\PlayerController.cs:line 42
-   at Game.Player.PlayerInputHandler.HandleInput() in C:\Game\Player\PlayerInputHandler.cs:line 78";
-
-        var stackTrace2 = @"   at Game.Enemy.EnemyController.Attack(Player target) in C:\Game\Enemy\EnemyController.cs:line 100
-   at Game.Player.PlayerInputHandler.HandleInput() in C:\Game\Player\PlayerInputHandler.cs:line 78";
-
-        var request1 = TestDataBuilder.CreateCrashReportWithStackTrace(stackTrace1);
-        var request2 = TestDataBuilder.CreateCrashReportWithStackTrace(stackTrace2);
-
-        // Act
-        var crashId1 = await _service.ProcessCrashReportAsync(request1);
-        var crashId2 = await _service.ProcessCrashReportAsync(request2);
-
-        // Assert - Should create separate records
-        crashId1.Should().NotBe(crashId2);
-
-        var crash1 = await _dbContext.CrashReports.FindAsync(crashId1);
-        var crash2 = await _dbContext.CrashReports.FindAsync(crashId2);
-
-        crash1!.StackTraceHash.Should().NotBe(crash2!.StackTraceHash);
-    }
-
 }

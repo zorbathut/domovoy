@@ -12,7 +12,7 @@ namespace Wumpus.Tests;
 
 /// <summary>
 /// Integration tests for the Wumpus Intake API endpoints.
-/// Tests the HTTP API, database persistence, and deduplication logic.
+/// Tests the HTTP API and database persistence.
 /// </summary>
 [Collection("Database")]
 public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
@@ -84,7 +84,7 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public async Task SubmitCrashReport_WithSameStackTrace_DeduplicatesAndIncrementsCount()
+    public async Task SubmitCrashReport_WithSameStackTrace_CreatesNewRecords()
     {
         // Arrange
         var crashReport1 = TestDataBuilder.CreateCrashReport();
@@ -98,14 +98,16 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var response2 = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport2);
         var crashId2 = await ExtractCrashIdFromResponse(response2);
 
-        // Assert - Both should return the same crash ID
-        crashId1.Should().Be(crashId2);
+        // Assert - Should create separate records even with identical stack traces
+        crashId1.Should().NotBe(crashId2);
 
-        // Verify only one crash report exists
+        // Verify two crash reports exist
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedCrash = await dbContext.CrashReports.FindAsync(crashId1);
+        var savedCrash1 = await dbContext.CrashReports.FindAsync(crashId1);
+        var savedCrash2 = await dbContext.CrashReports.FindAsync(crashId2);
 
-        savedCrash.Should().NotBeNull();
+        savedCrash1.Should().NotBeNull();
+        savedCrash2.Should().NotBeNull();
     }
 
     [Fact]
@@ -131,7 +133,6 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         crash1.Should().NotBeNull();
         crash2.Should().NotBeNull();
-        crash1!.StackTraceHash.Should().NotBe(crash2!.StackTraceHash);
     }
 
     [Fact]
@@ -161,34 +162,32 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public async Task SubmitCrashReport_MultipleIdenticalCrashes_IncrementsCountCorrectly()
+    public async Task SubmitCrashReport_MultipleIdenticalCrashes_CreatesMultipleRecords()
     {
         // Arrange
         var crashReport = TestDataBuilder.CreateCrashReport();
         const int submissionCount = 5;
 
         // Act - Submit the same crash 5 times
-        Guid? crashId = null;
+        var crashIds = new List<Guid>();
         for (int i = 0; i < submissionCount; i++)
         {
             var response = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport);
             var currentCrashId = await ExtractCrashIdFromResponse(response);
-
-            if (crashId == null)
-            {
-                crashId = currentCrashId;
-            }
-            else
-            {
-                currentCrashId.Should().Be(crashId.Value, "All submissions should deduplicate to the same crash");
-            }
+            crashIds.Add(currentCrashId);
         }
 
-        // Assert
-        await using var dbContext = _dbFixture.CreateDbContext();
-        var savedCrash = await dbContext.CrashReports.FindAsync(crashId!.Value);
+        // Assert - All IDs should be unique
+        crashIds.Should().OnlyHaveUniqueItems("Each submission should create a new crash report");
+        crashIds.Should().HaveCount(submissionCount);
 
-        savedCrash.Should().NotBeNull();
+        // Verify all crash reports exist in database
+        await using var dbContext = _dbFixture.CreateDbContext();
+        foreach (var crashId in crashIds)
+        {
+            var savedCrash = await dbContext.CrashReports.FindAsync(crashId);
+            savedCrash.Should().NotBeNull();
+        }
     }
 }
 
