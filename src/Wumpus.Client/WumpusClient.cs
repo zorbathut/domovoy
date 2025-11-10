@@ -74,6 +74,7 @@ public class WumpusClient : IDisposable
         {
             GameVersion = _options.AppVersion,
             Platform = _options.Platform,
+            Environment = _options.Environment,
             UserId = _options.UserId,
             ComputerId = _options.ComputerId,
             GameId = _options.GameId,
@@ -101,6 +102,7 @@ public class WumpusClient : IDisposable
         {
             GameVersion = _options.AppVersion,
             Platform = _options.Platform,
+            Environment = _options.Environment,
             UserId = _options.UserId,
             ComputerId = _options.ComputerId,
             GameId = _options.GameId,

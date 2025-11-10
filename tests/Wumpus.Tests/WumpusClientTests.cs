@@ -43,6 +43,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             ServerUrl = _serverUrl,
             AppVersion = "1.5.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -68,6 +69,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             ServerUrl = _serverUrl,
             AppVersion = "2.0.0",
             Platform = "Linux",
+            Environment = Wumpus.Shared.Models.Environment.Release,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -104,6 +106,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             ServerUrl = _serverUrl,
             AppVersion = "1.0.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -156,6 +159,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             ServerUrl = "",
             AppVersion = "1.0.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -176,6 +180,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             ServerUrl = "http://localhost",
             AppVersion = "",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -196,6 +201,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             ServerUrl = "http://localhost",
             AppVersion = "1.0.0",
             Platform = "",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -216,6 +222,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             ServerUrl = _serverUrl,
             AppVersion = "1.0.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()

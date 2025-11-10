@@ -17,6 +17,7 @@ public static class Examples
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -45,6 +46,7 @@ public static class Examples
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -78,6 +80,7 @@ public static class Examples
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -117,6 +120,7 @@ public static class Examples
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
             Platform = "macOS",
+            Environment = Wumpus.Shared.Models.Environment.Release,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()
@@ -156,6 +160,7 @@ public static class Examples
             ServerUrl = "http://localhost:5000",
             AppVersion = "1.0.0",
             Platform = "Windows",
+            Environment = Wumpus.Shared.Models.Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
             GameId = Guid.NewGuid()

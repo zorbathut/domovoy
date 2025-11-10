@@ -7,6 +7,7 @@ using Wumpus.Tests.Infrastructure;
 using Wumpus.Web.Pages;
 using Wumpus.Web.Services;
 using Xunit;
+using Environment = Wumpus.Shared.Models.Environment;
 
 namespace Wumpus.Tests;
 
@@ -70,6 +71,7 @@ public class WebUiTests : IAsyncLifetime
             {
                 GameVersion = "1.5.0",
                 Platform = "Windows",
+                Environment = Environment.Dev,
                 UserId = Guid.NewGuid(),
                 ComputerId = Guid.NewGuid(),
                 GameId = Guid.NewGuid(),
@@ -122,6 +124,7 @@ public class WebUiTests : IAsyncLifetime
             {
                 GameVersion = "2.0.0",
                 Platform = "Linux",
+                Environment = Environment.Release,
                 UserId = Guid.NewGuid(),
                 ComputerId = Guid.NewGuid(),
                 GameId = Guid.NewGuid(),
@@ -185,6 +188,7 @@ public class WebUiTests : IAsyncLifetime
                 {
                     GameVersion = "1.0.0",
                     Platform = "Windows",
+                    Environment = Environment.Dev,
                     UserId = Guid.NewGuid(),
                     ComputerId = Guid.NewGuid(),
                     GameId = Guid.NewGuid(),
@@ -206,6 +210,7 @@ public class WebUiTests : IAsyncLifetime
                 {
                     GameVersion = "1.0.0",
                     Platform = "Linux",
+                    Environment = Environment.Dev,
                     UserId = Guid.NewGuid(),
                     ComputerId = Guid.NewGuid(),
                     GameId = Guid.NewGuid(),
@@ -227,6 +232,7 @@ public class WebUiTests : IAsyncLifetime
                 {
                     GameVersion = "2.0.0",
                     Platform = "macOS",
+                    Environment = Environment.Release,
                     UserId = Guid.NewGuid(),
                     ComputerId = Guid.NewGuid(),
                     GameId = Guid.NewGuid(),
@@ -357,6 +363,7 @@ public class WebUiTests : IAsyncLifetime
                 {
                     GameVersion = "1.0.0",
                     Platform = "Windows",
+                    Environment = Environment.Dev,
                     UserId = Guid.NewGuid(),
                     ComputerId = Guid.NewGuid(),
                     GameId = Guid.NewGuid(),
@@ -372,6 +379,7 @@ public class WebUiTests : IAsyncLifetime
                 {
                     GameVersion = "1.0.0",
                     Platform = "Linux",
+                    Environment = Environment.Dev,
                     UserId = Guid.NewGuid(),
                     ComputerId = Guid.NewGuid(),
                     GameId = Guid.NewGuid(),

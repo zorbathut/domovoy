@@ -42,6 +42,11 @@ public class WumpusDbContext : DbContext
                     .IsRequired()
                     .HasMaxLength(50);
 
+                owned.Property(s => s.Environment)
+                    .IsRequired()
+                    .HasConversion<string>()
+                    .HasMaxLength(20);
+
                 owned.Property(s => s.UserId)
                     .IsRequired();
 
@@ -57,6 +62,7 @@ public class WumpusDbContext : DbContext
                 // Indexes on standard payload fields
                 owned.HasIndex(s => s.GameVersion);
                 owned.HasIndex(s => s.Platform);
+                owned.HasIndex(s => s.Environment);
                 owned.HasIndex(s => s.UserId);
                 owned.HasIndex(s => s.ComputerId);
                 owned.HasIndex(s => s.GameId);

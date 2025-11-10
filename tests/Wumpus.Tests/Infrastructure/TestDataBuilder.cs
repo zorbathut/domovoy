@@ -18,6 +18,7 @@ public class TestDataBuilder
         string? stackTrace = null,
         string? log = null,
         Severity? severity = null,
+        Wumpus.Shared.Models.Environment? environment = null,
         Guid? userId = null,
         Guid? computerId = null,
         Guid? gameId = null)
@@ -28,6 +29,7 @@ public class TestDataBuilder
             {
                 GameVersion = gameVersion ?? "1.0.0",
                 Platform = platform ?? "Windows",
+                Environment = environment ?? Wumpus.Shared.Models.Environment.Dev,
                 UserId = userId ?? Guid.NewGuid(),
                 ComputerId = computerId ?? Guid.NewGuid(),
                 GameId = gameId ?? Guid.NewGuid(),
@@ -79,6 +81,7 @@ public class TestDataBuilder
             {
                 GameVersion = "",
                 Platform = "",
+                Environment = Wumpus.Shared.Models.Environment.Dev,
                 UserId = Guid.Empty,
                 ComputerId = Guid.Empty,
                 GameId = Guid.Empty,

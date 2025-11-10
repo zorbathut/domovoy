@@ -14,6 +14,8 @@ public class StandardPayload
     [Required]
     [MaxLength(50)]
     public string Platform { get; set; } = string.Empty;
+    
+    public Environment Environment { get; set; }
 
     public Guid UserId { get; set; }
 

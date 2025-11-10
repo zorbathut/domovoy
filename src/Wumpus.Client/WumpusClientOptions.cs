@@ -21,6 +21,11 @@ public class WumpusClientOptions
     public required string Platform { get; set; }
 
     /// <summary>
+    /// The build environment (Dev or Release).
+    /// </summary>
+    public required Shared.Models.Environment Environment { get; set; }
+
+    /// <summary>
     /// Unique identifier for the user.
     /// </summary>
     public required Guid UserId { get; set; }
