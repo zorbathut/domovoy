@@ -16,9 +16,13 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Add DbContext
+// Add DbContext with Npgsql dynamic JSON support
+var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
+dataSourceBuilder.EnableDynamicJson();
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<WumpusDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(dataSource));
 
 // Add application services
 builder.Services.AddScoped<ReportService>();

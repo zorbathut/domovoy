@@ -27,10 +27,14 @@ public class IntakeApiFactory : WebApplicationFactory<Wumpus.Intake.Program>
                 services.Remove(descriptor);
             }
 
-            // Add DbContext with test database connection string
+            // Add DbContext with test database connection string and dynamic JSON support
+            var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(TestConnectionString);
+            dataSourceBuilder.EnableDynamicJson();
+            var dataSource = dataSourceBuilder.Build();
+
             services.AddDbContext<WumpusDbContext>(options =>
             {
-                options.UseNpgsql(TestConnectionString);
+                options.UseNpgsql(dataSource);
             });
 
             // Build service provider and ensure database is created and migrated

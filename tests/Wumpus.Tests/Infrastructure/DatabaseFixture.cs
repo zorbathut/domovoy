@@ -14,6 +14,13 @@ public class DatabaseFixture : IAsyncLifetime
     private const string TestConnectionString = "Host=localhost;Database=wumpus_test;Username=wumpus;Password=wumpus";
     private const string AdminConnectionString = "Host=localhost;Database=postgres;Username=wumpus;Password=wumpus";
 
+    private static NpgsqlDataSource CreateDataSource()
+    {
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(TestConnectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        return dataSourceBuilder.Build();
+    }
+
     public async Task InitializeAsync()
     {
         // Drop and recreate the test database to ensure clean state
@@ -34,8 +41,9 @@ public class DatabaseFixture : IAsyncLifetime
     /// </summary>
     public async Task ClearReportsAsync()
     {
+        await using var dataSource = CreateDataSource();
         var options = new DbContextOptionsBuilder<WumpusDbContext>()
-            .UseNpgsql(TestConnectionString)
+            .UseNpgsql(dataSource)
             .Options;
 
         await using var context = new WumpusDbContext(options);
@@ -48,8 +56,9 @@ public class DatabaseFixture : IAsyncLifetime
     /// </summary>
     public WumpusDbContext CreateDbContext()
     {
+        var dataSource = CreateDataSource();
         var options = new DbContextOptionsBuilder<WumpusDbContext>()
-            .UseNpgsql(TestConnectionString)
+            .UseNpgsql(dataSource)
             .Options;
 
         return new WumpusDbContext(options);
@@ -100,8 +109,9 @@ public class DatabaseFixture : IAsyncLifetime
 
     private async Task RunMigrationsAsync()
     {
+        await using var dataSource = CreateDataSource();
         var options = new DbContextOptionsBuilder<WumpusDbContext>()
-            .UseNpgsql(TestConnectionString)
+            .UseNpgsql(dataSource)
             .Options;
 
         await using var context = new WumpusDbContext(options);

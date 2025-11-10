@@ -27,10 +27,14 @@ public class WebUiFactory : WebApplicationFactory<Wumpus.Web.Program>
                 services.Remove(descriptor);
             }
 
-            // Add DbContext with test database connection string
+            // Add DbContext with test database connection string and dynamic JSON support
+            var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(TestConnectionString);
+            dataSourceBuilder.EnableDynamicJson();
+            var dataSource = dataSourceBuilder.Build();
+
             services.AddDbContext<WumpusDbContext>(options =>
             {
-                options.UseNpgsql(TestConnectionString);
+                options.UseNpgsql(dataSource);
             });
         });
 
