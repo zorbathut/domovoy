@@ -11,17 +11,12 @@ public class ErrorPayload
     [Required]
     public Severity Severity { get; set; } = Severity.Error;
 
-    [MaxLength(100)]
-    public string? Code { get; set; }
-
     [Required]
-    [MaxLength(2000)]
     public required string Message { get; set; }
 
-    [MaxLength(500)]
-    public string? ExceptionType { get; set; }
-
-    public string? StackTrace { get; set; }
-
-    public string? Context { get; set; }
+    [Required]
+    public required string StackTrace { get; set; }
+    
+    [Required]
+    public required string Log { get; set; }
 }

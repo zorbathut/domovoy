@@ -104,20 +104,16 @@ public class WumpusDbContext : DbContext
                     .HasConversion<string>()
                     .HasMaxLength(20);
 
-                owned.Property(d => d.Code)
-                    .HasMaxLength(100);
-
                 owned.Property(d => d.Message)
                     .IsRequired()
                     .HasMaxLength(2000);
 
-                owned.Property(d => d.ExceptionType)
-                    .HasMaxLength(500);
-
                 owned.Property(d => d.StackTrace)
+                    .IsRequired()
                     .HasColumnType("text");
 
-                owned.Property(d => d.Context)
+                owned.Property(d => d.Log)
+                    .IsRequired()
                     .HasColumnType("text");
 
                 // Index for Severity (no filter needed - Errors table only has errors)

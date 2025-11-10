@@ -55,7 +55,7 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var errorReport = TestDataBuilder.CreateErrorReport(
             gameVersion: "2.0.0",
             platform: "Linux",
-            exceptionType: "System.InvalidOperationException"
+            message: "Invalid operation occurred"
         );
 
         // Act
@@ -70,7 +70,7 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             .FirstOrDefaultAsync();
 
         savedError.Should().NotBeNull();
-        savedError!.Data.ExceptionType.Should().Be("System.InvalidOperationException");
+        savedError!.Data.Message.Should().Be("Invalid operation occurred");
     }
 
     [Fact]

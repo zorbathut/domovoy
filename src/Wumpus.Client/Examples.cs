@@ -58,10 +58,9 @@ public static class Examples
             Data = new Wumpus.Shared.Models.ErrorPayload
             {
                 Severity = Wumpus.Shared.Models.Severity.Error,
-                Code = "TEX001",
                 Message = "Failed to load texture",
-                ExceptionType = "TextureLoadException",
-                Context = "Level 5 initialization"
+                StackTrace = "at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42",
+                Log = "TextureLoadException: Failed to load texture\n   at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42\n   at Game.Level.Initialize() in Level.cs:line 15"
             }
         };
 

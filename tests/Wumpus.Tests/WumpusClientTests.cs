@@ -89,9 +89,9 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             .FirstOrDefaultAsync();
 
         savedError.Should().NotBeNull();
-        savedError!.Data.ExceptionType.Should().Contain("ArgumentNullException");
-        savedError.Data.Message.Should().Contain("Test parameter cannot be null");
+        savedError!.Data.Message.Should().Contain("Test parameter cannot be null");
         savedError.Data.StackTrace.Should().NotBeEmpty();
+        savedError.Data.Log.Should().NotBeEmpty();
     }
 
 

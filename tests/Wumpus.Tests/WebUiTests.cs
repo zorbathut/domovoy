@@ -78,9 +78,9 @@ public class WebUiTests : IAsyncLifetime
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
-                ExceptionType = "System.NullReferenceException",
                 Message = "Object reference not set",
-                StackTrace = "at Game.Player.Move()"
+                StackTrace = "at Game.Player.Move()",
+                Log = "System.NullReferenceException: Object reference not set\nat Game.Player.Move()"
             }
         };
         dbContext.Errors.Add(error);
@@ -92,7 +92,7 @@ public class WebUiTests : IAsyncLifetime
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain("System.NullReferenceException");
+        markup.Should().Contain("Object reference not set");
         markup.Should().Contain("Windows");
         markup.Should().Contain("1.5.0");
     }
@@ -130,9 +130,9 @@ public class WebUiTests : IAsyncLifetime
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
-                ExceptionType = "System.ArgumentException",
                 Message = "Invalid argument provided",
-                StackTrace = "at Game.Combat.Attack()\nat Game.Player.DoAction()"
+                StackTrace = "at Game.Combat.Attack()\nat Game.Player.DoAction()",
+                Log = "System.ArgumentException: Invalid argument provided\nat Game.Combat.Attack()\nat Game.Player.DoAction()"
             }
         };
         dbContext.Errors.Add(error);
@@ -146,7 +146,6 @@ public class WebUiTests : IAsyncLifetime
         // Assert
         var markup = cut.Markup;
         markup.Should().Contain(errorId.ToString());
-        markup.Should().Contain("System.ArgumentException");
         markup.Should().Contain("Invalid argument provided");
         markup.Should().Contain("Linux");
         markup.Should().Contain("2.0.0");
@@ -194,9 +193,9 @@ public class WebUiTests : IAsyncLifetime
                 Data = new ErrorPayload
                 {
                     Severity = Severity.Fatal,
-                    ExceptionType = "System.NullReferenceException",
                     Message = "Null ref 1",
-                    StackTrace = "stack1"
+                    StackTrace = "stack1",
+                    Log = "log1"
                 }
             },
             new Error
@@ -215,9 +214,9 @@ public class WebUiTests : IAsyncLifetime
                 Data = new ErrorPayload
                 {
                     Severity = Severity.Error,
-                    ExceptionType = "System.ArgumentException",
                     Message = "Arg exception",
-                    StackTrace = "stack2"
+                    StackTrace = "stack2",
+                    Log = "log2"
                 }
             },
             new Error
@@ -236,9 +235,9 @@ public class WebUiTests : IAsyncLifetime
                 Data = new ErrorPayload
                 {
                     Severity = Severity.Fatal,
-                    ExceptionType = "System.InvalidOperationException",
                     Message = "Invalid op",
-                    StackTrace = "stack3"
+                    StackTrace = "stack3",
+                    Log = "log3"
                 }
             }
         };
@@ -252,9 +251,9 @@ public class WebUiTests : IAsyncLifetime
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain("System.NullReferenceException");
-        markup.Should().Contain("System.ArgumentException");
-        markup.Should().Contain("System.InvalidOperationException");
+        markup.Should().Contain("Null ref 1");
+        markup.Should().Contain("Arg exception");
+        markup.Should().Contain("Invalid op");
         markup.Should().Contain("Windows");
         markup.Should().Contain("Linux");
         markup.Should().Contain("macOS");
@@ -283,9 +282,9 @@ public class WebUiTests : IAsyncLifetime
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
-                ExceptionType = "Test.Exception",
                 Message = "Test message",
-                StackTrace = "Test stack"
+                StackTrace = "Test stack",
+                Log = "Test.Exception: Test message\nTest stack"
             }
         };
         dbContext.Errors.Add(error);
@@ -297,7 +296,7 @@ public class WebUiTests : IAsyncLifetime
         // Assert
         results.Should().NotBeNull();
         results.Should().HaveCount(1);
-        results[0].Data.ExceptionType.Should().Be("Test.Exception");
+        results[0].Data.Message.Should().Be("Test message");
     }
 
     [Fact]
@@ -324,9 +323,9 @@ public class WebUiTests : IAsyncLifetime
             Data = new ErrorPayload
             {
                 Severity = Severity.Fatal,
-                ExceptionType = "Test.Exception",
                 Message = "Test message",
-                StackTrace = "Test stack"
+                StackTrace = "Test stack",
+                Log = "Test.Exception: Test message\nTest stack"
             }
         };
         dbContext.Errors.Add(error);
@@ -338,7 +337,7 @@ public class WebUiTests : IAsyncLifetime
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(errorId);
-        result.Data.ExceptionType.Should().Be("Test.Exception");
+        result.Data.Message.Should().Be("Test message");
     }
 
     [Fact]
@@ -363,7 +362,7 @@ public class WebUiTests : IAsyncLifetime
                     GameId = Guid.NewGuid(),
                     SequenceId = Guid.NewGuid()
                 },
-                Data = new ErrorPayload { Severity = Severity.Fatal, ExceptionType = "E1", Message = "M1", StackTrace = "S1" }
+                Data = new ErrorPayload { Severity = Severity.Fatal, Message = "M1", StackTrace = "S1", Log = "L1" }
             },
             new Error
             {
@@ -378,7 +377,7 @@ public class WebUiTests : IAsyncLifetime
                     GameId = Guid.NewGuid(),
                     SequenceId = Guid.NewGuid()
                 },
-                Data = new ErrorPayload { Severity = Severity.Error, ExceptionType = "E2", Message = "M2", StackTrace = "S2" }
+                Data = new ErrorPayload { Severity = Severity.Error, Message = "M2", StackTrace = "S2", Log = "L2" }
             }
         };
         dbContext.Errors.AddRange(errors);

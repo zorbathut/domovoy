@@ -14,9 +14,9 @@ public class TestDataBuilder
     public static SubmitErrorRequest CreateErrorReport(
         string? gameVersion = null,
         string? platform = null,
-        string? exceptionType = null,
         string? message = null,
         string? stackTrace = null,
+        string? log = null,
         Severity? severity = null,
         Guid? userId = null,
         Guid? computerId = null,
@@ -36,9 +36,9 @@ public class TestDataBuilder
             Data = new ErrorPayload
             {
                 Severity = severity ?? Severity.Fatal,
-                ExceptionType = exceptionType ?? "System.NullReferenceException",
                 Message = message ?? "Object reference not set to an instance of an object.",
-                StackTrace = stackTrace ?? CreateDefaultStackTrace()
+                StackTrace = stackTrace ?? CreateDefaultStackTrace(),
+                Log = log ?? CreateDefaultLog()
             }
         };
     }
@@ -56,13 +56,15 @@ public class TestDataBuilder
     /// </summary>
     public static SubmitErrorRequest CreateDifferentErrorReport()
     {
-        return CreateErrorReport(
-            exceptionType: "System.ArgumentException",
-            message: "Value cannot be null. (Parameter 'value')",
-            stackTrace: @"   at Game.Utils.Validator.CheckNotNull(String value) in C:\Game\Utils\Validator.cs:line 10
+        var stackTrace = @"   at Game.Utils.Validator.CheckNotNull(String value) in C:\Game\Utils\Validator.cs:line 10
    at Game.Systems.InputHandler.ProcessInput(String input) in C:\Game\Systems\InputHandler.cs:line 25
    at Game.Core.GameLoop.Update() in C:\Game\Core\GameLoop.cs:line 50
-   at Game.Program.Main() in C:\Game\Program.cs:line 15");
+   at Game.Program.Main() in C:\Game\Program.cs:line 15";
+
+        return CreateErrorReport(
+            message: "Value cannot be null. (Parameter 'value')",
+            stackTrace: stackTrace,
+            log: $"System.ArgumentException: Value cannot be null. (Parameter 'value')\n{stackTrace}");
     }
 
     /// <summary>
@@ -85,7 +87,9 @@ public class TestDataBuilder
             Data = new ErrorPayload
             {
                 Severity = Severity.Error,
-                Message = ""
+                Message = "",
+                StackTrace = "",
+                Log = ""
             }
         };
     }
@@ -99,5 +103,10 @@ public class TestDataBuilder
    at Game.Program.Main(String[] args) in C:\Game\Program.cs:line 18
    at System.AppDomain.ExecuteAssembly(String assemblyFile)
    at Microsoft.VisualStudio.HostingProcess.HostProc.RunUsersAssembly()";
+    }
+
+    private static string CreateDefaultLog()
+    {
+        return $"System.NullReferenceException: Object reference not set to an instance of an object.\n{CreateDefaultStackTrace()}";
     }
 }

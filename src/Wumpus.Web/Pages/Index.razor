@@ -47,7 +47,7 @@ else if (stats != null && recentCrashes != null)
         <thead>
             <tr>
                 <th>Timestamp</th>
-                <th>Exception Type</th>
+                <th>Severity</th>
                 <th>Platform</th>
                 <th>Version</th>
                 <th></th>
@@ -58,7 +58,7 @@ else if (stats != null && recentCrashes != null)
             {
                 <tr>
                     <td>@crash.Timestamp.ToLocalTime().ToString("g")</td>
-                    <td>@crash.Data.ExceptionType</td>
+                    <td><span class="badge bg-danger">@crash.Data.Severity</span></td>
                     <td>@crash.Standard.Platform</td>
                     <td>@crash.Standard.GameVersion</td>
                     <td><a href="/crashes/@crash.Id" class="btn btn-sm btn-primary">View</a></td>

@@ -128,6 +128,13 @@ public class WumpusClient : IDisposable
         if (exception == null)
             throw new ArgumentNullException(nameof(exception));
 
+        var stackTrace = exception.StackTrace;
+        if (string.IsNullOrWhiteSpace(stackTrace))
+        {
+            // If no stack trace, use the ToString() which includes type and message
+            stackTrace = exception.ToString();
+        }
+
         var request = new SubmitErrorRequest
         {
             Standard = new Shared.Models.StandardPayload(), // Will be set in SendErrorAsync
@@ -135,8 +142,8 @@ public class WumpusClient : IDisposable
             {
                 Severity = Shared.Models.Severity.Fatal,
                 Message = exception.Message,
-                ExceptionType = exception.GetType().FullName ?? exception.GetType().Name,
-                StackTrace = exception.ToString()
+                StackTrace = stackTrace,
+                Log = exception.ToString()
             }
         };
 
