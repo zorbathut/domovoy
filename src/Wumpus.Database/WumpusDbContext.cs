@@ -18,22 +18,18 @@ public class WumpusDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure TPH (Table Per Hierarchy) with discriminator
-        modelBuilder.Entity<Report>()
-            .HasDiscriminator<ReportType>(r => r.ReportType)
-            .HasValue<Event>(ReportType.Event)
-            .HasValue<Error>(ReportType.Error);
-
-        // Configure base Report entity
+        // Configure TPT (Table Per Type) - each type gets its own table
         modelBuilder.Entity<Report>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
+            // Use TPT mapping strategy
+            entity.UseTptMappingStrategy();
+            entity.ToTable("Reports");
+
             // Indexes on common fields
             entity.HasIndex(e => e.Timestamp);
-            entity.HasIndex(e => e.ReportType);
-            entity.HasIndex(e => new { e.ReportType, e.Timestamp });
             entity.HasIndex(e => e.GameVersion);
             entity.HasIndex(e => e.Platform);
 
@@ -46,9 +42,12 @@ public class WumpusDbContext : DbContext
                 .HasMaxLength(50);
         });
 
-        // Configure Event entity with owned EventData
-        modelBuilder.Entity<Event>()
-            .OwnsOne(e => e.Data, owned =>
+        // Configure Event entity - maps to Events table
+        modelBuilder.Entity<Event>(entity =>
+        {
+            entity.ToTable("Events");
+
+            entity.OwnsOne(e => e.Data, owned =>
             {
                 owned.Property(d => d.Name)
                     .IsRequired()
@@ -67,14 +66,17 @@ public class WumpusDbContext : DbContext
                 owned.Property(d => d.Metadata)
                     .HasColumnType("jsonb");
 
-                // Partial index for UserId (only for Event type)
-                owned.HasIndex(d => d.UserId)
-                    .HasFilter("\"ReportType\" = 1"); // ReportType.Event = 1
+                // Index for UserId (no filter needed - Events table only has events)
+                owned.HasIndex(d => d.UserId);
             });
+        });
 
-        // Configure Error entity with owned ErrorData
-        modelBuilder.Entity<Error>()
-            .OwnsOne(e => e.Data, owned =>
+        // Configure Error entity - maps to Errors table
+        modelBuilder.Entity<Error>(entity =>
+        {
+            entity.ToTable("Errors");
+
+            entity.OwnsOne(e => e.Data, owned =>
             {
                 owned.Property(d => d.Severity)
                     .IsRequired()
@@ -96,9 +98,9 @@ public class WumpusDbContext : DbContext
                 owned.Property(d => d.Context)
                     .HasColumnType("text");
 
-                // Partial index for Severity (only for Error type)
-                owned.HasIndex(d => d.Severity)
-                    .HasFilter("\"ReportType\" = 2"); // ReportType.Error = 2
+                // Index for Severity (no filter needed - Errors table only has errors)
+                owned.HasIndex(d => d.Severity);
             });
+        });
     }
 }

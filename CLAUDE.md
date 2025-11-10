@@ -146,33 +146,42 @@ The test project includes several infrastructure components:
 
 ### Data Model Design
 
-The system uses a Table-Per-Hierarchy (TPH) pattern with an abstract `Report` base class and two concrete types:
+The system uses a Table-Per-Type (TPT) pattern with a `Report` base class and two concrete types. This provides normalized storage with separate tables for each type while maintaining a shared base table for common fields:
 
-**Report** (abstract base class, table: Reports)
-- `Id` (Guid, PK)
-- `Timestamp` (DateTime)
-- `ReportType` (enum discriminator: Event=1, Error=2)
-- `GameVersion` (string, max 50 chars)
-- `Platform` (string, max 50 chars)
+**Database Tables:**
 
-**Event : Report** (ReportType = Event)
-- `Data` (owned entity of type `EventPayload`) contains:
-  - `Name` (string, max 200 chars) - Event name
-  - `Category` (string, max 100 chars) - Event category
-  - `Value` (decimal?) - Optional numeric value
-  - `UserId` (string?, max 100 chars) - Optional user identifier
-  - `Metadata` (Dictionary<string, object>?) - Optional JSONB metadata
+1. **Reports** (base table)
+   - `Id` (Guid, PK)
+   - `Timestamp` (DateTime, indexed)
+   - `ReportType` (enum: Event=1, Error=2)
+   - `GameVersion` (string, max 50 chars, indexed)
+   - `Platform` (string, max 50 chars, indexed)
 
-**Error : Report** (ReportType = Error)
-- `Data` (owned entity of type `ErrorPayload`) contains:
-  - `Severity` (string, max 20 chars) - Error severity level
-  - `Code` (string?, max 100 chars) - Optional error code
-  - `Message` (string, max 2000 chars) - Error message
-  - `ExceptionType` (string?, max 500 chars) - Exception type
-  - `StackTrace` (string?) - Full stack trace
-  - `Context` (string?) - Additional context
+2. **Events** (inherits from Reports via FK)
+   - `Id` (Guid, PK/FK to Reports.Id)
+   - `Data_Name` (string, max 200 chars) - Event name
+   - `Data_Category` (string, max 100 chars) - Event category
+   - `Data_Value` (decimal?) - Optional numeric value
+   - `Data_UserId` (string?, max 100 chars, indexed) - Optional user identifier
+   - `Data_Metadata` (jsonb) - Optional JSONB metadata
 
-**Shared Payload Types**: `EventPayload` and `ErrorPayload` are used in both DTOs (SubmitEventRequest, SubmitErrorRequest) and entities (Event, Error) to eliminate duplication and ensure consistency. The owned entity pattern stores these fields as columns in the Reports table using the `Data_` prefix (e.g., `Data_Name`, `Data_Severity`). Partial indexes on `Data_UserId` (for events) and `Data_Severity` (for errors) optimize queries for each type. See `WumpusDbContext.cs` for the EF Core configuration.
+3. **Errors** (inherits from Reports via FK)
+   - `Id` (Guid, PK/FK to Reports.Id)
+   - `Data_Severity` (string, max 20 chars, indexed) - Error severity level
+   - `Data_Code` (string?, max 100 chars) - Optional error code
+   - `Data_Message` (string, max 2000 chars) - Error message
+   - `Data_ExceptionType` (string?, max 500 chars) - Exception type
+   - `Data_StackTrace` (text) - Full stack trace
+   - `Data_Context` (text) - Additional context
+
+**TPT Benefits:**
+- ✅ No NULL columns - each table only contains relevant fields
+- ✅ Can enforce NOT NULL at database level for type-specific fields
+- ✅ Clearer schema - separate tables for logically distinct types
+- ✅ Efficient indexes - no wasted index space on irrelevant rows
+- ✅ Extensible - easy to add new report types in the future
+
+**Shared Payload Types**: `EventPayload` and `ErrorPayload` are used in both DTOs (SubmitEventRequest, SubmitErrorRequest) and entities (Event, Error) to eliminate duplication and ensure consistency. EF Core automatically handles JOINs between Reports and Events/Errors tables when querying. See `WumpusDbContext.cs` for the EF Core TPT configuration.
 
 **Important**: Each submission creates a new record - there is NO deduplication. Every event and error is stored individually.
 
