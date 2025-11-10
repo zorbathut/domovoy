@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Wumpus.Shared.Models;
 
 namespace Wumpus.Shared.DTOs;
 
@@ -13,16 +14,5 @@ public class SubmitEventRequest
     public string Platform { get; set; } = null!;
 
     [Required]
-    [MaxLength(200)]
-    public required string Name { get; set; }
-
-    [MaxLength(100)]
-    public string Category { get; set; } = "General";
-
-    public decimal? Value { get; set; }
-
-    [MaxLength(100)]
-    public string? UserId { get; set; }
-
-    public Dictionary<string, object>? Metadata { get; set; }
+    public required EventPayload Data { get; set; }
 }

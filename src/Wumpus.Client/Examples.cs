@@ -48,11 +48,14 @@ public static class Examples
 
         var errorRequest = new SubmitErrorRequest
         {
-            Severity = "Error",
-            Code = "TEX001",
-            Message = "Failed to load texture",
-            ExceptionType = "TextureLoadException",
-            Context = "Level 5 initialization"
+            Data = new Wumpus.Shared.Models.ErrorPayload
+            {
+                Severity = "Error",
+                Code = "TEX001",
+                Message = "Failed to load texture",
+                ExceptionType = "TextureLoadException",
+                Context = "Level 5 initialization"
+            }
         };
 
         var success = await client.SendErrorAsync(errorRequest);
@@ -75,15 +78,18 @@ public static class Examples
 
         var eventRequest = new SubmitEventRequest
         {
-            Name = "LevelCompleted",
-            Category = "Gameplay",
-            Value = 1,
-            UserId = "player123",
-            Metadata = new Dictionary<string, object>
+            Data = new Wumpus.Shared.Models.EventPayload
             {
-                { "level", 5 },
-                { "timeSeconds", 120.5 },
-                { "score", 9500 }
+                Name = "LevelCompleted",
+                Category = "Gameplay",
+                Value = 1,
+                UserId = "player123",
+                Metadata = new Dictionary<string, object>
+                {
+                    { "level", 5 },
+                    { "timeSeconds", 120.5 },
+                    { "score", 9500 }
+                }
             }
         };
 
@@ -117,8 +123,11 @@ public static class Examples
         // Fire and forget for events
         var eventRequest = new SubmitEventRequest
         {
-            Name = "PlayerJoined",
-            Category = "Multiplayer"
+            Data = new Wumpus.Shared.Models.EventPayload
+            {
+                Name = "PlayerJoined",
+                Category = "Multiplayer"
+            }
         };
         client.SendEventFireAndForget(eventRequest);
     }

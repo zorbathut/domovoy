@@ -156,7 +156,7 @@ The system uses a Table-Per-Hierarchy (TPH) pattern with an abstract `Report` ba
 - `Platform` (string, max 50 chars)
 
 **Event : Report** (ReportType = Event)
-- `Data` (owned entity of type `EventData`) contains:
+- `Data` (owned entity of type `EventPayload`) contains:
   - `Name` (string, max 200 chars) - Event name
   - `Category` (string, max 100 chars) - Event category
   - `Value` (decimal?) - Optional numeric value
@@ -164,7 +164,7 @@ The system uses a Table-Per-Hierarchy (TPH) pattern with an abstract `Report` ba
   - `Metadata` (Dictionary<string, object>?) - Optional JSONB metadata
 
 **Error : Report** (ReportType = Error)
-- `Data` (owned entity of type `ErrorData`) contains:
+- `Data` (owned entity of type `ErrorPayload`) contains:
   - `Severity` (string, max 20 chars) - Error severity level
   - `Code` (string?, max 100 chars) - Optional error code
   - `Message` (string, max 2000 chars) - Error message
@@ -172,7 +172,7 @@ The system uses a Table-Per-Hierarchy (TPH) pattern with an abstract `Report` ba
   - `StackTrace` (string?) - Full stack trace
   - `Context` (string?) - Additional context
 
-The owned entity pattern means owned entity fields are stored as columns in the Reports table using the `Data_` prefix (e.g., `Data_Name`, `Data_Severity`). Partial indexes on `Data_UserId` (for events) and `Data_Severity` (for errors) optimize queries for each type. See `WumpusDbContext.cs` for the EF Core configuration.
+**Shared Payload Types**: `EventPayload` and `ErrorPayload` are used in both DTOs (SubmitEventRequest, SubmitErrorRequest) and entities (Event, Error) to eliminate duplication and ensure consistency. The owned entity pattern stores these fields as columns in the Reports table using the `Data_` prefix (e.g., `Data_Name`, `Data_Severity`). Partial indexes on `Data_UserId` (for events) and `Data_Severity` (for errors) optimize queries for each type. See `WumpusDbContext.cs` for the EF Core configuration.
 
 **Important**: Each submission creates a new record - there is NO deduplication. Every event and error is stored individually.
 
@@ -218,14 +218,17 @@ using var client = new WumpusClient(options);
 // Send a game event
 var eventRequest = new SubmitEventRequest
 {
-    Name = "LevelCompleted",
-    Category = "Gameplay",
-    Value = 1,
-    UserId = "player123",
-    Metadata = new Dictionary<string, object>
+    Data = new EventPayload
     {
-        { "level", 5 },
-        { "timeSeconds", 120.5 }
+        Name = "LevelCompleted",
+        Category = "Gameplay",
+        Value = 1,
+        UserId = "player123",
+        Metadata = new Dictionary<string, object>
+        {
+            { "level", 5 },
+            { "timeSeconds", 120.5 }
+        }
     }
 };
 
@@ -238,11 +241,14 @@ await client.SendEventAsync(eventRequest);
 // Send a custom error
 var errorRequest = new SubmitErrorRequest
 {
-    Severity = "Error",
-    Code = "TEX001",
-    Message = "Failed to load texture",
-    ExceptionType = "TextureLoadException",
-    Context = "Level 5 initialization"
+    Data = new ErrorPayload
+    {
+        Severity = "Error",
+        Code = "TEX001",
+        Message = "Failed to load texture",
+        ExceptionType = "TextureLoadException",
+        Context = "Level 5 initialization"
+    }
 };
 
 await client.SendErrorAsync(errorRequest);
@@ -254,7 +260,7 @@ try
 }
 catch (Exception ex)
 {
-    await client.SendCrashAsync(ex);  // Builds SubmitErrorRequest automatically
+    await client.SendCrashAsync(ex);  // Builds ErrorPayload automatically
 }
 ```
 

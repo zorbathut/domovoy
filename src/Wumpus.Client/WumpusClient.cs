@@ -85,8 +85,8 @@ public class WumpusClient : IDisposable
         request.Platform = _options.Platform;
 
         // Truncate message if needed
-        if (request.Message != null && request.Message.Length > 2000)
-            request.Message = request.Message.Substring(0, 2000);
+        if (request.Data.Message != null && request.Data.Message.Length > 2000)
+            request.Data.Message = request.Data.Message.Substring(0, 2000);
 
         return await SendRequestAsync("/api/v1/reports/error", request, cancellationToken);
     }
@@ -107,10 +107,13 @@ public class WumpusClient : IDisposable
 
         var request = new SubmitErrorRequest
         {
-            Severity = "Fatal",
-            Message = exception.Message,
-            ExceptionType = exception.GetType().FullName ?? exception.GetType().Name,
-            StackTrace = exception.ToString()
+            Data = new Shared.Models.ErrorPayload
+            {
+                Severity = "Fatal",
+                Message = exception.Message,
+                ExceptionType = exception.GetType().FullName ?? exception.GetType().Name,
+                StackTrace = exception.ToString()
+            }
         };
 
         return await SendErrorAsync(request, cancellationToken);

@@ -25,14 +25,7 @@ public class ReportService
             Timestamp = now,
             GameVersion = request.GameVersion,
             Platform = request.Platform,
-            Data = new EventData
-            {
-                Name = request.Name,
-                Category = request.Category,
-                Value = request.Value,
-                UserId = request.UserId,
-                Metadata = request.Metadata
-            }
+            Data = request.Data
         };
 
         _context.Events.Add(eventReport);
@@ -56,15 +49,7 @@ public class ReportService
             Timestamp = now,
             GameVersion = request.GameVersion,
             Platform = request.Platform,
-            Data = new ErrorData
-            {
-                Severity = request.Severity,
-                Code = request.Code,
-                Message = request.Message,
-                ExceptionType = request.ExceptionType,
-                StackTrace = request.StackTrace,
-                Context = request.Context
-            }
+            Data = request.Data
         };
 
         _context.Errors.Add(errorReport);

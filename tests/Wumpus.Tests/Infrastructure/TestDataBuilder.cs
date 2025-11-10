@@ -1,4 +1,5 @@
 using Wumpus.Shared.DTOs;
+using Wumpus.Shared.Models;
 
 namespace Wumpus.Tests.Infrastructure;
 
@@ -22,10 +23,13 @@ public class TestDataBuilder
         {
             GameVersion = gameVersion ?? "1.0.0",
             Platform = platform ?? "Windows",
-            Severity = severity ?? "Fatal",
-            ExceptionType = exceptionType ?? "System.NullReferenceException",
-            Message = message ?? "Object reference not set to an instance of an object.",
-            StackTrace = stackTrace ?? CreateDefaultStackTrace()
+            Data = new ErrorPayload
+            {
+                Severity = severity ?? "Fatal",
+                ExceptionType = exceptionType ?? "System.NullReferenceException",
+                Message = message ?? "Object reference not set to an instance of an object.",
+                StackTrace = stackTrace ?? CreateDefaultStackTrace()
+            }
         };
     }
 
@@ -60,10 +64,11 @@ public class TestDataBuilder
         {
             GameVersion = "",
             Platform = "",
-            Severity = "",
-            Message = "",
-            ExceptionType = "",
-            StackTrace = ""
+            Data = new ErrorPayload
+            {
+                Severity = "",
+                Message = ""
+            }
         };
     }
 

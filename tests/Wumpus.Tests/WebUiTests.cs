@@ -68,7 +68,7 @@ public class WebUiTests : IAsyncLifetime
             Timestamp = DateTime.UtcNow,
             GameVersion = "1.5.0",
             Platform = "Windows",
-            Data = new ErrorData
+            Data = new ErrorPayload
             {
                 Severity = "Fatal",
                 ExceptionType = "System.NullReferenceException",
@@ -113,7 +113,7 @@ public class WebUiTests : IAsyncLifetime
             Timestamp = DateTime.UtcNow,
             GameVersion = "2.0.0",
             Platform = "Linux",
-            Data = new ErrorData
+            Data = new ErrorPayload
             {
                 Severity = "Fatal",
                 ExceptionType = "System.ArgumentException",
@@ -170,7 +170,7 @@ public class WebUiTests : IAsyncLifetime
                 Timestamp = DateTime.UtcNow,
                 GameVersion = "1.0.0",
                 Platform = "Windows",
-                Data = new ErrorData
+                Data = new ErrorPayload
                 {
                     Severity = "Fatal",
                     ExceptionType = "System.NullReferenceException",
@@ -184,7 +184,7 @@ public class WebUiTests : IAsyncLifetime
                 Timestamp = DateTime.UtcNow,
                 GameVersion = "1.0.0",
                 Platform = "Linux",
-                Data = new ErrorData
+                Data = new ErrorPayload
                 {
                     Severity = "Error",
                     ExceptionType = "System.ArgumentException",
@@ -198,7 +198,7 @@ public class WebUiTests : IAsyncLifetime
                 Timestamp = DateTime.UtcNow,
                 GameVersion = "2.0.0",
                 Platform = "macOS",
-                Data = new ErrorData
+                Data = new ErrorPayload
                 {
                     Severity = "Fatal",
                     ExceptionType = "System.InvalidOperationException",
@@ -238,7 +238,7 @@ public class WebUiTests : IAsyncLifetime
             Timestamp = DateTime.UtcNow,
             GameVersion = "1.0.0",
             Platform = "Windows",
-            Data = new ErrorData
+            Data = new ErrorPayload
             {
                 Severity = "Fatal",
                 ExceptionType = "Test.Exception",
@@ -272,7 +272,7 @@ public class WebUiTests : IAsyncLifetime
             Timestamp = DateTime.UtcNow,
             GameVersion = "1.0.0",
             Platform = "Windows",
-            Data = new ErrorData
+            Data = new ErrorPayload
             {
                 Severity = "Fatal",
                 ExceptionType = "Test.Exception",
@@ -307,7 +307,7 @@ public class WebUiTests : IAsyncLifetime
                 Timestamp = DateTime.UtcNow,
                 GameVersion = "1.0.0",
                 Platform = "Windows",
-                Data = new ErrorData { Severity = "Fatal", ExceptionType = "E1", Message = "M1", StackTrace = "S1" }
+                Data = new ErrorPayload { Severity = "Fatal", ExceptionType = "E1", Message = "M1", StackTrace = "S1" }
             },
             new Error
             {
@@ -315,7 +315,7 @@ public class WebUiTests : IAsyncLifetime
                 Timestamp = DateTime.UtcNow,
                 GameVersion = "1.0.0",
                 Platform = "Linux",
-                Data = new ErrorData { Severity = "Error", ExceptionType = "E2", Message = "M2", StackTrace = "S2" }
+                Data = new ErrorPayload { Severity = "Error", ExceptionType = "E2", Message = "M2", StackTrace = "S2" }
             }
         };
         dbContext.Errors.AddRange(errors);
