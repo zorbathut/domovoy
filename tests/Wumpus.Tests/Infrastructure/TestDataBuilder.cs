@@ -1,52 +1,50 @@
 using Wumpus.Shared.DTOs;
-using Wumpus.Shared.Models;
 
 namespace Wumpus.Tests.Infrastructure;
 
 /// <summary>
-/// Builder class for creating test crash report data with sensible defaults.
+/// Builder class for creating test error report data with sensible defaults.
 /// </summary>
 public class TestDataBuilder
 {
     /// <summary>
-    /// Creates a default crash report request with typical values.
+    /// Creates a default error report request with typical crash values.
     /// </summary>
-    public static SubmitCrashReportRequest CreateCrashReport(
+    public static SubmitErrorRequest CreateErrorReport(
         string? gameVersion = null,
         string? platform = null,
         string? exceptionType = null,
-        string? exceptionMessage = null,
-        string? stackTrace = null)
+        string? message = null,
+        string? stackTrace = null,
+        string? severity = null)
     {
-        return new SubmitCrashReportRequest
+        return new SubmitErrorRequest
         {
-            Core = new CrashReportCore
-            {
-                GameVersion = gameVersion ?? "1.0.0",
-                Platform = platform ?? "Windows",
-                ExceptionType = exceptionType ?? "System.NullReferenceException",
-                ExceptionMessage = exceptionMessage ?? "Object reference not set to an instance of an object.",
-                StackTrace = stackTrace ?? CreateDefaultStackTrace()
-            }
+            GameVersion = gameVersion ?? "1.0.0",
+            Platform = platform ?? "Windows",
+            Severity = severity ?? "Fatal",
+            ExceptionType = exceptionType ?? "System.NullReferenceException",
+            Message = message ?? "Object reference not set to an instance of an object.",
+            StackTrace = stackTrace ?? CreateDefaultStackTrace()
         };
     }
 
     /// <summary>
-    /// Creates a crash report with a specific stack trace for testing deduplication.
+    /// Creates an error report with a specific stack trace for testing.
     /// </summary>
-    public static SubmitCrashReportRequest CreateCrashReportWithStackTrace(string stackTrace)
+    public static SubmitErrorRequest CreateErrorReportWithStackTrace(string stackTrace)
     {
-        return CreateCrashReport(stackTrace: stackTrace);
+        return CreateErrorReport(stackTrace: stackTrace);
     }
 
     /// <summary>
-    /// Creates a crash report that will have a different hash (different stack trace).
+    /// Creates an error report with a different exception and stack trace.
     /// </summary>
-    public static SubmitCrashReportRequest CreateDifferentCrashReport()
+    public static SubmitErrorRequest CreateDifferentErrorReport()
     {
-        return CreateCrashReport(
+        return CreateErrorReport(
             exceptionType: "System.ArgumentException",
-            exceptionMessage: "Value cannot be null. (Parameter 'value')",
+            message: "Value cannot be null. (Parameter 'value')",
             stackTrace: @"   at Game.Utils.Validator.CheckNotNull(String value) in C:\Game\Utils\Validator.cs:line 10
    at Game.Systems.InputHandler.ProcessInput(String input) in C:\Game\Systems\InputHandler.cs:line 25
    at Game.Core.GameLoop.Update() in C:\Game\Core\GameLoop.cs:line 50
@@ -54,20 +52,18 @@ public class TestDataBuilder
     }
 
     /// <summary>
-    /// Creates a crash report with invalid data (empty required fields).
+    /// Creates an error report with invalid data (empty required fields).
     /// </summary>
-    public static SubmitCrashReportRequest CreateInvalidCrashReport()
+    public static SubmitErrorRequest CreateInvalidErrorReport()
     {
-        return new SubmitCrashReportRequest
+        return new SubmitErrorRequest
         {
-            Core = new CrashReportCore
-            {
-                GameVersion = "",
-                Platform = "",
-                ExceptionType = "",
-                ExceptionMessage = "",
-                StackTrace = ""
-            }
+            GameVersion = "",
+            Platform = "",
+            Severity = "",
+            Message = "",
+            ExceptionType = "",
+            StackTrace = ""
         };
     }
 

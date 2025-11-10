@@ -33,10 +33,10 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     public async Task DisposeAsync()
     {
         // Clear database after each test to ensure isolation
-        await _dbFixture.ClearCrashReportsAsync();
+        await _dbFixture.ClearReportsAsync();
     }
 
-    private static async Task<Guid> ExtractCrashIdFromResponse(HttpResponseMessage response)
+    private static async Task<Guid> ExtractIdFromResponse(HttpResponseMessage response)
     {
         var json = await response.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(json);
@@ -44,105 +44,105 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public async Task SubmitCrashReport_WithValidData_ReturnsAcceptedWithCrashId()
+    public async Task SubmitErrorReport_WithValidData_ReturnsAcceptedWithErrorId()
     {
         // Arrange
-        var crashReport = TestDataBuilder.CreateCrashReport();
+        var errorReport = TestDataBuilder.CreateErrorReport();
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport);
+        var response = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        var crashId = await ExtractCrashIdFromResponse(response);
-        crashId.Should().NotBeEmpty();
+        var errorId = await ExtractIdFromResponse(response);
+        errorId.Should().NotBeEmpty();
     }
 
     [Fact]
-    public async Task SubmitCrashReport_WithValidData_PersistsToDatabase()
+    public async Task SubmitErrorReport_WithValidData_PersistsToDatabase()
     {
         // Arrange
-        var crashReport = TestDataBuilder.CreateCrashReport(
+        var errorReport = TestDataBuilder.CreateErrorReport(
             gameVersion: "2.0.0",
             platform: "Linux",
             exceptionType: "System.InvalidOperationException"
         );
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport);
-        var crashId = await ExtractCrashIdFromResponse(response);
+        var response = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport);
+        var errorId = await ExtractIdFromResponse(response);
 
         // Assert
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedCrash = await dbContext.CrashReports.FindAsync(crashId);
+        var savedError = await dbContext.Errors.FindAsync(errorId);
 
-        savedCrash.Should().NotBeNull();
-        savedCrash!.Core.GameVersion.Should().Be("2.0.0");
-        savedCrash.Core.Platform.Should().Be("Linux");
-        savedCrash.Core.ExceptionType.Should().Be("System.InvalidOperationException");
+        savedError.Should().NotBeNull();
+        savedError!.GameVersion.Should().Be("2.0.0");
+        savedError.Platform.Should().Be("Linux");
+        savedError.Data.ExceptionType.Should().Be("System.InvalidOperationException");
     }
 
     [Fact]
-    public async Task SubmitCrashReport_WithSameStackTrace_CreatesNewRecords()
+    public async Task SubmitErrorReport_WithSameStackTrace_CreatesNewRecords()
     {
         // Arrange
-        var crashReport1 = TestDataBuilder.CreateCrashReport();
-        var crashReport2 = TestDataBuilder.CreateCrashReport(); // Same stack trace
+        var errorReport1 = TestDataBuilder.CreateErrorReport();
+        var errorReport2 = TestDataBuilder.CreateErrorReport(); // Same stack trace
 
-        // Act - Submit first crash
-        var response1 = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport1);
-        var crashId1 = await ExtractCrashIdFromResponse(response1);
+        // Act - Submit first error
+        var response1 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport1);
+        var errorId1 = await ExtractIdFromResponse(response1);
 
-        // Submit second crash with same stack trace
-        var response2 = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport2);
-        var crashId2 = await ExtractCrashIdFromResponse(response2);
+        // Submit second error with same stack trace
+        var response2 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport2);
+        var errorId2 = await ExtractIdFromResponse(response2);
 
         // Assert - Should create separate records even with identical stack traces
-        crashId1.Should().NotBe(crashId2);
+        errorId1.Should().NotBe(errorId2);
 
-        // Verify two crash reports exist
+        // Verify two error reports exist
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedCrash1 = await dbContext.CrashReports.FindAsync(crashId1);
-        var savedCrash2 = await dbContext.CrashReports.FindAsync(crashId2);
+        var savedError1 = await dbContext.Errors.FindAsync(errorId1);
+        var savedError2 = await dbContext.Errors.FindAsync(errorId2);
 
-        savedCrash1.Should().NotBeNull();
-        savedCrash2.Should().NotBeNull();
+        savedError1.Should().NotBeNull();
+        savedError2.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task SubmitCrashReport_WithDifferentStackTrace_CreatesNewCrashReport()
+    public async Task SubmitErrorReport_WithDifferentStackTrace_CreatesNewErrorReport()
     {
         // Arrange
-        var crashReport1 = TestDataBuilder.CreateCrashReport();
-        var crashReport2 = TestDataBuilder.CreateDifferentCrashReport();
+        var errorReport1 = TestDataBuilder.CreateErrorReport();
+        var errorReport2 = TestDataBuilder.CreateDifferentErrorReport();
 
         // Act
-        var response1 = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport1);
-        var crashId1 = await ExtractCrashIdFromResponse(response1);
+        var response1 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport1);
+        var errorId1 = await ExtractIdFromResponse(response1);
 
-        var response2 = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport2);
-        var crashId2 = await ExtractCrashIdFromResponse(response2);
+        var response2 = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport2);
+        var errorId2 = await ExtractIdFromResponse(response2);
 
-        // Assert - Should create two different crash reports
-        crashId1.Should().NotBe(crashId2);
+        // Assert - Should create two different error reports
+        errorId1.Should().NotBe(errorId2);
 
         await using var dbContext = _dbFixture.CreateDbContext();
-        var crash1 = await dbContext.CrashReports.FindAsync(crashId1);
-        var crash2 = await dbContext.CrashReports.FindAsync(crashId2);
+        var error1 = await dbContext.Errors.FindAsync(errorId1);
+        var error2 = await dbContext.Errors.FindAsync(errorId2);
 
-        crash1.Should().NotBeNull();
-        crash2.Should().NotBeNull();
+        error1.Should().NotBeNull();
+        error2.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task SubmitCrashReport_WithInvalidData_ReturnsBadRequest()
+    public async Task SubmitErrorReport_WithInvalidData_ReturnsBadRequest()
     {
         // Arrange
-        var invalidCrashReport = TestDataBuilder.CreateInvalidCrashReport();
+        var invalidErrorReport = TestDataBuilder.CreateInvalidErrorReport();
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/v1/crashes", invalidCrashReport);
+        var response = await _client.PostAsJsonAsync("/api/v1/reports/error", invalidErrorReport);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -162,31 +162,31 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public async Task SubmitCrashReport_MultipleIdenticalCrashes_CreatesMultipleRecords()
+    public async Task SubmitErrorReport_MultipleIdenticalErrors_CreatesMultipleRecords()
     {
         // Arrange
-        var crashReport = TestDataBuilder.CreateCrashReport();
+        var errorReport = TestDataBuilder.CreateErrorReport();
         const int submissionCount = 5;
 
-        // Act - Submit the same crash 5 times
-        var crashIds = new List<Guid>();
+        // Act - Submit the same error 5 times
+        var errorIds = new List<Guid>();
         for (int i = 0; i < submissionCount; i++)
         {
-            var response = await _client.PostAsJsonAsync("/api/v1/crashes", crashReport);
-            var currentCrashId = await ExtractCrashIdFromResponse(response);
-            crashIds.Add(currentCrashId);
+            var response = await _client.PostAsJsonAsync("/api/v1/reports/error", errorReport);
+            var currentErrorId = await ExtractIdFromResponse(response);
+            errorIds.Add(currentErrorId);
         }
 
         // Assert - All IDs should be unique
-        crashIds.Should().OnlyHaveUniqueItems("Each submission should create a new crash report");
-        crashIds.Should().HaveCount(submissionCount);
+        errorIds.Should().OnlyHaveUniqueItems("Each submission should create a new error report");
+        errorIds.Should().HaveCount(submissionCount);
 
-        // Verify all crash reports exist in database
+        // Verify all error reports exist in database
         await using var dbContext = _dbFixture.CreateDbContext();
-        foreach (var crashId in crashIds)
+        foreach (var errorId in errorIds)
         {
-            var savedCrash = await dbContext.CrashReports.FindAsync(crashId);
-            savedCrash.Should().NotBeNull();
+            var savedError = await dbContext.Errors.FindAsync(errorId);
+            savedError.Should().NotBeNull();
         }
     }
 }

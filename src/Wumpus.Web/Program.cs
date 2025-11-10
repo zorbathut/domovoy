@@ -21,7 +21,7 @@ builder.Services.AddDbContext<WumpusDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add application services
-builder.Services.AddScoped<CrashReportViewService>();
+builder.Services.AddScoped<ReportViewService>();
 
 // Add health checks
 builder.Services.AddHealthChecks()

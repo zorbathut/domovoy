@@ -30,16 +30,16 @@ public class DatabaseFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Clears all data from the CrashReports table, useful for resetting state between tests.
+    /// Clears all data from the Reports table, useful for resetting state between tests.
     /// </summary>
-    public async Task ClearCrashReportsAsync()
+    public async Task ClearReportsAsync()
     {
         var options = new DbContextOptionsBuilder<WumpusDbContext>()
             .UseNpgsql(TestConnectionString)
             .Options;
 
         await using var context = new WumpusDbContext(options);
-        context.CrashReports.RemoveRange(context.CrashReports);
+        context.Reports.RemoveRange(context.Reports);
         await context.SaveChangesAsync();
     }
 

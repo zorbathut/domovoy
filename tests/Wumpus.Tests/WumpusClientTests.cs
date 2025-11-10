@@ -30,11 +30,11 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _dbFixture.ClearCrashReportsAsync();
+        await _dbFixture.ClearReportsAsync();
     }
 
     [Fact]
-    public async Task SendCrashReportAsync_WithValidException_ReturnsCrashId()
+    public async Task SendCrashAsync_WithValidException_ReturnsCrashId()
     {
         // Arrange
         var options = new WumpusClientOptions
@@ -49,7 +49,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var exception = new InvalidOperationException("Test exception for crash reporting");
 
         // Act
-        var crashId = await client.SendCrashReportAsync(exception);
+        var crashId = await client.SendCrashAsync(exception);
 
         // Assert
         crashId.Should().NotBeNull();
@@ -57,7 +57,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public async Task SendCrashReportAsync_WithValidException_PersistsToDatabase()
+    public async Task SendCrashAsync_WithValidException_PersistsToDatabase()
     {
         // Arrange
         var options = new WumpusClientOptions
@@ -72,25 +72,25 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
 
         // Act
-        var crashId = await client.SendCrashReportAsync(exception);
+        var crashId = await client.SendCrashAsync(exception);
 
         // Assert
         crashId.Should().NotBeNull();
 
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedCrash = await dbContext.CrashReports.FindAsync(crashId!.Value);
+        var savedError = await dbContext.Errors.FindAsync(crashId!.Value);
 
-        savedCrash.Should().NotBeNull();
-        savedCrash!.Core.GameVersion.Should().Be("2.0.0");
-        savedCrash.Core.Platform.Should().Be("Linux");
-        savedCrash.Core.ExceptionType.Should().Contain("ArgumentNullException");
-        savedCrash.Core.ExceptionMessage.Should().Contain("Test parameter cannot be null");
-        savedCrash.Core.StackTrace.Should().NotBeEmpty();
+        savedError.Should().NotBeNull();
+        savedError!.GameVersion.Should().Be("2.0.0");
+        savedError.Platform.Should().Be("Linux");
+        savedError.Data.ExceptionType.Should().Contain("ArgumentNullException");
+        savedError.Data.Message.Should().Contain("Test parameter cannot be null");
+        savedError.Data.StackTrace.Should().NotBeEmpty();
     }
 
 
     [Fact]
-    public async Task SendCrashReportAsync_SameExceptionTwice_CreatesNewRecords()
+    public async Task SendCrashAsync_SameExceptionTwice_CreatesNewRecords()
     {
         // Arrange
         var options = new WumpusClientOptions
@@ -115,8 +115,8 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         }
 
         // Act - Send the same exception twice
-        var crashId1 = await client.SendCrashReportAsync(capturedException!);
-        var crashId2 = await client.SendCrashReportAsync(capturedException!);
+        var crashId1 = await client.SendCrashAsync(capturedException!);
+        var crashId2 = await client.SendCrashAsync(capturedException!);
 
         // Assert - Should create separate records even with identical exceptions
         crashId1.Should().NotBeNull();
@@ -124,11 +124,11 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         crashId1.Should().NotBe(crashId2.Value);
 
         await using var dbContext = _dbFixture.CreateDbContext();
-        var savedCrash1 = await dbContext.CrashReports.FindAsync(crashId1!.Value);
-        var savedCrash2 = await dbContext.CrashReports.FindAsync(crashId2!.Value);
+        var savedError1 = await dbContext.Errors.FindAsync(crashId1!.Value);
+        var savedError2 = await dbContext.Errors.FindAsync(crashId2!.Value);
 
-        savedCrash1.Should().NotBeNull();
-        savedCrash2.Should().NotBeNull();
+        savedError1.Should().NotBeNull();
+        savedError2.Should().NotBeNull();
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public async Task SendCrashReportAsync_WithNullException_ThrowsArgumentNullException()
+    public async Task SendCrashAsync_WithNullException_ThrowsArgumentNullException()
     {
         // Arrange
         var options = new WumpusClientOptions
@@ -205,7 +205,7 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         using var client = new WumpusClient(options);
 
         // Act & Assert
-        var act = async () => await client.SendCrashReportAsync(null!);
+        var act = async () => await client.SendCrashAsync(null!);
         await act.Should().ThrowAsync<ArgumentNullException>()
             .WithParameterName("exception");
     }

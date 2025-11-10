@@ -1,18 +1,18 @@
 @page "/crashes/{CrashId:guid}"
 @using Wumpus.Web.Services
-@inject CrashReportViewService CrashService
+@inject ReportViewService ReportService
 @inject NavigationManager Navigation
 
-<PageTitle>Crash Detail - Wumpus</PageTitle>
+<PageTitle>Error Detail - Wumpus</PageTitle>
 
 @if (isLoading)
 {
-    <p><em>Loading crash details...</em></p>
+    <p><em>Loading error details...</em></p>
 }
-else if (crash != null)
+else if (error != null)
 {
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Crash Report Details</h1>
+        <h1>Error Report Details</h1>
         <button class="btn btn-secondary" @onclick="GoBack">Back to List</button>
     </div>
 
@@ -24,20 +24,23 @@ else if (crash != null)
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-4">Crash ID:</dt>
-                        <dd class="col-sm-8"><code>@crash.Id</code></dd>
+                        <dt class="col-sm-4">Error ID:</dt>
+                        <dd class="col-sm-8"><code>@error.Id</code></dd>
+
+                        <dt class="col-sm-4">Severity:</dt>
+                        <dd class="col-sm-8"><span class="badge bg-danger">@error.Data.Severity</span></dd>
 
                         <dt class="col-sm-4">Exception Type:</dt>
-                        <dd class="col-sm-8"><code>@crash.Core.ExceptionType</code></dd>
+                        <dd class="col-sm-8"><code>@error.Data.ExceptionType</code></dd>
 
                         <dt class="col-sm-4">Platform:</dt>
-                        <dd class="col-sm-8">@crash.Core.Platform</dd>
+                        <dd class="col-sm-8">@error.Platform</dd>
 
                         <dt class="col-sm-4">Game Version:</dt>
-                        <dd class="col-sm-8">@crash.Core.GameVersion</dd>
+                        <dd class="col-sm-8">@error.GameVersion</dd>
 
                         <dt class="col-sm-4">Timestamp:</dt>
-                        <dd class="col-sm-8">@crash.Timestamp.ToLocalTime().ToString("g")</dd>
+                        <dd class="col-sm-8">@error.Timestamp.ToLocalTime().ToString("g")</dd>
                     </dl>
                 </div>
             </div>
@@ -46,27 +49,30 @@ else if (crash != null)
 
     <div class="card mb-3">
         <div class="card-header">
-            <h5>Exception Message</h5>
+            <h5>Error Message</h5>
         </div>
         <div class="card-body">
-            <p class="font-monospace">@crash.Core.ExceptionMessage</p>
+            <p class="font-monospace">@error.Data.Message</p>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h5>Stack Trace</h5>
+    @if (!string.IsNullOrEmpty(error.Data.StackTrace))
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5>Stack Trace</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@error.Data.StackTrace</pre>
+            </div>
         </div>
-        <div class="card-body">
-            <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@crash.Core.StackTrace</pre>
-        </div>
-    </div>
+    }
 }
 else
 {
     <div class="alert alert-warning">
-        <h4>Crash Report Not Found</h4>
-        <p>The requested crash report could not be found.</p>
+        <h4>Error Report Not Found</h4>
+        <p>The requested error report could not be found.</p>
         <button class="btn btn-primary" @onclick="GoBack">Go Back</button>
     </div>
 }
@@ -75,12 +81,12 @@ else
     [Parameter]
     public Guid CrashId { get; set; }
 
-    private CrashReportResponse? crash;
+    private Wumpus.Shared.Models.Error? error;
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        crash = await CrashService.GetCrashByIdAsync(CrashId);
+        error = await ReportService.GetErrorByIdAsync(CrashId);
         isLoading = false;
     }
 

@@ -1,12 +1,11 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using Wumpus.Shared.DTOs;
-using Wumpus.Shared.Models;
 
 namespace Wumpus.Client;
 
 /// <summary>
-/// Client for sending crash reports to a Wumpus crash reporting server.
+/// Client for sending event and error reports to a Wumpus reporting server.
 /// </summary>
 public class WumpusClient : IDisposable
 {
@@ -42,8 +41,6 @@ public class WumpusClient : IDisposable
     /// Creates a new instance of WumpusClient with the specified options and HttpClient.
     /// Useful for testing scenarios.
     /// </summary>
-    /// <param name="options">The client options.</param>
-    /// <param name="httpClient">The HttpClient to use for requests. Will not be disposed by this instance.</param>
     public WumpusClient(WumpusClientOptions options, HttpClient httpClient)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -52,36 +49,177 @@ public class WumpusClient : IDisposable
     }
 
     /// <summary>
-    /// Sends a crash report for the specified exception.
+    /// Sends a game event.
     /// </summary>
-    /// <param name="exception">The exception to report.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="name">Event name</param>
+    /// <param name="category">Event category (default: "General")</param>
+    /// <param name="value">Optional numeric value</param>
+    /// <param name="userId">Optional user identifier</param>
+    /// <param name="metadata">Optional event metadata</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The ID of the created event, or null if submission failed.</returns>
+    public async Task<Guid?> SendEventAsync(
+        string name,
+        string category = "General",
+        decimal? value = null,
+        string? userId = null,
+        Dictionary<string, object>? metadata = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Event name is required", nameof(name));
+
+        var request = new SubmitEventRequest
+        {
+            GameVersion = _options.AppVersion,
+            Platform = _options.Platform,
+            Name = name,
+            Category = category,
+            Value = value,
+            UserId = userId,
+            Metadata = metadata
+        };
+
+        return await SendRequestAsync("/api/v1/reports/event", request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends an error report.
+    /// </summary>
+    /// <param name="message">Error message</param>
+    /// <param name="severity">Error severity (Warning, Error, Critical, Fatal)</param>
+    /// <param name="code">Optional error code</param>
+    /// <param name="exceptionType">Optional exception type</param>
+    /// <param name="stackTrace">Optional stack trace</param>
+    /// <param name="context">Optional error context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The ID of the created error, or null if submission failed.</returns>
+    public async Task<Guid?> SendErrorAsync(
+        string message,
+        string severity = "Error",
+        string? code = null,
+        string? exceptionType = null,
+        string? stackTrace = null,
+        string? context = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            throw new ArgumentException("Error message is required", nameof(message));
+
+        var request = new SubmitErrorRequest
+        {
+            GameVersion = _options.AppVersion,
+            Platform = _options.Platform,
+            Severity = severity,
+            Code = code,
+            Message = message.Length > 2000 ? message.Substring(0, 2000) : message,
+            ExceptionType = exceptionType,
+            StackTrace = stackTrace,
+            Context = context
+        };
+
+        return await SendRequestAsync("/api/v1/reports/error", request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a crash report for the specified exception.
+    /// This is a convenience wrapper around SendErrorAsync with severity="Fatal".
+    /// </summary>
+    /// <param name="exception">The exception to report</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The ID of the created crash report, or null if submission failed.</returns>
-    public async Task<Guid?> SendCrashReportAsync(
+    public async Task<Guid?> SendCrashAsync(
         Exception exception,
         CancellationToken cancellationToken = default)
     {
         if (exception == null)
             throw new ArgumentNullException(nameof(exception));
 
-        var request = new SubmitCrashReportRequest
-        {
-            Core = new CrashReportCore
-            {
-                GameVersion = _options.AppVersion,
-                Platform = _options.Platform,
-                ExceptionType = exception.GetType().FullName ?? exception.GetType().Name,
-                ExceptionMessage = exception.Message.Length > 2000
-                    ? exception.Message.Substring(0, 2000)
-                    : exception.Message,
-                StackTrace = exception.ToString()
-            }
-        };
+        return await SendErrorAsync(
+            message: exception.Message,
+            severity: "Fatal",
+            exceptionType: exception.GetType().FullName ?? exception.GetType().Name,
+            stackTrace: exception.ToString(),
+            cancellationToken: cancellationToken);
+    }
 
+    /// <summary>
+    /// Sends an event without waiting for the result.
+    /// Use this for fire-and-forget scenarios.
+    /// </summary>
+    public void SendEventFireAndForget(
+        string name,
+        string category = "General",
+        decimal? value = null,
+        string? userId = null,
+        Dictionary<string, object>? metadata = null)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await SendEventAsync(name, category, value, userId, metadata);
+            }
+            catch
+            {
+                // Silently fail
+            }
+        });
+    }
+
+    /// <summary>
+    /// Sends an error without waiting for the result.
+    /// Use this for fire-and-forget scenarios.
+    /// </summary>
+    public void SendErrorFireAndForget(
+        string message,
+        string severity = "Error",
+        string? code = null,
+        string? exceptionType = null,
+        string? stackTrace = null,
+        string? context = null)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await SendErrorAsync(message, severity, code, exceptionType, stackTrace, context);
+            }
+            catch
+            {
+                // Silently fail
+            }
+        });
+    }
+
+    /// <summary>
+    /// Sends a crash report without waiting for the result.
+    /// Use this for fire-and-forget scenarios.
+    /// </summary>
+    public void SendCrashFireAndForget(Exception exception)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await SendCrashAsync(exception);
+            }
+            catch
+            {
+                // Silently fail
+            }
+        });
+    }
+
+    private async Task<Guid?> SendRequestAsync<T>(
+        string endpoint,
+        T request,
+        CancellationToken cancellationToken)
+    {
         try
         {
             var response = await _httpClient.PostAsJsonAsync(
-                "/api/v1/crashes",
+                endpoint,
                 request,
                 cancellationToken);
 
@@ -100,28 +238,9 @@ public class WumpusClient : IDisposable
         }
         catch
         {
-            // Silently fail - we don't want crash reporting to crash the app
+            // Silently fail - we don't want reporting to crash the app
             return null;
         }
-    }
-
-    /// <summary>
-    /// Sends a crash report without waiting for the result.
-    /// Use this for fire-and-forget scenarios.
-    /// </summary>
-    public void SendCrashReportFireAndForget(Exception exception)
-    {
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await SendCrashReportAsync(exception);
-            }
-            catch
-            {
-                // Silently fail
-            }
-        });
     }
 
     public void Dispose()

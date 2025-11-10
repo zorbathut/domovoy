@@ -25,7 +25,7 @@ public static class Examples
         }
         catch (Exception ex)
         {
-            var crashId = await client.SendCrashReportAsync(ex);
+            var crashId = await client.SendCrashAsync(ex);
             Console.WriteLine($"Crash reported with ID: {crashId}");
         }
     }
@@ -51,7 +51,7 @@ public static class Examples
         }
         catch (Exception ex)
         {
-            var crashId = await client.SendCrashReportAsync(ex);
+            var crashId = await client.SendCrashAsync(ex);
             Console.WriteLine($"Crash reported with ID: {crashId}");
         }
     }
@@ -75,7 +75,7 @@ public static class Examples
         catch (Exception ex)
         {
             // Report without waiting (useful for shutdown scenarios)
-            client.SendCrashReportFireAndForget(ex);
+            client.SendCrashFireAndForget(ex);
             Console.WriteLine("Crash report queued for sending");
         }
     }
@@ -100,7 +100,7 @@ public static class Examples
         ];
 
         // Send multiple reports concurrently
-        var tasks = exceptions.Select(ex => client.SendCrashReportAsync(ex));
+        var tasks = exceptions.Select(ex => client.SendCrashAsync(ex));
         var crashIds = await Task.WhenAll(tasks);
 
         foreach (var crashId in crashIds.Where(id => id.HasValue))

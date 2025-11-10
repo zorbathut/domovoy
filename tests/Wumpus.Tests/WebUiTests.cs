@@ -2,7 +2,6 @@ using Bunit;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Wumpus.Database;
-using Wumpus.Shared.DTOs;
 using Wumpus.Shared.Models;
 using Wumpus.Tests.Infrastructure;
 using Wumpus.Web.Pages;
@@ -33,7 +32,7 @@ public class WebUiTests : IAsyncLifetime
         // Register services needed by the Blazor components
         var dbContext = _dbFixture.CreateDbContext();
         _testContext.Services.AddScoped<WumpusDbContext>(_ => dbContext);
-        _testContext.Services.AddScoped<CrashReportViewService>();
+        _testContext.Services.AddScoped<ReportViewService>();
 
         return Task.CompletedTask;
     }
@@ -41,11 +40,11 @@ public class WebUiTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         _testContext?.Dispose();
-        await _dbFixture.ClearCrashReportsAsync();
+        await _dbFixture.ClearReportsAsync();
     }
 
     [Fact]
-    public async Task CrashesPage_WithNoCrashes_ShowsNoCrashesMessage()
+    public async Task CrashesPage_WithNoErrors_ShowsNoErrorsMessage()
     {
         // Arrange - Database is empty
 
@@ -55,28 +54,29 @@ public class WebUiTests : IAsyncLifetime
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain("No crashes found");
+        markup.Should().Contain("No errors found");
     }
 
     [Fact]
-    public async Task CrashesPage_WithCrashes_DisplaysCrashList()
+    public async Task CrashesPage_WithErrors_DisplaysErrorList()
     {
-        // Arrange - Add a crash to the database
+        // Arrange - Add an error to the database
         await using var dbContext = _dbFixture.CreateDbContext();
-        var crash = new CrashReport
+        var error = new Error
         {
             Id = Guid.NewGuid(),
             Timestamp = DateTime.UtcNow,
-            Core = new CrashReportCore
+            GameVersion = "1.5.0",
+            Platform = "Windows",
+            Data = new ErrorData
             {
-                GameVersion = "1.5.0",
-                Platform = "Windows",
+                Severity = "Fatal",
                 ExceptionType = "System.NullReferenceException",
-                ExceptionMessage = "Object reference not set",
+                Message = "Object reference not set",
                 StackTrace = "at Game.Player.Move()"
             }
         };
-        dbContext.CrashReports.Add(crash);
+        dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
         // Act
@@ -98,39 +98,40 @@ public class WebUiTests : IAsyncLifetime
 
         // Assert - Before async initialization completes
         var initialMarkup = cut.Markup;
-        initialMarkup.Should().Contain("Loading crashes");
+        initialMarkup.Should().Contain("Loading errors");
     }
 
     [Fact]
-    public async Task CrashDetailPage_WithValidCrashId_DisplaysCrashDetails()
+    public async Task CrashDetailPage_WithValidErrorId_DisplaysErrorDetails()
     {
-        // Arrange - Add a crash to the database
+        // Arrange - Add an error to the database
         await using var dbContext = _dbFixture.CreateDbContext();
-        var crashId = Guid.NewGuid();
-        var crash = new CrashReport
+        var errorId = Guid.NewGuid();
+        var error = new Error
         {
-            Id = crashId,
+            Id = errorId,
             Timestamp = DateTime.UtcNow,
-            Core = new CrashReportCore
+            GameVersion = "2.0.0",
+            Platform = "Linux",
+            Data = new ErrorData
             {
-                GameVersion = "2.0.0",
-                Platform = "Linux",
+                Severity = "Fatal",
                 ExceptionType = "System.ArgumentException",
-                ExceptionMessage = "Invalid argument provided",
+                Message = "Invalid argument provided",
                 StackTrace = "at Game.Combat.Attack()\nat Game.Player.DoAction()"
             }
         };
-        dbContext.CrashReports.Add(crash);
+        dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
         // Act
-        var parameters = new[] { ComponentParameter.CreateParameter("CrashId", crashId) };
+        var parameters = new[] { ComponentParameter.CreateParameter("CrashId", errorId) };
         var cut = _testContext!.RenderComponent<CrashDetail>(parameters);
         await Task.Delay(100); // Wait for async initialization
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain(crashId.ToString());
+        markup.Should().Contain(errorId.ToString());
         markup.Should().Contain("System.ArgumentException");
         markup.Should().Contain("Invalid argument provided");
         markup.Should().Contain("Linux");
@@ -139,72 +140,75 @@ public class WebUiTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CrashDetailPage_WithInvalidCrashId_ShowsNotFoundMessage()
+    public async Task CrashDetailPage_WithInvalidErrorId_ShowsNotFoundMessage()
     {
         // Arrange
-        var nonExistentCrashId = Guid.NewGuid();
+        var nonExistentErrorId = Guid.NewGuid();
 
         // Act
-        var parameters = new[] { ComponentParameter.CreateParameter("CrashId", nonExistentCrashId) };
+        var parameters = new[] { ComponentParameter.CreateParameter("CrashId", nonExistentErrorId) };
         var cut = _testContext!.RenderComponent<CrashDetail>(parameters);
         await Task.Delay(100); // Wait for async initialization
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain("Crash Report Not Found");
+        markup.Should().Contain("Error Report Not Found");
         markup.Should().Contain("could not be found");
     }
 
     [Fact]
-    public async Task CrashesPage_WithMultipleCrashes_DisplaysAllCrashes()
+    public async Task CrashesPage_WithMultipleErrors_DisplaysAllErrors()
     {
-        // Arrange - Add multiple crashes
+        // Arrange - Add multiple errors
         await using var dbContext = _dbFixture.CreateDbContext();
 
-        var crashes = new[]
+        var errors = new[]
         {
-            new CrashReport
+            new Error
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Core = new CrashReportCore
+                GameVersion = "1.0.0",
+                Platform = "Windows",
+                Data = new ErrorData
                 {
-                    GameVersion = "1.0.0",
-                    Platform = "Windows",
+                    Severity = "Fatal",
                     ExceptionType = "System.NullReferenceException",
-                    ExceptionMessage = "Null ref 1",
+                    Message = "Null ref 1",
                     StackTrace = "stack1"
                 }
             },
-            new CrashReport
+            new Error
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Core = new CrashReportCore
+                GameVersion = "1.0.0",
+                Platform = "Linux",
+                Data = new ErrorData
                 {
-                    GameVersion = "1.0.0",
-                    Platform = "Linux",
+                    Severity = "Error",
                     ExceptionType = "System.ArgumentException",
-                    ExceptionMessage = "Arg exception",
+                    Message = "Arg exception",
                     StackTrace = "stack2"
                 }
             },
-            new CrashReport
+            new Error
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Core = new CrashReportCore
+                GameVersion = "2.0.0",
+                Platform = "macOS",
+                Data = new ErrorData
                 {
-                    GameVersion = "2.0.0",
-                    Platform = "macOS",
+                    Severity = "Fatal",
                     ExceptionType = "System.InvalidOperationException",
-                    ExceptionMessage = "Invalid op",
+                    Message = "Invalid op",
                     StackTrace = "stack3"
                 }
             }
         };
 
-        dbContext.CrashReports.AddRange(crashes);
+        dbContext.Errors.AddRange(errors);
         await dbContext.SaveChangesAsync();
 
         // Act
@@ -222,100 +226,106 @@ public class WebUiTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CrashReportViewService_GetRecentCrashesAsync_ReturnsRecentCrashes()
+    public async Task ReportViewService_GetRecentErrorsAsync_ReturnsRecentErrors()
     {
         // Arrange
         await using var dbContext = _dbFixture.CreateDbContext();
-        var service = new CrashReportViewService(dbContext);
+        var service = new ReportViewService(dbContext);
 
-        var crash = new CrashReport
+        var error = new Error
         {
             Id = Guid.NewGuid(),
             Timestamp = DateTime.UtcNow,
-            Core = new CrashReportCore
+            GameVersion = "1.0.0",
+            Platform = "Windows",
+            Data = new ErrorData
             {
-                GameVersion = "1.0.0",
-                Platform = "Windows",
+                Severity = "Fatal",
                 ExceptionType = "Test.Exception",
-                ExceptionMessage = "Test message",
+                Message = "Test message",
                 StackTrace = "Test stack"
             }
         };
-        dbContext.CrashReports.Add(crash);
+        dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
         // Act
-        var results = await service.GetRecentCrashesAsync(10);
+        var results = await service.GetRecentErrorsAsync(10);
 
         // Assert
         results.Should().NotBeNull();
         results.Should().HaveCount(1);
-        results[0].Core.ExceptionType.Should().Be("Test.Exception");
+        results[0].Data.ExceptionType.Should().Be("Test.Exception");
     }
 
     [Fact]
-    public async Task CrashReportViewService_GetCrashByIdAsync_ReturnsCrash()
+    public async Task ReportViewService_GetErrorByIdAsync_ReturnsError()
     {
         // Arrange
         await using var dbContext = _dbFixture.CreateDbContext();
-        var service = new CrashReportViewService(dbContext);
+        var service = new ReportViewService(dbContext);
 
-        var crashId = Guid.NewGuid();
-        var crash = new CrashReport
+        var errorId = Guid.NewGuid();
+        var error = new Error
         {
-            Id = crashId,
+            Id = errorId,
             Timestamp = DateTime.UtcNow,
-            Core = new CrashReportCore
+            GameVersion = "1.0.0",
+            Platform = "Windows",
+            Data = new ErrorData
             {
-                GameVersion = "1.0.0",
-                Platform = "Windows",
+                Severity = "Fatal",
                 ExceptionType = "Test.Exception",
-                ExceptionMessage = "Test message",
+                Message = "Test message",
                 StackTrace = "Test stack"
             }
         };
-        dbContext.CrashReports.Add(crash);
+        dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await service.GetCrashByIdAsync(crashId);
+        var result = await service.GetErrorByIdAsync(errorId);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(crashId);
-        result.Core.ExceptionType.Should().Be("Test.Exception");
+        result!.Id.Should().Be(errorId);
+        result.Data.ExceptionType.Should().Be("Test.Exception");
     }
 
     [Fact]
-    public async Task CrashReportViewService_FilterCrashesAsync_FiltersByPlatform()
+    public async Task ReportViewService_FilterErrorsAsync_FiltersByPlatform()
     {
         // Arrange
         await using var dbContext = _dbFixture.CreateDbContext();
-        var service = new CrashReportViewService(dbContext);
+        var service = new ReportViewService(dbContext);
 
-        var crashes = new[]
+        var errors = new[]
         {
-            new CrashReport
+            new Error
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Windows", ExceptionType = "E1", ExceptionMessage = "M1", StackTrace = "S1" }
+                GameVersion = "1.0.0",
+                Platform = "Windows",
+                Data = new ErrorData { Severity = "Fatal", ExceptionType = "E1", Message = "M1", StackTrace = "S1" }
             },
-            new CrashReport
+            new Error
             {
                 Id = Guid.NewGuid(),
                 Timestamp = DateTime.UtcNow,
-                Core = new CrashReportCore { GameVersion = "1.0.0", Platform = "Linux", ExceptionType = "E2", ExceptionMessage = "M2", StackTrace = "S2" }
+                GameVersion = "1.0.0",
+                Platform = "Linux",
+                Data = new ErrorData { Severity = "Error", ExceptionType = "E2", Message = "M2", StackTrace = "S2" }
             }
         };
-        dbContext.CrashReports.AddRange(crashes);
+        dbContext.Errors.AddRange(errors);
         await dbContext.SaveChangesAsync();
 
         // Act
-        var results = await service.FilterCrashesAsync(platform: "Windows");
+        var results = await service.FilterErrorsAsync(platform: "Windows");
 
         // Assert
         results.Should().HaveCount(1);
-        results[0].Core.Platform.Should().Be("Windows");
+        results[0].Platform.Should().Be("Windows");
     }
 }

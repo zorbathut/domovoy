@@ -1,10 +1,10 @@
 @page "/crashes"
 @using Wumpus.Web.Services
-@inject CrashReportViewService CrashService
+@inject ReportViewService ReportService
 
-<PageTitle>Crashes - Wumpus</PageTitle>
+<PageTitle>Errors - Wumpus</PageTitle>
 
-<h1>All Crashes</h1>
+<h1>All Errors</h1>
 
 <div class="row mb-3">
     <div class="col-md-3">
@@ -28,14 +28,15 @@
 
 @if (isLoading)
 {
-    <p><em>Loading crashes...</em></p>
+    <p><em>Loading errors...</em></p>
 }
-else if (crashes != null && crashes.Any())
+else if (errors != null && errors.Any())
 {
     <table class="table table-hover">
         <thead>
             <tr>
                 <th>Timestamp</th>
+                <th>Severity</th>
                 <th>Exception Type</th>
                 <th>Message</th>
                 <th>Platform</th>
@@ -44,15 +45,16 @@ else if (crashes != null && crashes.Any())
             </tr>
         </thead>
         <tbody>
-            @foreach (var crash in crashes)
+            @foreach (var error in errors)
             {
                 <tr>
-                    <td>@crash.Timestamp.ToLocalTime().ToString("g")</td>
-                    <td><code>@crash.Core.ExceptionType</code></td>
-                    <td>@(crash.Core.ExceptionMessage.Length > 50 ? crash.Core.ExceptionMessage.Substring(0, 50) + "..." : crash.Core.ExceptionMessage)</td>
-                    <td>@crash.Core.Platform</td>
-                    <td>@crash.Core.GameVersion</td>
-                    <td><a href="/crashes/@crash.Id" class="btn btn-sm btn-primary">Details</a></td>
+                    <td>@error.Timestamp.ToLocalTime().ToString("g")</td>
+                    <td><span class="badge bg-danger">@error.Data.Severity</span></td>
+                    <td><code>@error.Data.ExceptionType</code></td>
+                    <td>@(error.Data.Message.Length > 50 ? error.Data.Message.Substring(0, 50) + "..." : error.Data.Message)</td>
+                    <td>@error.Platform</td>
+                    <td>@error.GameVersion</td>
+                    <td><a href="/crashes/@error.Id" class="btn btn-sm btn-primary">Details</a></td>
                 </tr>
             }
         </tbody>
@@ -60,31 +62,31 @@ else if (crashes != null && crashes.Any())
 }
 else
 {
-    <p>No crashes found.</p>
+    <p>No errors found.</p>
 }
 
 @code {
-    private List<CrashReportResponse>? crashes;
+    private List<Wumpus.Shared.Models.Error>? errors;
     private bool isLoading = true;
     private string? selectedPlatform;
     private string? selectedVersion;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCrashes();
+        await LoadErrors();
     }
 
-    private async Task LoadCrashes()
+    private async Task LoadErrors()
     {
         isLoading = true;
-        crashes = await CrashService.GetRecentCrashesAsync(100);
+        errors = await ReportService.GetRecentErrorsAsync(100);
         isLoading = false;
     }
 
     private async Task ApplyFilters()
     {
         isLoading = true;
-        crashes = await CrashService.FilterCrashesAsync(
+        errors = await ReportService.FilterErrorsAsync(
             platform: string.IsNullOrEmpty(selectedPlatform) ? null : selectedPlatform,
             gameVersion: string.IsNullOrEmpty(selectedVersion) ? null : selectedVersion
         );

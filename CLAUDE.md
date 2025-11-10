@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Wumpus is a crash tracker and analytics system for games built with C# and ASP.NET Core 9. It consists of multiple services that work together to collect, deduplicate, and visualize game crash reports.
+Wumpus is a telemetry and error tracking system for games built with C# and ASP.NET Core 9. It collects and visualizes two types of reports:
+- **Events** - Game analytics and custom events (e.g., level completions, user actions)
+- **Errors** - Error conditions and crashes with stack traces
+
+The system consists of multiple services that work together to collect, store, and visualize these reports.
 
 ## Development Philosophy
 
@@ -17,11 +21,11 @@ This project follows MVP/KISS principles (Minimum Viable Product / Keep It Simpl
 
 The solution contains 5 projects:
 
-- **Wumpus.Shared** - Shared models, DTOs, and the `CrashReportCore` value object used across all projects
+- **Wumpus.Shared** - Shared models (`Report` base class, `Event` and `Error` types) and DTOs used across all projects
 - **Wumpus.Database** - EF Core DbContext, migrations, and database configuration
-- **Wumpus.Intake** - ASP.NET Core Web API that receives crash reports via HTTP
-- **Wumpus.Web** - Blazor Server web interface for viewing crash reports
-- **Wumpus.Client** - Client library for games to send crash reports to the Intake API
+- **Wumpus.Intake** - ASP.NET Core Web API that receives events and errors via HTTP
+- **Wumpus.Web** - Blazor Server web interface for viewing events and errors
+- **Wumpus.Client** - Client library for games to send events and errors to the Intake API
 
 ## Common Development Commands
 
@@ -92,8 +96,8 @@ dotnet test --filter "FullyQualifiedName~IntakeApiTests"
 
 The solution includes a single test project `Wumpus.Tests` that contains integration tests for all components:
 
-- **IntakeApiTests** - Tests the Intake API HTTP endpoints, database persistence, and deduplication logic
-- **CrashReportServiceTests** - Tests the CrashReportService directly, including stack trace hashing and deduplication
+- **IntakeApiTests** - Tests the Intake API HTTP endpoints and database persistence
+- **ReportServiceTests** - Tests the ReportService directly, including event and error creation
 - **WumpusClientTests** - Tests the client library's end-to-end integration with the Intake API
 - **WebUiTests** - Tests Blazor components using bUnit, verifying UI rendering and data display
 
@@ -113,14 +117,14 @@ The test project includes several infrastructure components:
 - **IntakeApiFactory** - Custom `WebApplicationFactory` for testing the Intake API
 - **WebUiFactory** - Custom `WebApplicationFactory` for testing the Web UI
 - **DatabaseFixture** - Manages test database creation, cleanup, and provides helper methods
-- **TestDataBuilder** - Fluent builder for creating test crash report data
+- **TestDataBuilder** - Fluent builder for creating test event and error report data
 
 #### What the Tests Cover
 
 1. **API Integration** - Full HTTP request/response cycle including serialization, validation, and error handling
 2. **Database Operations** - Actual PostgreSQL queries, migrations, and data persistence
-3. **Deduplication Logic** - Stack trace hashing (first 5 frames) and crash grouping behavior
-4. **Client Library** - End-to-end crash report submission from client to database
+3. **Report Storage** - Each event and error report is stored as a unique record (no deduplication)
+4. **Client Library** - End-to-end event and error submission from client to database
 5. **UI Components** - Blazor component rendering, data binding, and user interactions
 
 #### Running Tests Locally
@@ -138,30 +142,39 @@ The test project includes several infrastructure components:
 
 - **Intake API** (port 5001) and **Web UI** (port 5000) do NOT communicate with each other
 - Both services independently connect to the same PostgreSQL database
-- Crash reports submitted to the Intake API are stored in the database and retrieved by the Web UI
-
-### Crash Deduplication Strategy
-
-The deduplication logic is in `CrashReportService.cs:71-79`:
-1. Extract the first 5 stack frames from the crash stack trace
-2. Compute SHA-256 hash of those frames
-3. Check if a `CrashReport` with that `StackTraceHash` exists
-4. If exists: increment `OccurrenceCount` and update `LastSeen`
-5. If new: create new `CrashReport` with `OccurrenceCount=1`
-
-This means crashes are considered "the same" if their top 5 stack frames match, regardless of platform, game version, or other metadata.
+- Events and errors submitted to the Intake API are stored in the database and retrieved by the Web UI
 
 ### Data Model Design
 
-The `CrashReport` entity uses an owned entity pattern for core crash data:
+The system uses a Table-Per-Hierarchy (TPH) pattern with an abstract `Report` base class and two concrete types:
 
-- `CrashReport` (table: CrashReports)
-  - `Id` (Guid, PK)
-  - `Timestamp`, `StackTraceHash`, `OccurrenceCount`, `FirstSeen`, `LastSeen`
-  - `Core` (owned entity of type `CrashReportCore`) - contains GameVersion, Platform, ExceptionType, ExceptionMessage, StackTrace
-  - `SystemInfo`, `UserContext` (JSONB fields for flexible metadata)
+**Report** (abstract base class, table: Reports)
+- `Id` (Guid, PK)
+- `Timestamp` (DateTime)
+- `ReportType` (enum discriminator: Event=1, Error=2)
+- `GameVersion` (string, max 50 chars)
+- `Platform` (string, max 50 chars)
 
-The owned entity pattern means `CrashReportCore` fields are stored as columns in the CrashReports table, not a separate table. See `WumpusDbContext.cs:40-64` for the EF Core configuration.
+**Event : Report** (ReportType = Event)
+- `Data` (owned entity of type `EventData`) contains:
+  - `Name` (string, max 200 chars) - Event name
+  - `Category` (string, max 100 chars) - Event category
+  - `Value` (decimal?) - Optional numeric value
+  - `UserId` (string?, max 100 chars) - Optional user identifier
+  - `Metadata` (Dictionary<string, object>?) - Optional JSONB metadata
+
+**Error : Report** (ReportType = Error)
+- `Data` (owned entity of type `ErrorData`) contains:
+  - `Severity` (string, max 20 chars) - Error severity level
+  - `Code` (string?, max 100 chars) - Optional error code
+  - `Message` (string, max 2000 chars) - Error message
+  - `ExceptionType` (string?, max 500 chars) - Exception type
+  - `StackTrace` (string?) - Full stack trace
+  - `Context` (string?) - Additional context
+
+The owned entity pattern means owned entity fields are stored as columns in the Reports table using the `Data_` prefix (e.g., `Data_Name`, `Data_Severity`). Partial indexes on `Data_UserId` (for events) and `Data_Severity` (for errors) optimize queries for each type. See `WumpusDbContext.cs` for the EF Core configuration.
+
+**Important**: Each submission creates a new record - there is NO deduplication. Every event and error is stored individually.
 
 ### Connection String Configuration
 
@@ -188,7 +201,9 @@ Both services use Serilog configured via `appsettings.json`. Structured logging 
 
 ## Client Library Usage
 
-The `Wumpus.Client` project provides a simple client for games to send crash reports:
+The `Wumpus.Client` project provides a simple client for games to send events and errors:
+
+### Sending Events
 
 ```csharp
 var options = new WumpusClientOptions
@@ -199,7 +214,51 @@ var options = new WumpusClientOptions
 };
 
 using var client = new WumpusClient(options);
-await client.SendCrashReportAsync(exception);
+
+// Send a game event
+await client.SendEventAsync(
+    name: "LevelCompleted",
+    category: "Gameplay",
+    value: 1,
+    userId: "player123",
+    metadata: new Dictionary<string, object>
+    {
+        { "level", 5 },
+        { "time", 120.5 }
+    }
+);
 ```
 
-The client is designed to fail silently (returns null on error) to avoid crash reporting from crashing the game.
+### Sending Errors
+
+```csharp
+// Send a custom error
+await client.SendErrorAsync(
+    message: "Failed to load texture",
+    severity: "Error",
+    code: "TEX001",
+    exceptionType: "TextureLoadException"
+);
+
+// Send a crash report from an exception (convenience method)
+try
+{
+    // Game code
+}
+catch (Exception ex)
+{
+    await client.SendCrashAsync(ex);
+}
+```
+
+### Fire-and-Forget Methods
+
+For scenarios where you don't want to wait for the result:
+
+```csharp
+client.SendEventFireAndForget("PlayerJoined", "Multiplayer");
+client.SendErrorFireAndForget("Minor issue", severity: "Warning");
+client.SendCrashFireAndForget(exception);
+```
+
+The client is designed to fail silently (returns null on error) to avoid telemetry from crashing the game.
