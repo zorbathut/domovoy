@@ -130,6 +130,7 @@ public class ReportViewService
         Severity? severity = null,
         string? platform = null,
         string? gameVersion = null,
+        string? environment = null,
         DateTime? startDate = null,
         DateTime? endDate = null)
     {
@@ -143,6 +144,9 @@ public class ReportViewService
 
         if (!string.IsNullOrEmpty(gameVersion))
             query = query.Where(e => EF.Functions.ILike(e.Standard.GameVersion, $"%{gameVersion}%"));
+
+        if (!string.IsNullOrEmpty(environment))
+            query = query.Where(e => EF.Functions.ILike(e.Standard.Environment.ToString(), $"%{environment}%"));
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);
