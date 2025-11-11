@@ -295,7 +295,7 @@ public class DiscordNotificationService : BackgroundService
         }
 
         var embed = new EmbedBuilder()
-            .WithTitle($"{error.Severity} Error Reported")
+            .WithTitle($"{error.Severity} Reported")
             .WithDescription(error.Message)
             .WithColor(color)
             .WithCurrentTimestamp()
