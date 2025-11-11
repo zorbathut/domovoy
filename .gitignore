@@ -352,3 +352,6 @@ wwwroot/lib/
 # Local crash report test data
 test-crashes/
 sample-data/
+
+# Discord bot configuration (keep .example file)
+config/discord-bot.json

@@ -14,3 +14,8 @@ services:
     # Don't start web by default in dev mode
     profiles:
       - full
+
+  discord:
+    # Don't start discord bot by default in dev mode
+    profiles:
+      - discord

@@ -48,5 +48,23 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  discord:
+    build:
+      context: .
+      dockerfile: docker/DiscordBot.Dockerfile
+    container_name: wumpus-discord
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      Wumpus__WebApiUrl: "http://web:1975"
+      Wumpus__SubscriberName: "Discord Bot"
+      ConfigPath: "/app/config/discord-bot.json"
+    volumes:
+      - ./config/discord-bot.json:/app/config/discord-bot.json:ro
+    depends_on:
+      - web
+    restart: unless-stopped
+    profiles:
+      - discord
+
 volumes:
   postgres_data:
