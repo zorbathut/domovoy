@@ -36,8 +36,34 @@ else if (error != null)
                         <dt class="col-sm-4">Game Version:</dt>
                         <dd class="col-sm-8">@error.Standard.GameVersion</dd>
 
+                        <dt class="col-sm-4">Environment:</dt>
+                        <dd class="col-sm-8">@error.Standard.Environment</dd>
+
                         <dt class="col-sm-4">Timestamp:</dt>
                         <dd class="col-sm-8">@error.Timestamp.ToLocalTime().ToString("g")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Identifiers</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">User ID:</dt>
+                        <dd class="col-sm-8"><code>@error.Standard.UserId</code></dd>
+
+                        <dt class="col-sm-4">Computer ID:</dt>
+                        <dd class="col-sm-8"><code>@error.Standard.ComputerId</code></dd>
+
+                        <dt class="col-sm-4">Game ID:</dt>
+                        <dd class="col-sm-8"><code>@error.Standard.GameId</code></dd>
+
+                        <dt class="col-sm-4">Sequence ID:</dt>
+                        <dd class="col-sm-8"><code>@error.Standard.SequenceId</code></dd>
                     </dl>
                 </div>
             </div>
@@ -55,12 +81,24 @@ else if (error != null)
 
     @if (!string.IsNullOrEmpty(error.Data.StackTrace))
     {
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">
                 <h5>Stack Trace</h5>
             </div>
             <div class="card-body">
                 <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@error.Data.StackTrace</pre>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(error.Data.Log))
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5>Log</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@error.Data.Log</pre>
             </div>
         </div>
     }
