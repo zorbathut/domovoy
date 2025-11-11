@@ -1,3 +1,4 @@
+using NUlid;
 using Wumpus.Shared.DTOs;
 using Wumpus.Shared.Models;
 
@@ -29,10 +30,10 @@ public class TestDataBuilder
                 GameVersion = gameVersion ?? "1.0.0",
                 Platform = platform ?? "Windows",
                 Environment = environment ?? Wumpus.Shared.Models.Environment.Dev,
-                UserId = userId ?? Guid.NewGuid(),
-                ComputerId = computerId ?? Guid.NewGuid(),
-                GameId = gameId ?? Guid.NewGuid(),
-                SequenceId = Guid.NewGuid()
+                UserId = userId ?? Ulid.NewUlid().ToGuid(),
+                ComputerId = computerId ?? Ulid.NewUlid().ToGuid(),
+                GameId = gameId ?? Ulid.NewUlid().ToGuid(),
+                SequenceId = Ulid.NewUlid().ToGuid()
             },
             Data = new EventPayload
             {
@@ -65,10 +66,10 @@ public class TestDataBuilder
                 GameVersion = gameVersion ?? "1.0.0",
                 Platform = platform ?? "Windows",
                 Environment = environment ?? Wumpus.Shared.Models.Environment.Dev,
-                UserId = userId ?? Guid.NewGuid(),
-                ComputerId = computerId ?? Guid.NewGuid(),
-                GameId = gameId ?? Guid.NewGuid(),
-                SequenceId = Guid.NewGuid()
+                UserId = userId ?? Ulid.NewUlid().ToGuid(),
+                ComputerId = computerId ?? Ulid.NewUlid().ToGuid(),
+                GameId = gameId ?? Ulid.NewUlid().ToGuid(),
+                SequenceId = Ulid.NewUlid().ToGuid()
             },
             Data = new ErrorPayload
             {

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Wumpus.Database;
 using Wumpus.Shared.DTOs;
 using Wumpus.Shared.Models;
+using NUlid;
 
 namespace Wumpus.Intake.Services;
 
@@ -22,7 +23,7 @@ public class ReportService
 
         var eventReport = new Event
         {
-            Id = Guid.NewGuid(),
+            Id = Ulid.NewUlid().ToGuid(),
             Timestamp = now,
             Standard = request.Standard,
             Data = request.Data
@@ -49,7 +50,7 @@ public class ReportService
 
         var errorReport = new Error
         {
-            Id = Guid.NewGuid(),
+            Id = Ulid.NewUlid().ToGuid(),
             Timestamp = now,
             Standard = request.Standard,
             Data = request.Data
@@ -87,7 +88,7 @@ public class ReportService
         // Create notifications for each active subscriber
         var notifications = activeSubscribers.Select(subscriberId => new Notification
         {
-            Id = Guid.NewGuid(),
+            Id = Ulid.NewUlid().ToGuid(),
             ReportId = reportId,
             SubscriberId = subscriberId,
             CreatedAt = now,

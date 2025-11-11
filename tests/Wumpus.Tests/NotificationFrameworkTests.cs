@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using NUlid;
 using Wumpus.Database;
 using Wumpus.Shared.DTOs;
 using Wumpus.Shared.Models;
@@ -404,7 +405,7 @@ public class NotificationFrameworkTests : IClassFixture<IntakeApiFactory>, IClas
     public async Task AcknowledgeNotification_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
-        var invalidId = Guid.NewGuid();
+        var invalidId = Ulid.NewUlid().ToGuid();
 
         // Act
         var response = await _webClient.DeleteAsync($"/api/notifications/{invalidId}");

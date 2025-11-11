@@ -1,3 +1,4 @@
+using NUlid;
 using Wumpus.Shared.Models;
 using Environment = Wumpus.Shared.Models.Environment;
 
@@ -20,10 +21,10 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         try
@@ -49,10 +50,10 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         var errorData = new ErrorPayload
@@ -79,10 +80,10 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         var eventData = new EventPayload
@@ -115,10 +116,10 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "macOS",
             Environment = Environment.Release,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         try
@@ -153,10 +154,10 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         Exception[] exceptions =
@@ -196,10 +197,10 @@ public static class Examples
                 GameVersion = versions[random.Next(versions.Length)],
                 Platform = platforms[random.Next(platforms.Length)],
                 Environment = Environment.Dev,
-                UserId = Guid.NewGuid(),
-                ComputerId = Guid.NewGuid(),
-                GameId = Guid.NewGuid(),
-                SequenceId = Guid.NewGuid()
+                UserId = Ulid.NewUlid().ToGuid(),
+                ComputerId = Ulid.NewUlid().ToGuid(),
+                GameId = Ulid.NewUlid().ToGuid(),
+                SequenceId = Ulid.NewUlid().ToGuid()
             };
 
             var eventData = new EventPayload

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NUlid;
 using Wumpus.Database;
 using Wumpus.Shared.DTOs;
 using Wumpus.Shared.Models;
@@ -22,7 +23,7 @@ public class SubscriberService
 
         var subscriber = new Subscriber
         {
-            Id = Guid.NewGuid(),
+            Id = Ulid.NewUlid().ToGuid(),
             Name = request.Name,
             IsActive = true,
             CreatedAt = now,

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using NUlid;
 using Wumpus.Client;
 using Wumpus.Shared.Models;
 using Wumpus.Tests.Infrastructure;
@@ -48,10 +49,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             GameVersion = "1.5.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         var exception = new InvalidOperationException("Test exception for crash reporting");
@@ -75,10 +76,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             GameVersion = "2.0.0",
             Platform = "Linux",
             Environment = Environment.Release,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
@@ -113,10 +114,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         // Create exception with a specific stack trace (by catching and re-throwing)
@@ -187,10 +188,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         // Act & Assert
@@ -211,10 +212,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         var eventData = new EventPayload
@@ -244,10 +245,10 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            SequenceId = Ulid.NewUlid().ToGuid()
         };
 
         var errorData = new ErrorPayload

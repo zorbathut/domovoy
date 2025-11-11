@@ -1,3 +1,4 @@
+using NUlid;
 using Wumpus.Client;
 using Wumpus.Shared.Models;
 
@@ -86,10 +87,10 @@ for (int i = 0; i < 100; i++)
         GameVersion = version,
         Platform = platform,
         Environment = environment,
-        UserId = Guid.NewGuid(),
-        ComputerId = Guid.NewGuid(),
-        GameId = Guid.NewGuid(),
-        SequenceId = Guid.NewGuid()
+        UserId = Ulid.NewUlid().ToGuid(),
+        ComputerId = Ulid.NewUlid().ToGuid(),
+        GameId = Ulid.NewUlid().ToGuid(),
+        SequenceId = Ulid.NewUlid().ToGuid()
     };
 
     var eventData = new EventPayload
@@ -141,10 +142,10 @@ for (int i = 0; i < 50; i++)
         GameVersion = version,
         Platform = platform,
         Environment = environment,
-        UserId = Guid.NewGuid(),
-        ComputerId = Guid.NewGuid(),
-        GameId = Guid.NewGuid(),
-        SequenceId = Guid.NewGuid()
+        UserId = Ulid.NewUlid().ToGuid(),
+        ComputerId = Ulid.NewUlid().ToGuid(),
+        GameId = Ulid.NewUlid().ToGuid(),
+        SequenceId = Ulid.NewUlid().ToGuid()
     };
 
     var errorData = new ErrorPayload
