@@ -169,12 +169,12 @@ public class DiscordNotificationService : BackgroundService
         _domovoyClient = new DomovoyNotificationClient(webApiUrl);
 
         // Try to load existing subscriber, or register if not found
-        try
+        var loaded = await _domovoyClient.LoadSubscriberAsync(_config.SubscriberId);
+        if (loaded)
         {
-            await _domovoyClient.LoadSubscriberAsync(_config.SubscriberId);
             _logger.LogInformation("Loaded existing Domovoy subscriber: {Name}", subscriberName);
         }
-        catch
+        else
         {
             _logger.LogInformation("Subscriber not found, registering new subscriber...");
             await _domovoyClient.RegisterAsync(subscriberName, heartbeatTimeoutMinutes: 15);
