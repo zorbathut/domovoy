@@ -240,6 +240,16 @@ public class DiscordNotificationService : BackgroundService
                 return true; // ACK it to remove from queue
             }
 
+            // Only process errors from Release environment
+            if (notification.Report.Standard.Environment != Domovoy.Shared.Models.Environment.Release)
+            {
+                _logger.LogDebug(
+                    "Skipping error notification {NotificationId} from non-Release environment {Environment}",
+                    notification.Id,
+                    notification.Report.Standard.Environment);
+                return true; // ACK it to remove from queue
+            }
+
             _logger.LogInformation(
                 "Processing error notification {NotificationId}: {Severity} - {Message}",
                 notification.Id,
