@@ -1,17 +1,17 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: wumpus-postgres
+    container_name: domovoy-postgres
     environment:
-      POSTGRES_DB: wumpus
-      POSTGRES_USER: wumpus
-      POSTGRES_PASSWORD: wumpus
+      POSTGRES_DB: domovoy
+      POSTGRES_USER: domovoy
+      POSTGRES_PASSWORD: domovoy
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U wumpus"]
+      test: ["CMD-SHELL", "pg_isready -U domovoy"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -20,11 +20,11 @@ services:
     build:
       context: .
       dockerfile: docker/Intake.Dockerfile
-    container_name: wumpus-intake
+    container_name: domovoy-intake
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:1973
-      ConnectionStrings__DefaultConnection: "Host=postgres;Database=wumpus;Username=wumpus;Password=wumpus"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=domovoy;Username=domovoy;Password=domovoy"
     ports:
       - "1973:1973"
     depends_on:
@@ -36,11 +36,11 @@ services:
     build:
       context: .
       dockerfile: docker/Web.Dockerfile
-    container_name: wumpus-web
+    container_name: domovoy-web
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:1975
-      ConnectionStrings__DefaultConnection: "Host=postgres;Database=wumpus;Username=wumpus;Password=wumpus"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=domovoy;Username=domovoy;Password=domovoy"
     ports:
       - "1975:1975"
     depends_on:
@@ -52,11 +52,11 @@ services:
     build:
       context: .
       dockerfile: docker/DiscordBot.Dockerfile
-    container_name: wumpus-discord
+    container_name: domovoy-discord
     environment:
       DOTNET_ENVIRONMENT: Production
-      Wumpus__WebApiUrl: "http://web:1975"
-      Wumpus__SubscriberName: "Discord Bot"
+      Domovoy__WebApiUrl: "http://web:1975"
+      Domovoy__SubscriberName: "Discord Bot"
       ConfigPath: "/app/config/discord-bot.json"
     volumes:
       - ./config/discord-bot.json:/app/config/discord-bot.json:ro

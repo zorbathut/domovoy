@@ -1,8 +1,8 @@
 using NUlid;
-using Wumpus.Client;
-using Wumpus.Shared.Models;
+using Domovoy.Client;
+using Domovoy.Shared.Models;
 
-Console.WriteLine("Wumpus Database Seeder");
+Console.WriteLine("Domovoy Database Seeder");
 Console.WriteLine("======================\n");
 
 // Use localhost Intake API by default
@@ -35,8 +35,8 @@ var versions = new[] {
     "3.0.0-rc1", "3.0.0"
 };
 var environments = new[] {
-    Wumpus.Shared.Models.Environment.Dev,
-    Wumpus.Shared.Models.Environment.Release
+    Domovoy.Shared.Models.Environment.Dev,
+    Domovoy.Shared.Models.Environment.Release
 };
 
 var eventCategories = new[] { "Gameplay", "UI", "Multiplayer", "Combat", "Progression" };
@@ -69,7 +69,7 @@ int errorCount = 0;
 int eventCount = 0;
 int failedCount = 0;
 
-using var client = new WumpusClient(serverUrl);
+using var client = new DomovoyClient(serverUrl);
 
 Console.WriteLine("Sending 100 events...");
 

@@ -1,4 +1,4 @@
-# Wumpus - Game Crash Tracker
+# Domovoy - Game Crash Tracker
 
 A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
 
@@ -22,10 +22,10 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
 
 ### Projects
 
-- `Wumpus.Shared` - Shared models and DTOs
-- `Wumpus.Database` - EF Core DbContext and migrations
-- `Wumpus.Intake` - Crash intake API service
-- `Wumpus.Web` - Blazor Server web interface
+- `Domovoy.Shared` - Shared models and DTOs
+- `Domovoy.Database` - EF Core DbContext and migrations
+- `Domovoy.Intake` - Crash intake API service
+- `Domovoy.Web` - Blazor Server web interface
 
 ## Quick Start
 
@@ -56,12 +56,12 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
 
 2. **Run the Intake API:**
    ```bash
-   dotnet run --project src/Wumpus.Intake/Wumpus.Intake.csproj
+   dotnet run --project src/Domovoy.Intake/Domovoy.Intake.csproj
    ```
 
 3. **Run the Web UI (in another terminal):**
    ```bash
-   dotnet run --project src/Wumpus.Web/Wumpus.Web.csproj
+   dotnet run --project src/Domovoy.Web/Domovoy.Web.csproj
    ```
 
 ## Submitting Crash Reports
@@ -127,14 +127,14 @@ HTTP Status: `202 Accepted`
 The database schema is automatically migrated on startup. To create a new migration:
 
 ```bash
-cd src/Wumpus.Database
+cd src/Domovoy.Database
 dotnet ef migrations add MigrationName
 ```
 
 To apply migrations manually:
 
 ```bash
-cd src/Wumpus.Database
+cd src/Domovoy.Database
 dotnet ef database update
 ```
 
@@ -147,7 +147,7 @@ Update `appsettings.json` in both Intake and Web projects:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Database=wumpus;Username=wumpus;Password=wumpus"
+    "DefaultConnection": "Host=localhost;Database=domovoy;Username=domovoy;Password=domovoy"
   }
 }
 ```
@@ -156,9 +156,9 @@ Update `appsettings.json` in both Intake and Web projects:
 
 The `docker-compose.yml` file uses environment variables:
 
-- `POSTGRES_DB=wumpus`
-- `POSTGRES_USER=wumpus`
-- `POSTGRES_PASSWORD=wumpus`
+- `POSTGRES_DB=domovoy`
+- `POSTGRES_USER=domovoy`
+- `POSTGRES_PASSWORD=domovoy`
 - `ConnectionStrings__DefaultConnection` - Database connection string
 
 ## Development
@@ -178,12 +178,12 @@ dotnet test
 ### Project Structure
 
 ```
-Wumpus/
+Domovoy/
 ├── src/
-│   ├── Wumpus.Shared/        # Shared models and DTOs
-│   ├── Wumpus.Database/       # EF Core DbContext and migrations
-│   ├── Wumpus.Intake/         # Crash intake API
-│   └── Wumpus.Web/            # Blazor Server web UI
+│   ├── Domovoy.Shared/        # Shared models and DTOs
+│   ├── Domovoy.Database/       # EF Core DbContext and migrations
+│   ├── Domovoy.Intake/         # Crash intake API
+│   └── Domovoy.Web/            # Blazor Server web UI
 ├── docker/
 │   ├── Intake.Dockerfile      # Dockerfile for Intake API
 │   └── Web.Dockerfile         # Dockerfile for Web UI
@@ -196,7 +196,7 @@ Wumpus/
 
 ### Crash Deduplication
 
-Wumpus automatically groups similar crashes together:
+Domovoy automatically groups similar crashes together:
 
 1. When a crash report is received, the first 5 stack frames are extracted
 2. A SHA-256 hash is computed from these frames

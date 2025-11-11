@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Wumpus is a telemetry and error tracking system for games built with C# and ASP.NET Core 9. It collects and visualizes two types of reports:
+Domovoy is a telemetry and error tracking system for games built with C# and ASP.NET Core 9. It collects and visualizes two types of reports:
 - **Events** - Game analytics and custom events (e.g., level completions, user actions)
 - **Errors** - Error conditions and crashes with stack traces
 
@@ -21,11 +21,11 @@ This project follows MVP/KISS principles (Minimum Viable Product / Keep It Simpl
 
 The solution contains 5 projects:
 
-- **Wumpus.Shared** - Shared models (`Report` base class, `Event` and `Error` types) and DTOs used across all projects
-- **Wumpus.Database** - EF Core DbContext, migrations, and database configuration
-- **Wumpus.Intake** - ASP.NET Core Web API that receives events and errors via HTTP
-- **Wumpus.Web** - Blazor Server web interface for viewing events and errors
-- **Wumpus.Client** - Client library for games to send events and errors to the Intake API
+- **Domovoy.Shared** - Shared models (`Report` base class, `Event` and `Error` types) and DTOs used across all projects
+- **Domovoy.Database** - EF Core DbContext, migrations, and database configuration
+- **Domovoy.Intake** - ASP.NET Core Web API that receives events and errors via HTTP
+- **Domovoy.Web** - Blazor Server web interface for viewing events and errors
+- **Domovoy.Client** - Client library for games to send events and errors to the Intake API
 
 ## Common Development Commands
 
@@ -35,7 +35,7 @@ The solution contains 5 projects:
 dotnet build
 
 # Build specific project
-dotnet build src/Wumpus.Intake/Wumpus.Intake.csproj
+dotnet build src/Domovoy.Intake/Domovoy.Intake.csproj
 ```
 
 ### Running Services
@@ -46,10 +46,10 @@ dotnet build src/Wumpus.Intake/Wumpus.Intake.csproj
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres
 
 # Run Intake API (in separate terminal)
-dotnet run --project src/Wumpus.Intake/Wumpus.Intake.csproj
+dotnet run --project src/Domovoy.Intake/Domovoy.Intake.csproj
 
 # Run Web UI (in separate terminal)
-dotnet run --project src/Wumpus.Web/Wumpus.Web.csproj
+dotnet run --project src/Domovoy.Web/Domovoy.Web.csproj
 ```
 
 **Full Docker deployment:**
@@ -63,14 +63,14 @@ Migrations are automatically applied on startup by both Intake and Web services 
 
 To create a new migration:
 ```bash
-# Must be run from the Wumpus.Database directory
-cd src/Wumpus.Database
+# Must be run from the Domovoy.Database directory
+cd src/Domovoy.Database
 dotnet ef migrations add MigrationName
 ```
 
 To manually apply migrations:
 ```bash
-cd src/Wumpus.Database
+cd src/Domovoy.Database
 dotnet ef database update
 ```
 
@@ -94,21 +94,21 @@ dotnet test --filter "FullyQualifiedName~IntakeApiTests"
 
 #### Test Project Structure
 
-The solution includes a single test project `Wumpus.Tests` that contains integration tests for all components:
+The solution includes a single test project `Domovoy.Tests` that contains integration tests for all components:
 
 - **IntakeApiTests** - Tests the Intake API HTTP endpoints and database persistence
 - **ReportServiceTests** - Tests the ReportService directly, including event and error creation
-- **WumpusClientTests** - Tests the client library's end-to-end integration with the Intake API
+- **DomovoyClientTests** - Tests the client library's end-to-end integration with the Intake API
 - **WebUiTests** - Tests Blazor components using bUnit, verifying UI rendering and data display
 
 #### Test Database
 
-Tests use a separate `wumpus_test` database to avoid interfering with development data:
+Tests use a separate `domovoy_test` database to avoid interfering with development data:
 
-- The `DatabaseFixture` (in `tests/Wumpus.Tests/Infrastructure/DatabaseFixture.cs`) manages the test database lifecycle
+- The `DatabaseFixture` (in `tests/Domovoy.Tests/Infrastructure/DatabaseFixture.cs`) manages the test database lifecycle
 - The test database is dropped and recreated before each test run to ensure clean state
 - Tests clean up after themselves using `IAsyncLifetime.DisposeAsync()`
-- Connection string: `Host=localhost;Database=wumpus_test;Username=wumpus;Password=wumpus`
+- Connection string: `Host=localhost;Database=domovoy_test;Username=domovoy;Password=domovoy`
 
 #### Test Infrastructure
 
@@ -131,7 +131,7 @@ The test project includes several infrastructure components:
 
 1. Ensure PostgreSQL is running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres`
 2. Run tests: `dotnet test`
-3. The first test run will create the `wumpus_test` database automatically
+3. The first test run will create the `domovoy_test` database automatically
 4. Each test class cleans up after itself, so tests can be run repeatedly
 
 **Note**: Tests are configured to run sequentially (not in parallel) via `xunit.runner.json` because they share a single test database. This ensures reliability but makes tests slightly slower (~2-4 seconds total).
@@ -181,20 +181,20 @@ The system uses a Table-Per-Type (TPT) pattern with a `Report` base class and tw
 - ✅ Efficient indexes - no wasted index space on irrelevant rows
 - ✅ Extensible - easy to add new report types in the future
 
-**Shared Payload Types**: `EventPayload` and `ErrorPayload` are used in both DTOs (SubmitEventRequest, SubmitErrorRequest) and entities (Event, Error) to eliminate duplication and ensure consistency. EF Core automatically handles JOINs between Reports and Events/Errors tables when querying. See `WumpusDbContext.cs` for the EF Core TPT configuration.
+**Shared Payload Types**: `EventPayload` and `ErrorPayload` are used in both DTOs (SubmitEventRequest, SubmitErrorRequest) and entities (Event, Error) to eliminate duplication and ensure consistency. EF Core automatically handles JOINs between Reports and Events/Errors tables when querying. See `DomovoyDbContext.cs` for the EF Core TPT configuration.
 
 **Important**: Each submission creates a new record - there is NO deduplication. Every event and error is stored individually.
 
 ### Connection String Configuration
 
-- **Development (local)**: `Host=localhost;Database=wumpus;Username=wumpus;Password=wumpus`
-- **Docker**: `Host=postgres;Database=wumpus;Username=wumpus;Password=wumpus`
+- **Development (local)**: `Host=localhost;Database=domovoy;Username=domovoy;Password=domovoy`
+- **Docker**: `Host=postgres;Database=domovoy;Username=domovoy;Password=domovoy`
 - Configured in `appsettings.json` (or `appsettings.Development.json`) in both Intake and Web projects
 - Docker services use environment variable `ConnectionStrings__DefaultConnection` (see docker-compose.yml)
 
 ### Database Design Time Factory
 
-`WumpusDbContextFactory.cs` provides a design-time factory for EF Core migrations. It uses a hardcoded localhost connection string that is only used during `dotnet ef migrations add` commands, not at runtime.
+`DomovoyDbContextFactory.cs` provides a design-time factory for EF Core migrations. It uses a hardcoded localhost connection string that is only used during `dotnet ef migrations add` commands, not at runtime.
 
 ## Service Ports
 
@@ -210,12 +210,12 @@ Both services use Serilog configured via `appsettings.json`. Structured logging 
 
 ## Client Library Usage
 
-The `Wumpus.Client` project provides a stateless client for games to send events and errors.
+The `Domovoy.Client` project provides a stateless client for games to send events and errors.
 
 ### Basic Setup
 
 ```csharp
-using var client = new WumpusClient("http://localhost:1973");
+using var client = new DomovoyClient("http://localhost:1973");
 
 // Create a standard payload that will be sent with each report
 var standard = new StandardPayload

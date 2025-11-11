@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Wumpus.Client\Wumpus.Client.csproj" />
+    <ProjectReference Include="..\..\src\Domovoy.Client\Domovoy.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>
