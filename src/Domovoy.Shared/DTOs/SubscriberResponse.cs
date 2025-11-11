@@ -1,3 +1,5 @@
+using System;
+
 namespace Domovoy.Shared.DTOs;
 
 public class SubscriberResponse

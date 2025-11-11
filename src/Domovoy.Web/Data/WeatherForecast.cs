@@ -1,3 +1,5 @@
+using System;
+
 namespace Domovoy.Web.Data;
 
 public class WeatherForecast
