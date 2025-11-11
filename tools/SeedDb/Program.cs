@@ -19,9 +19,25 @@ var now = DateTime.UtcNow;
 // Generate data for the past 7 days
 var startDate = now.AddDays(-7);
 
-var platforms = new[] { "Windows", "Linux", "macOS", "Android", "iOS" };
-var versions = new[] { "1.0.0", "1.1.0", "1.2.0", "2.0.0", "2.1.0" };
-var environments = new[] { Wumpus.Shared.Models.Environment.Dev, Wumpus.Shared.Models.Environment.Release };
+var platforms = new[] {
+    "Windows", "Windows 10", "Windows 11",
+    "Linux", "Ubuntu", "Debian",
+    "macOS", "macOS 14", "macOS 15",
+    "Android", "Android 13", "Android 14",
+    "iOS", "iOS 17", "iOS 18",
+    "PlayStation 5", "Xbox Series X", "Nintendo Switch"
+};
+var versions = new[] {
+    "0.9.0", "0.9.5",
+    "1.0.0", "1.0.1", "1.0.2",
+    "1.1.0", "1.1.5", "1.2.0", "1.2.1",
+    "2.0.0-alpha", "2.0.0-beta", "2.0.0", "2.1.0", "2.2.0",
+    "3.0.0-rc1", "3.0.0"
+};
+var environments = new[] {
+    Wumpus.Shared.Models.Environment.Dev,
+    Wumpus.Shared.Models.Environment.Release
+};
 
 var eventCategories = new[] { "Gameplay", "UI", "Multiplayer", "Combat", "Progression" };
 var eventNames = new[] {
