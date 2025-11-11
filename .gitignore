@@ -138,15 +138,15 @@ BenchmarkDotNet.Artifacts/
 ScaffoldingReadMe.txt
 
 # Blazor generated files
-**/*.min.css
-**/*.min.js
 blazor.boot.json.gz
 blazor.boot.json.br
 
-# Build artifacts
+# Build artifacts (minified files generated from source)
 wwwroot/dist/
 wwwroot/css/site.min.css
 wwwroot/js/site.min.js
+**/obj/*/*.min.css
+**/obj/*/*.min.js
 
 # Local development settings (but keep appsettings.Development.json)
 appsettings.Local.json
