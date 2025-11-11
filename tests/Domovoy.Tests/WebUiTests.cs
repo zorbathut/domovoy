@@ -101,7 +101,7 @@ public class WebUiTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CrashesPage_ShowsLoadingMessage_DuringInitialization()
+    public void CrashesPage_ShowsLoadingMessage_DuringInitialization()
     {
         // Act
         var cut = _testContext!.RenderComponent<Crashes>();

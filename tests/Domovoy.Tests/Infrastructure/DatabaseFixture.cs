@@ -29,11 +29,12 @@ public class DatabaseFixture : IAsyncLifetime
         await RunMigrationsAsync();
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
         // Optionally drop the database after tests complete
         // Comment this out if you want to inspect the database after test runs
         // await DropDatabaseIfExistsAsync();
+        return Task.CompletedTask;
     }
 
     /// <summary>
