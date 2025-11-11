@@ -109,10 +109,10 @@ public class ReportViewService
             query = query.Where(e => e.Data.UserId == userId);
 
         if (!string.IsNullOrEmpty(platform))
-            query = query.Where(e => e.Standard.Platform == platform);
+            query = query.Where(e => EF.Functions.ILike(e.Standard.Platform, $"%{platform}%"));
 
         if (!string.IsNullOrEmpty(gameVersion))
-            query = query.Where(e => e.Standard.GameVersion == gameVersion);
+            query = query.Where(e => EF.Functions.ILike(e.Standard.GameVersion, $"%{gameVersion}%"));
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);
@@ -139,10 +139,10 @@ public class ReportViewService
             query = query.Where(e => e.Data.Severity == severity.Value);
 
         if (!string.IsNullOrEmpty(platform))
-            query = query.Where(e => e.Standard.Platform == platform);
+            query = query.Where(e => EF.Functions.ILike(e.Standard.Platform, $"%{platform}%"));
 
         if (!string.IsNullOrEmpty(gameVersion))
-            query = query.Where(e => e.Standard.GameVersion == gameVersion);
+            query = query.Where(e => EF.Functions.ILike(e.Standard.GameVersion, $"%{gameVersion}%"));
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);
