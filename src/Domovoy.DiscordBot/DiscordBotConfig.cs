@@ -10,4 +10,5 @@ public class DiscordBotConfig
     public Guid SubscriberId { get; set; }
     public string BotToken { get; set; } = string.Empty;
     public string ChannelId { get; set; } = string.Empty;
+    public string? MentionRoleId { get; set; }
 }

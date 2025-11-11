@@ -319,7 +319,14 @@ public class DiscordNotificationService : BackgroundService
 
         embed.WithFooter($"Report ID: {notification.Report.Id} | Notification ID: {notification.Id}");
 
-        await channel.SendMessageAsync(embed: embed.Build());
+        // Build message with optional role mention
+        string? messageContent = null;
+        if (!string.IsNullOrWhiteSpace(_config!.MentionRoleId))
+        {
+            messageContent = $"<@&{_config.MentionRoleId}>";
+        }
+
+        await channel.SendMessageAsync(text: messageContent, embed: embed.Build());
 
         _logger.LogInformation(
             "Sent error notification to Discord channel {ChannelId}: {Severity} - {Message}",

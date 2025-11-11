@@ -1,5 +1,6 @@
 {
   "subscriberId": "378764d2-02b3-4ae3-88ca-b1a1686c0571",
   "botToken": "YOUR_DISCORD_BOT_TOKEN_HERE",
-  "channelId": "YOUR_DISCORD_CHANNEL_ID_HERE"
+  "channelId": "YOUR_DISCORD_CHANNEL_ID_HERE",
+  "mentionRoleId": "YOUR_DISCORD_ROLE_ID_HERE"
 }
