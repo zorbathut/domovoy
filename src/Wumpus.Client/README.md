@@ -115,7 +115,7 @@ class Program
     {
         var options = new WumpusClientOptions
         {
-            ServerUrl = "http://localhost:5000",
+            ServerUrl = "http://localhost:1973",
             AppVersion = "1.0.0",
             Platform = Environment.OSVersion.Platform.ToString(),
             SystemInfo = new Dictionary<string, string>

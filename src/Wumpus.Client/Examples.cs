@@ -13,7 +13,7 @@ public static class Examples
     /// </summary>
     public static async Task BasicCrashExample()
     {
-        using var client = new WumpusClient("http://localhost:5001");
+        using var client = new WumpusClient("http://localhost:1973");
 
         var standard = new StandardPayload
         {
@@ -42,7 +42,7 @@ public static class Examples
     /// </summary>
     public static async Task SendErrorExample()
     {
-        using var client = new WumpusClient("http://localhost:5001");
+        using var client = new WumpusClient("http://localhost:1973");
 
         var standard = new StandardPayload
         {
@@ -72,7 +72,7 @@ public static class Examples
     /// </summary>
     public static async Task SendEventExample()
     {
-        using var client = new WumpusClient("http://localhost:5001");
+        using var client = new WumpusClient("http://localhost:1973");
 
         var standard = new StandardPayload
         {
@@ -108,7 +108,7 @@ public static class Examples
     /// </summary>
     public static void FireAndForgetExample()
     {
-        var client = new WumpusClient("http://localhost:5001");
+        var client = new WumpusClient("http://localhost:1973");
 
         var standard = new StandardPayload
         {
@@ -146,7 +146,7 @@ public static class Examples
     /// </summary>
     public static async Task ConcurrentReportsExample()
     {
-        using var client = new WumpusClient("http://localhost:5001");
+        using var client = new WumpusClient("http://localhost:1973");
 
         var standard = new StandardPayload
         {
@@ -181,7 +181,7 @@ public static class Examples
     /// </summary>
     public static async Task DiverseDataExample()
     {
-        using var client = new WumpusClient("http://localhost:5001");
+        using var client = new WumpusClient("http://localhost:1973");
 
         // Send events from different platforms and versions
         var platforms = new[] { "Windows", "Linux", "macOS", "Android", "iOS" };

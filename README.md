@@ -16,8 +16,8 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
 
 ### Services
 
-- **Intake API** (Port 5001) - Receives and processes crash reports
-- **Web UI** (Port 5000) - Dashboard for viewing crashes
+- **Intake API** (Port 1973) - Receives and processes crash reports
+- **Web UI** (Port 1975) - Dashboard for viewing crashes
 - **PostgreSQL** (Port 5432) - Database for crash data
 
 ### Projects
@@ -43,9 +43,9 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
    ```
 
 2. **Access the services:**
-   - Web UI: http://localhost:5000
-   - Intake API: http://localhost:5001
-   - Health Checks: http://localhost:5000/health and http://localhost:5001/health
+   - Web UI: http://localhost:1975
+   - Intake API: http://localhost:1973
+   - Health Checks: http://localhost:1975/health and http://localhost:1973/health
 
 ### Running Locally (Development)
 
@@ -69,7 +69,7 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
 ### API Endpoint
 
 ```
-POST http://localhost:5001/api/v1/crashes
+POST http://localhost:1973/api/v1/crashes
 Content-Type: application/json
 ```
 
@@ -98,7 +98,7 @@ Content-Type: application/json
 ### Example with curl
 
 ```bash
-curl -X POST http://localhost:5001/api/v1/crashes \\
+curl -X POST http://localhost:1973/api/v1/crashes \\
   -H "Content-Type: application/json" \\
   -d '{
     "gameVersion": "1.0.0",
@@ -225,8 +225,8 @@ Wumpus automatically groups similar crashes together:
 
 Both services expose health check endpoints:
 
-- Intake API: http://localhost:5001/health
-- Web UI: http://localhost:5000/health
+- Intake API: http://localhost:1973/health
+- Web UI: http://localhost:1975/health
 
 Health checks verify:
 - Service is running
@@ -263,11 +263,11 @@ If services can't connect to PostgreSQL:
 
 ### Port Conflicts
 
-If ports 5000, 5001, or 5432 are already in use, modify `docker-compose.yml`:
+If ports 1975, 1973, or 5432 are already in use, modify `docker-compose.yml`:
 
 ```yaml
 ports:
-  - "5010:5000"  # Map external port 5010 to internal port 5000 (change left side only)
+  - "1985:1975"  # Map external port 1985 to internal port 1975 (change left side only)
 ```
 
 ## Future Enhancements

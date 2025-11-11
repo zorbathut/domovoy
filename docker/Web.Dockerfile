@@ -17,6 +17,6 @@ RUN dotnet publish "Wumpus.Web.csproj" -c Release -o /app/publish /p:UseAppHost=
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-EXPOSE 5000
+EXPOSE 1975
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Wumpus.Web.dll"]

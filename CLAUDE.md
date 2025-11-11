@@ -140,7 +140,7 @@ The test project includes several infrastructure components:
 
 ### Service Communication
 
-- **Intake API** (port 5001) and **Web UI** (port 5000) do NOT communicate with each other
+- **Intake API** (port 1973) and **Web UI** (port 1975) do NOT communicate with each other
 - Both services independently connect to the same PostgreSQL database
 - Events and errors submitted to the Intake API are stored in the database and retrieved by the Web UI
 
@@ -198,8 +198,8 @@ The system uses a Table-Per-Type (TPT) pattern with a `Report` base class and tw
 
 ## Service Ports
 
-- **Web UI**: 5000
-- **Intake API**: 5001
+- **Web UI**: 1975
+- **Intake API**: 1973
 - **PostgreSQL**: 5432
 
 Both Intake and Web expose `/health` endpoints for health checks.
@@ -215,7 +215,7 @@ The `Wumpus.Client` project provides a stateless client for games to send events
 ### Basic Setup
 
 ```csharp
-using var client = new WumpusClient("http://localhost:5001");
+using var client = new WumpusClient("http://localhost:1973");
 
 // Create a standard payload that will be sent with each report
 var standard = new StandardPayload

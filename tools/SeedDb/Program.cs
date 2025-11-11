@@ -7,7 +7,7 @@ Console.WriteLine("======================\n");
 // Use localhost Intake API by default
 var serverUrl = args.Length > 0
     ? args[0]
-    : "http://localhost:5001";
+    : "http://localhost:1973";
 
 Console.WriteLine($"Server: {serverUrl}");
 Console.WriteLine("Generating and sending seed data...\n");

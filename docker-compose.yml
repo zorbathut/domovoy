@@ -23,10 +23,10 @@ services:
     container_name: wumpus-intake
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:5001
+      ASPNETCORE_URLS: http://+:1973
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=wumpus;Username=wumpus;Password=wumpus"
     ports:
-      - "5001:5001"
+      - "1973:1973"
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,10 +39,10 @@ services:
     container_name: wumpus-web
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:5000
+      ASPNETCORE_URLS: http://+:1975
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=wumpus;Username=wumpus;Password=wumpus"
     ports:
-      - "5000:5000"
+      - "1975:1975"
     depends_on:
       postgres:
         condition: service_healthy

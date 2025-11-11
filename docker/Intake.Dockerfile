@@ -17,6 +17,6 @@ RUN dotnet publish "Wumpus.Intake.csproj" -c Release -o /app/publish /p:UseAppHo
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-EXPOSE 5001
+EXPOSE 1973
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Wumpus.Intake.dll"]
