@@ -15,6 +15,7 @@ builder.Host.UseSerilog();
 // Add services to the container
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddControllers(); // Add support for API controllers
 
 // Add DbContext with Npgsql dynamic JSON support
 var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -26,6 +27,11 @@ builder.Services.AddDbContext<WumpusDbContext>(options =>
 
 // Add application services
 builder.Services.AddScoped<ReportViewService>();
+builder.Services.AddScoped<SubscriberService>();
+builder.Services.AddScoped<NotificationService>();
+
+// Add background services
+builder.Services.AddHostedService<LockCleanupService>();
 
 // Add health checks
 builder.Services.AddHealthChecks()
@@ -45,6 +51,7 @@ app.UseSerilogRequestLogging();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapHealthChecks("/health");

@@ -13,6 +13,8 @@ public class WumpusDbContext : DbContext
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<Error> Errors => Set<Error>();
+    public DbSet<Subscriber> Subscribers => Set<Subscriber>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -125,6 +127,69 @@ public class WumpusDbContext : DbContext
                 // Index for Severity (no filter needed - Errors table only has errors)
                 owned.HasIndex(d => d.Severity);
             });
+        });
+
+        // Configure Subscriber entity
+        modelBuilder.Entity<Subscriber>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.ToTable("Subscribers");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(e => e.IsActive)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.Property(e => e.HeartbeatTimeoutMinutes)
+                .IsRequired();
+
+            entity.HasIndex(e => e.LastHeartbeat);
+        });
+
+        // Configure Notification entity
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.ToTable("Notifications");
+
+            entity.Property(e => e.ReportId)
+                .IsRequired();
+
+            entity.Property(e => e.SubscriberId)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.Property(e => e.RetryCount)
+                .IsRequired();
+
+            entity.Property(e => e.LockedBy)
+                .HasMaxLength(100);
+
+            // Configure relationships
+            entity.HasOne(e => e.Report)
+                .WithMany()
+                .HasForeignKey(e => e.ReportId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Subscriber)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriberId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => new { e.SubscriberId, e.CreatedAt });
+            entity.HasIndex(e => e.LockedUntil)
+                .HasFilter("\"LockedUntil\" IS NOT NULL");
+            entity.HasIndex(e => e.ReportId);
         });
     }
 }

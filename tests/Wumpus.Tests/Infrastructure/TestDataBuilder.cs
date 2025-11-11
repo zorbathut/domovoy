@@ -9,6 +9,41 @@ namespace Wumpus.Tests.Infrastructure;
 public class TestDataBuilder
 {
     /// <summary>
+    /// Creates a default event report request.
+    /// </summary>
+    public static SubmitEventRequest CreateEventReport(
+        string? gameVersion = null,
+        string? platform = null,
+        string? eventName = null,
+        string? category = null,
+        decimal? value = null,
+        Wumpus.Shared.Models.Environment? environment = null,
+        Guid? userId = null,
+        Guid? computerId = null,
+        Guid? gameId = null)
+    {
+        return new SubmitEventRequest
+        {
+            Standard = new StandardPayload
+            {
+                GameVersion = gameVersion ?? "1.0.0",
+                Platform = platform ?? "Windows",
+                Environment = environment ?? Wumpus.Shared.Models.Environment.Dev,
+                UserId = userId ?? Guid.NewGuid(),
+                ComputerId = computerId ?? Guid.NewGuid(),
+                GameId = gameId ?? Guid.NewGuid(),
+                SequenceId = Guid.NewGuid()
+            },
+            Data = new EventPayload
+            {
+                Name = eventName ?? "TestEvent",
+                Category = category ?? "TestCategory",
+                Value = value
+            }
+        };
+    }
+
+    /// <summary>
     /// Creates a default error report request with typical crash values.
     /// </summary>
     public static SubmitErrorRequest CreateErrorReport(

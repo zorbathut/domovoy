@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Wumpus.Database;
 using Wumpus.Shared.DTOs;
 using Wumpus.Shared.Models;
@@ -28,6 +29,10 @@ public class ReportService
         };
 
         _context.Events.Add(eventReport);
+
+        // Create notifications for active subscribers (transactionally)
+        await CreateNotificationsForReportAsync(eventReport.Id, now);
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
@@ -51,6 +56,10 @@ public class ReportService
         };
 
         _context.Errors.Add(errorReport);
+
+        // Create notifications for active subscribers (transactionally)
+        await CreateNotificationsForReportAsync(errorReport.Id, now);
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
@@ -60,5 +69,36 @@ public class ReportService
             errorReport.Data.Message);
 
         return errorReport.Id;
+    }
+
+    private async Task CreateNotificationsForReportAsync(Guid reportId, DateTime now)
+    {
+        // Find active subscribers with recent heartbeat
+        var activeSubscribers = await _context.Subscribers
+            .Where(s => s.IsActive)
+            .Where(s => s.LastHeartbeat != null &&
+                        s.LastHeartbeat.Value.AddMinutes(s.HeartbeatTimeoutMinutes) > now)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        if (!activeSubscribers.Any())
+            return;
+
+        // Create notifications for each active subscriber
+        var notifications = activeSubscribers.Select(subscriberId => new Notification
+        {
+            Id = Guid.NewGuid(),
+            ReportId = reportId,
+            SubscriberId = subscriberId,
+            CreatedAt = now,
+            RetryCount = 0
+        }).ToList();
+
+        _context.Notifications.AddRange(notifications);
+
+        _logger.LogDebug(
+            "Created {NotificationCount} notifications for report {ReportId}",
+            notifications.Count,
+            reportId);
     }
 }
