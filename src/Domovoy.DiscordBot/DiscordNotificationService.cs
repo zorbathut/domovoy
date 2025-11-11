@@ -305,6 +305,13 @@ public class DiscordNotificationService : BackgroundService
             .AddField("Report Time", notification.Report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true)
             .AddField("Stack Trace", $"```\n{stackTrace}\n```", inline: false);
 
+        // Add link to detail page if webUiUrl is configured
+        if (!string.IsNullOrWhiteSpace(_config!.WebUiUrl))
+        {
+            var detailUrl = $"{_config.WebUiUrl.TrimEnd('/')}/crashes/{notification.Report.Id}";
+            embed.WithUrl(detailUrl);
+        }
+
         // Add log if present and not too long
         if (!string.IsNullOrEmpty(error.Log))
         {

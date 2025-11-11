@@ -11,4 +11,5 @@ public class DiscordBotConfig
     public string BotToken { get; set; } = string.Empty;
     public string ChannelId { get; set; } = string.Empty;
     public string? MentionRoleId { get; set; }
+    public string? WebUiUrl { get; set; }
 }
