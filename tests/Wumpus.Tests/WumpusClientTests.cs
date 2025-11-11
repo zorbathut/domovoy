@@ -1,8 +1,10 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Wumpus.Client;
+using Wumpus.Shared.Models;
 using Wumpus.Tests.Infrastructure;
 using Xunit;
+using Environment = Wumpus.Shared.Models.Environment;
 
 namespace Wumpus.Tests;
 
@@ -38,23 +40,24 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     public async Task SendCrashAsync_WithValidException_ReturnsTrue()
     {
         // Arrange
-        var options = new WumpusClientOptions
+        var httpClient = _factory.CreateClient();
+        using var client = new WumpusClient(_serverUrl, httpClient);
+
+        var standard = new StandardPayload
         {
-            ServerUrl = _serverUrl,
-            AppVersion = "1.5.0",
+            GameVersion = "1.5.0",
             Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
+            Environment = Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
         };
 
-        var httpClient = _factory.CreateClient();
-        using var client = new WumpusClient(options, httpClient);
         var exception = new InvalidOperationException("Test exception for crash reporting");
 
         // Act
-        var success = await client.SendCrashAsync(exception);
+        var success = await client.SendCrashAsync(standard, exception);
 
         // Assert
         success.Should().BeTrue();
@@ -64,23 +67,24 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     public async Task SendCrashAsync_WithValidException_PersistsToDatabase()
     {
         // Arrange
-        var options = new WumpusClientOptions
+        var httpClient = _factory.CreateClient();
+        using var client = new WumpusClient(_serverUrl, httpClient);
+
+        var standard = new StandardPayload
         {
-            ServerUrl = _serverUrl,
-            AppVersion = "2.0.0",
+            GameVersion = "2.0.0",
             Platform = "Linux",
-            Environment = Wumpus.Shared.Models.Environment.Release,
+            Environment = Environment.Release,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
         };
 
-        var httpClient = _factory.CreateClient();
-        using var client = new WumpusClient(options, httpClient);
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
 
         // Act
-        var success = await client.SendCrashAsync(exception);
+        var success = await client.SendCrashAsync(standard, exception);
 
         // Assert
         success.Should().BeTrue();
@@ -101,19 +105,19 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     public async Task SendCrashAsync_SameExceptionTwice_CreatesNewRecords()
     {
         // Arrange
-        var options = new WumpusClientOptions
+        var httpClient = _factory.CreateClient();
+        using var client = new WumpusClient(_serverUrl, httpClient);
+
+        var standard = new StandardPayload
         {
-            ServerUrl = _serverUrl,
-            AppVersion = "1.0.0",
+            GameVersion = "1.0.0",
             Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
+            Environment = Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
         };
-
-        var httpClient = _factory.CreateClient();
-        using var client = new WumpusClient(options, httpClient);
 
         // Create exception with a specific stack trace (by catching and re-throwing)
         Exception? capturedException = null;
@@ -127,8 +131,8 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         }
 
         // Act - Send the same exception twice
-        var success1 = await client.SendCrashAsync(capturedException!);
-        var success2 = await client.SendCrashAsync(capturedException!);
+        var success1 = await client.SendCrashAsync(standard, capturedException!);
+        var success2 = await client.SendCrashAsync(standard, capturedException!);
 
         // Assert - Both should succeed
         success1.Should().BeTrue();
@@ -142,97 +146,122 @@ public class WumpusClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public void Constructor_WithNullOptions_ThrowsArgumentNullException()
+    public void Constructor_WithNullServerUrl_ThrowsArgumentException()
     {
         // Act & Assert
         var act = () => new WumpusClient(null!);
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("options");
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("serverUrl");
     }
 
     [Fact]
     public void Constructor_WithEmptyServerUrl_ThrowsArgumentException()
     {
-        // Arrange
-        var options = new WumpusClientOptions
-        {
-            ServerUrl = "",
-            AppVersion = "1.0.0",
-            Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
-        };
-
         // Act & Assert
-        var act = () => new WumpusClient(options);
+        var act = () => new WumpusClient("");
         act.Should().Throw<ArgumentException>()
-            .WithParameterName("options");
+            .WithParameterName("serverUrl");
     }
 
     [Fact]
-    public void Constructor_WithEmptyAppVersion_ThrowsArgumentException()
+    public async Task SendCrashAsync_WithNullStandardPayload_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = new WumpusClientOptions
-        {
-            ServerUrl = "http://localhost",
-            AppVersion = "",
-            Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
-        };
+        using var client = new WumpusClient(_serverUrl);
+        var exception = new InvalidOperationException("Test");
 
         // Act & Assert
-        var act = () => new WumpusClient(options);
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("options");
-    }
-
-    [Fact]
-    public void Constructor_WithEmptyPlatform_ThrowsArgumentException()
-    {
-        // Arrange
-        var options = new WumpusClientOptions
-        {
-            ServerUrl = "http://localhost",
-            AppVersion = "1.0.0",
-            Platform = "",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
-        };
-
-        // Act & Assert
-        var act = () => new WumpusClient(options);
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("options");
+        var act = async () => await client.SendCrashAsync(null!, exception);
+        await act.Should().ThrowAsync<ArgumentNullException>()
+            .WithParameterName("standard");
     }
 
     [Fact]
     public async Task SendCrashAsync_WithNullException_ThrowsArgumentNullException()
     {
         // Arrange
-        var options = new WumpusClientOptions
+        using var client = new WumpusClient(_serverUrl);
+
+        var standard = new StandardPayload
         {
-            ServerUrl = _serverUrl,
-            AppVersion = "1.0.0",
+            GameVersion = "1.0.0",
             Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
+            Environment = Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
         };
 
-        using var client = new WumpusClient(options);
-
         // Act & Assert
-        var act = async () => await client.SendCrashAsync(null!);
+        var act = async () => await client.SendCrashAsync(standard, null!);
         await act.Should().ThrowAsync<ArgumentNullException>()
             .WithParameterName("exception");
+    }
+
+    [Fact]
+    public async Task SendEventAsync_WithValidData_ReturnsTrue()
+    {
+        // Arrange
+        var httpClient = _factory.CreateClient();
+        using var client = new WumpusClient(_serverUrl, httpClient);
+
+        var standard = new StandardPayload
+        {
+            GameVersion = "1.0.0",
+            Platform = "Windows",
+            Environment = Environment.Dev,
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
+        };
+
+        var eventData = new EventPayload
+        {
+            Name = "TestEvent",
+            Category = "Testing",
+            Value = 42,
+            UserId = "test_user"
+        };
+
+        // Act
+        var success = await client.SendEventAsync(standard, eventData);
+
+        // Assert
+        success.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SendErrorAsync_WithValidData_ReturnsTrue()
+    {
+        // Arrange
+        var httpClient = _factory.CreateClient();
+        using var client = new WumpusClient(_serverUrl, httpClient);
+
+        var standard = new StandardPayload
+        {
+            GameVersion = "1.0.0",
+            Platform = "Windows",
+            Environment = Environment.Dev,
+            UserId = Guid.NewGuid(),
+            ComputerId = Guid.NewGuid(),
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
+        };
+
+        var errorData = new ErrorPayload
+        {
+            Severity = Severity.Error,
+            Message = "Test error",
+            StackTrace = "at TestMethod() in Test.cs:line 1",
+            Log = "Test error log"
+        };
+
+        // Act
+        var success = await client.SendErrorAsync(standard, errorData);
+
+        // Assert
+        success.Should().BeTrue();
     }
 }

@@ -210,57 +210,58 @@ Both services use Serilog configured via `appsettings.json`. Structured logging 
 
 ## Client Library Usage
 
-The `Wumpus.Client` project provides a simple client for games to send events and errors.
+The `Wumpus.Client` project provides a stateless client for games to send events and errors.
+
+### Basic Setup
+
+```csharp
+using var client = new WumpusClient("http://localhost:5001");
+
+// Create a standard payload that will be sent with each report
+var standard = new StandardPayload
+{
+    GameVersion = "1.0.0",
+    Platform = "Windows",
+    Environment = Environment.Dev,
+    UserId = Guid.NewGuid(),
+    ComputerId = Guid.NewGuid(),
+    GameId = Guid.NewGuid(),
+    SequenceId = Guid.NewGuid()  // Generate unique ID per request
+};
+```
 
 ### Sending Events
 
 ```csharp
-var options = new WumpusClientOptions
+var eventData = new EventPayload
 {
-    ServerUrl = "http://localhost:5001",
-    AppVersion = "1.0.0",
-    Platform = "Windows"
-};
-
-using var client = new WumpusClient(options);
-
-// Send a game event
-var eventRequest = new SubmitEventRequest
-{
-    Data = new EventPayload
+    Name = "LevelCompleted",
+    Category = "Gameplay",
+    Value = 1,
+    UserId = "player123",
+    Metadata = new Dictionary<string, object>
     {
-        Name = "LevelCompleted",
-        Category = "Gameplay",
-        Value = 1,
-        UserId = "player123",
-        Metadata = new Dictionary<string, object>
-        {
-            { "level", 5 },
-            { "timeSeconds", 120.5 }
-        }
+        { "level", 5 },
+        { "timeSeconds", 120.5 }
     }
 };
 
-await client.SendEventAsync(eventRequest);
+await client.SendEventAsync(standard, eventData);
 ```
 
 ### Sending Errors
 
 ```csharp
 // Send a custom error
-var errorRequest = new SubmitErrorRequest
+var errorData = new ErrorPayload
 {
-    Data = new ErrorPayload
-    {
-        Severity = "Error",
-        Code = "TEX001",
-        Message = "Failed to load texture",
-        ExceptionType = "TextureLoadException",
-        Context = "Level 5 initialization"
-    }
+    Severity = Severity.Error,
+    Message = "Failed to load texture",
+    StackTrace = "at Game.TextureLoader.Load() in TextureLoader.cs:line 42",
+    Log = "Full error log..."
 };
 
-await client.SendErrorAsync(errorRequest);
+await client.SendErrorAsync(standard, errorData);
 
 // Send a crash report from an exception (convenience method)
 try
@@ -269,7 +270,7 @@ try
 }
 catch (Exception ex)
 {
-    await client.SendCrashAsync(ex);  // Builds ErrorPayload automatically
+    await client.SendCrashAsync(standard, ex);  // Builds ErrorPayload automatically
 }
 ```
 
@@ -278,9 +279,9 @@ catch (Exception ex)
 For scenarios where you don't want to wait for the result:
 
 ```csharp
-client.SendEventFireAndForget(eventRequest);
-client.SendErrorFireAndForget(errorRequest);
-client.SendCrashFireAndForget(exception);
+client.SendEventFireAndForget(standard, eventData);
+client.SendErrorFireAndForget(standard, errorData);
+client.SendCrashFireAndForget(standard, exception);
 ```
 
-**Note**: The client automatically sets `GameVersion` and `Platform` from the `WumpusClientOptions`, so you don't need to set these fields in the request DTOs. The client is designed to fail silently (returns null on error) to avoid telemetry from crashing the game.
+**Note**: The client is stateless - you provide the StandardPayload with each request, allowing you to easily vary platform, version, and other metadata per report. The client is designed to fail silently (returns false on error) to avoid telemetry from crashing the game.

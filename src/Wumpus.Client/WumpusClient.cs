@@ -1,84 +1,72 @@
 using System.Net.Http.Json;
 using Wumpus.Shared.DTOs;
+using Wumpus.Shared.Models;
 
 namespace Wumpus.Client;
 
 /// <summary>
-/// Client for sending event and error reports to a Wumpus reporting server.
+/// Stateless client for sending event and error reports to a Wumpus reporting server.
 /// </summary>
 public class WumpusClient : IDisposable
 {
     private readonly HttpClient _httpClient;
-    private readonly WumpusClientOptions _options;
     private readonly bool _disposeHttpClient;
 
     /// <summary>
-    /// Creates a new instance of WumpusClient with the specified options.
+    /// Creates a new instance of WumpusClient with the specified server URL.
     /// </summary>
-    public WumpusClient(WumpusClientOptions options)
+    /// <param name="serverUrl">The base URL of the Wumpus Intake API</param>
+    /// <param name="timeoutSeconds">HTTP timeout in seconds (default: 30)</param>
+    public WumpusClient(string serverUrl, int timeoutSeconds = 30)
     {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-
-        if (string.IsNullOrWhiteSpace(options.ServerUrl))
-            throw new ArgumentException("ServerUrl is required", nameof(options));
-
-        if (string.IsNullOrWhiteSpace(options.AppVersion))
-            throw new ArgumentException("AppVersion is required", nameof(options));
-
-        if (string.IsNullOrWhiteSpace(options.Platform))
-            throw new ArgumentException("Platform is required", nameof(options));
-
-        if (options.UserId == Guid.Empty)
-            throw new ArgumentException("UserId is required", nameof(options));
-
-        if (options.ComputerId == Guid.Empty)
-            throw new ArgumentException("ComputerId is required", nameof(options));
-
-        if (options.GameId == Guid.Empty)
-            throw new ArgumentException("GameId is required", nameof(options));
+        if (string.IsNullOrWhiteSpace(serverUrl))
+            throw new ArgumentException("ServerUrl is required", nameof(serverUrl));
 
         _httpClient = new HttpClient
         {
-            BaseAddress = new Uri(options.ServerUrl.TrimEnd('/')),
-            Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds)
+            BaseAddress = new Uri(serverUrl.TrimEnd('/')),
+            Timeout = TimeSpan.FromSeconds(timeoutSeconds)
         };
         _disposeHttpClient = true;
     }
 
     /// <summary>
-    /// Creates a new instance of WumpusClient with the specified options and HttpClient.
+    /// Creates a new instance of WumpusClient with the specified server URL and HttpClient.
     /// Useful for testing scenarios.
     /// </summary>
-    public WumpusClient(WumpusClientOptions options, HttpClient httpClient)
+    /// <param name="serverUrl">The base URL of the Wumpus Intake API</param>
+    /// <param name="httpClient">Custom HttpClient instance</param>
+    public WumpusClient(string serverUrl, HttpClient httpClient)
     {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
+        if (string.IsNullOrWhiteSpace(serverUrl))
+            throw new ArgumentException("ServerUrl is required", nameof(serverUrl));
+
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _httpClient.BaseAddress = new Uri(serverUrl.TrimEnd('/'));
         _disposeHttpClient = false;
     }
 
     /// <summary>
     /// Sends a game event.
     /// </summary>
-    /// <param name="request">The event request (Standard payload will be set from client options)</param>
+    /// <param name="standard">Standard payload containing game version, platform, etc.</param>
+    /// <param name="data">Event-specific data</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if submission succeeded, false otherwise.</returns>
     public async Task<bool> SendEventAsync(
-        SubmitEventRequest request,
+        StandardPayload standard,
+        EventPayload data,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-            throw new ArgumentNullException(nameof(request));
+        if (standard == null)
+            throw new ArgumentNullException(nameof(standard));
+        if (data == null)
+            throw new ArgumentNullException(nameof(data));
 
-        // Set standard payload from client options
-        request.Standard = new Shared.Models.StandardPayload
+        var request = new SubmitEventRequest
         {
-            GameVersion = _options.AppVersion,
-            Platform = _options.Platform,
-            Environment = _options.Environment,
-            UserId = _options.UserId,
-            ComputerId = _options.ComputerId,
-            GameId = _options.GameId,
-            SequenceId = Guid.NewGuid() // Generate unique sequence ID for each request
+            Standard = standard,
+            Data = data
         };
 
         return await SendRequestAsync("/api/v1/reports/event", request, cancellationToken);
@@ -87,31 +75,29 @@ public class WumpusClient : IDisposable
     /// <summary>
     /// Sends an error report.
     /// </summary>
-    /// <param name="request">The error request (Standard payload will be set from client options)</param>
+    /// <param name="standard">Standard payload containing game version, platform, etc.</param>
+    /// <param name="data">Error-specific data</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if submission succeeded, false otherwise.</returns>
     public async Task<bool> SendErrorAsync(
-        SubmitErrorRequest request,
+        StandardPayload standard,
+        ErrorPayload data,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-            throw new ArgumentNullException(nameof(request));
-
-        // Set standard payload from client options
-        request.Standard = new Shared.Models.StandardPayload
-        {
-            GameVersion = _options.AppVersion,
-            Platform = _options.Platform,
-            Environment = _options.Environment,
-            UserId = _options.UserId,
-            ComputerId = _options.ComputerId,
-            GameId = _options.GameId,
-            SequenceId = Guid.NewGuid() // Generate unique sequence ID for each request
-        };
+        if (standard == null)
+            throw new ArgumentNullException(nameof(standard));
+        if (data == null)
+            throw new ArgumentNullException(nameof(data));
 
         // Truncate message if needed
-        if (request.Data.Message != null && request.Data.Message.Length > 2000)
-            request.Data.Message = request.Data.Message.Substring(0, 2000);
+        if (data.Message != null && data.Message.Length > 2000)
+            data.Message = data.Message.Substring(0, 2000);
+
+        var request = new SubmitErrorRequest
+        {
+            Standard = standard,
+            Data = data
+        };
 
         return await SendRequestAsync("/api/v1/reports/error", request, cancellationToken);
     }
@@ -120,13 +106,17 @@ public class WumpusClient : IDisposable
     /// Sends a crash report for the specified exception.
     /// This is a convenience method that builds an error report from the exception.
     /// </summary>
+    /// <param name="standard">Standard payload containing game version, platform, etc.</param>
     /// <param name="exception">The exception to report</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if submission succeeded, false otherwise.</returns>
     public async Task<bool> SendCrashAsync(
+        StandardPayload standard,
         Exception exception,
         CancellationToken cancellationToken = default)
     {
+        if (standard == null)
+            throw new ArgumentNullException(nameof(standard));
         if (exception == null)
             throw new ArgumentNullException(nameof(exception));
 
@@ -137,32 +127,28 @@ public class WumpusClient : IDisposable
             stackTrace = exception.ToString();
         }
 
-        var request = new SubmitErrorRequest
+        var data = new ErrorPayload
         {
-            Standard = new Shared.Models.StandardPayload(), // Will be set in SendErrorAsync
-            Data = new Shared.Models.ErrorPayload
-            {
-                Severity = Shared.Models.Severity.Fatal,
-                Message = exception.Message,
-                StackTrace = stackTrace,
-                Log = exception.ToString()
-            }
+            Severity = Severity.Fatal,
+            Message = exception.Message,
+            StackTrace = stackTrace,
+            Log = exception.ToString()
         };
 
-        return await SendErrorAsync(request, cancellationToken);
+        return await SendErrorAsync(standard, data, cancellationToken);
     }
 
     /// <summary>
     /// Sends an event without waiting for the result.
     /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendEventFireAndForget(SubmitEventRequest request)
+    public void SendEventFireAndForget(StandardPayload standard, EventPayload data)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendEventAsync(request);
+                await SendEventAsync(standard, data);
             }
             catch
             {
@@ -175,13 +161,13 @@ public class WumpusClient : IDisposable
     /// Sends an error without waiting for the result.
     /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendErrorFireAndForget(SubmitErrorRequest request)
+    public void SendErrorFireAndForget(StandardPayload standard, ErrorPayload data)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendErrorAsync(request);
+                await SendErrorAsync(standard, data);
             }
             catch
             {
@@ -194,13 +180,13 @@ public class WumpusClient : IDisposable
     /// Sends a crash report without waiting for the result.
     /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendCrashFireAndForget(Exception exception)
+    public void SendCrashFireAndForget(StandardPayload standard, Exception exception)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendCrashAsync(exception);
+                await SendCrashAsync(standard, exception);
             }
             catch
             {

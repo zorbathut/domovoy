@@ -1,4 +1,5 @@
-using Wumpus.Shared.DTOs;
+using Wumpus.Shared.Models;
+using Environment = Wumpus.Shared.Models.Environment;
 
 namespace Wumpus.Client.Examples;
 
@@ -12,18 +13,18 @@ public static class Examples
     /// </summary>
     public static async Task BasicCrashExample()
     {
-        var options = new WumpusClientOptions
+        using var client = new WumpusClient("http://localhost:5001");
+
+        var standard = new StandardPayload
         {
-            ServerUrl = "http://localhost:5000",
-            AppVersion = "1.0.0",
+            GameVersion = "1.0.0",
             Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
+            Environment = Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
         };
-
-        using var client = new WumpusClient(options);
 
         try
         {
@@ -31,7 +32,7 @@ public static class Examples
         }
         catch (Exception ex)
         {
-            var success = await client.SendCrashAsync(ex);
+            var success = await client.SendCrashAsync(standard, ex);
             Console.WriteLine($"Crash reported: {(success ? "Success" : "Failed")}");
         }
     }
@@ -41,32 +42,28 @@ public static class Examples
     /// </summary>
     public static async Task SendErrorExample()
     {
-        var options = new WumpusClientOptions
+        using var client = new WumpusClient("http://localhost:5001");
+
+        var standard = new StandardPayload
         {
-            ServerUrl = "http://localhost:5000",
-            AppVersion = "1.0.0",
+            GameVersion = "1.0.0",
             Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
+            Environment = Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
         };
 
-        using var client = new WumpusClient(options);
-
-        var errorRequest = new SubmitErrorRequest
+        var errorData = new ErrorPayload
         {
-            Standard = new Wumpus.Shared.Models.StandardPayload(), // Will be set by client
-            Data = new Wumpus.Shared.Models.ErrorPayload
-            {
-                Severity = Wumpus.Shared.Models.Severity.Error,
-                Message = "Failed to load texture",
-                StackTrace = "at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42",
-                Log = "TextureLoadException: Failed to load texture\n   at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42\n   at Game.Level.Initialize() in Level.cs:line 15"
-            }
+            Severity = Severity.Error,
+            Message = "Failed to load texture",
+            StackTrace = "at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42",
+            Log = "TextureLoadException: Failed to load texture\n   at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42\n   at Game.Level.Initialize() in Level.cs:line 15"
         };
 
-        var success = await client.SendErrorAsync(errorRequest);
+        var success = await client.SendErrorAsync(standard, errorData);
         Console.WriteLine($"Error reported: {(success ? "Success" : "Failed")}");
     }
 
@@ -75,38 +72,34 @@ public static class Examples
     /// </summary>
     public static async Task SendEventExample()
     {
-        var options = new WumpusClientOptions
+        using var client = new WumpusClient("http://localhost:5001");
+
+        var standard = new StandardPayload
         {
-            ServerUrl = "http://localhost:5000",
-            AppVersion = "1.0.0",
+            GameVersion = "1.0.0",
             Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
+            Environment = Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
         };
 
-        using var client = new WumpusClient(options);
-
-        var eventRequest = new SubmitEventRequest
+        var eventData = new EventPayload
         {
-            Standard = new Wumpus.Shared.Models.StandardPayload(), // Will be set by client
-            Data = new Wumpus.Shared.Models.EventPayload
+            Name = "LevelCompleted",
+            Category = "Gameplay",
+            Value = 1,
+            UserId = "player123",
+            Metadata = new Dictionary<string, object>
             {
-                Name = "LevelCompleted",
-                Category = "Gameplay",
-                Value = 1,
-                UserId = "player123",
-                Metadata = new Dictionary<string, object>
-                {
-                    { "level", 5 },
-                    { "timeSeconds", 120.5 },
-                    { "score", 9500 }
-                }
+                { "level", 5 },
+                { "timeSeconds", 120.5 },
+                { "score", 9500 }
             }
         };
 
-        var success = await client.SendEventAsync(eventRequest);
+        var success = await client.SendEventAsync(standard, eventData);
         Console.WriteLine($"Event reported: {(success ? "Success" : "Failed")}");
     }
 
@@ -115,16 +108,18 @@ public static class Examples
     /// </summary>
     public static void FireAndForgetExample()
     {
-        var client = new WumpusClient(new WumpusClientOptions
+        var client = new WumpusClient("http://localhost:5001");
+
+        var standard = new StandardPayload
         {
-            ServerUrl = "http://localhost:5000",
-            AppVersion = "1.0.0",
+            GameVersion = "1.0.0",
             Platform = "macOS",
-            Environment = Wumpus.Shared.Models.Environment.Release,
+            Environment = Environment.Release,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
-        });
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
+        };
 
         try
         {
@@ -133,21 +128,17 @@ public static class Examples
         catch (Exception ex)
         {
             // Report without waiting (useful for shutdown scenarios)
-            client.SendCrashFireAndForget(ex);
+            client.SendCrashFireAndForget(standard, ex);
             Console.WriteLine("Crash report queued for sending");
         }
 
         // Fire and forget for events
-        var eventRequest = new SubmitEventRequest
+        var eventData = new EventPayload
         {
-            Standard = new Wumpus.Shared.Models.StandardPayload(), // Will be set by client
-            Data = new Wumpus.Shared.Models.EventPayload
-            {
-                Name = "PlayerJoined",
-                Category = "Multiplayer"
-            }
+            Name = "PlayerJoined",
+            Category = "Multiplayer"
         };
-        client.SendEventFireAndForget(eventRequest);
+        client.SendEventFireAndForget(standard, eventData);
     }
 
     /// <summary>
@@ -155,16 +146,18 @@ public static class Examples
     /// </summary>
     public static async Task ConcurrentReportsExample()
     {
-        using var client = new WumpusClient(new WumpusClientOptions
+        using var client = new WumpusClient("http://localhost:5001");
+
+        var standard = new StandardPayload
         {
-            ServerUrl = "http://localhost:5000",
-            AppVersion = "1.0.0",
+            GameVersion = "1.0.0",
             Platform = "Windows",
-            Environment = Wumpus.Shared.Models.Environment.Dev,
+            Environment = Environment.Dev,
             UserId = Guid.NewGuid(),
             ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid()
-        });
+            GameId = Guid.NewGuid(),
+            SequenceId = Guid.NewGuid()
+        };
 
         Exception[] exceptions =
         [
@@ -174,13 +167,52 @@ public static class Examples
         ];
 
         // Send multiple reports concurrently
-        var tasks = exceptions.Select(ex => client.SendCrashAsync(ex));
+        var tasks = exceptions.Select(ex => client.SendCrashAsync(standard, ex));
         var results = await Task.WhenAll(tasks);
 
         for (int i = 0; i < results.Length; i++)
         {
             Console.WriteLine($"Crash {i + 1}: {(results[i] ? "Success" : "Failed")}");
         }
+    }
+
+    /// <summary>
+    /// Example 6: Varying platforms and versions
+    /// </summary>
+    public static async Task DiverseDataExample()
+    {
+        using var client = new WumpusClient("http://localhost:5001");
+
+        // Send events from different platforms and versions
+        var platforms = new[] { "Windows", "Linux", "macOS", "Android", "iOS" };
+        var versions = new[] { "1.0.0", "1.1.0", "2.0.0" };
+
+        var random = new Random();
+
+        for (int i = 0; i < 10; i++)
+        {
+            var standard = new StandardPayload
+            {
+                GameVersion = versions[random.Next(versions.Length)],
+                Platform = platforms[random.Next(platforms.Length)],
+                Environment = Environment.Dev,
+                UserId = Guid.NewGuid(),
+                ComputerId = Guid.NewGuid(),
+                GameId = Guid.NewGuid(),
+                SequenceId = Guid.NewGuid()
+            };
+
+            var eventData = new EventPayload
+            {
+                Name = "TestEvent",
+                Category = "Testing",
+                Value = i
+            };
+
+            await client.SendEventAsync(standard, eventData);
+        }
+
+        Console.WriteLine("Sent 10 events with varied platforms and versions");
     }
 
     private static void ThrowExampleException()

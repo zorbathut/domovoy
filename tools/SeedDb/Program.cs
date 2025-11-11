@@ -1,5 +1,4 @@
 using Wumpus.Client;
-using Wumpus.Shared.DTOs;
 using Wumpus.Shared.Models;
 
 Console.WriteLine("Wumpus Database Seeder");
@@ -69,19 +68,7 @@ int errorCount = 0;
 int eventCount = 0;
 int failedCount = 0;
 
-// Create client options
-var clientOptions = new WumpusClientOptions
-{
-    ServerUrl = serverUrl,
-    AppVersion = "1.0.0",
-    Platform = "Windows",
-    Environment = Wumpus.Shared.Models.Environment.Dev,
-    UserId = Guid.NewGuid(),
-    ComputerId = Guid.NewGuid(),
-    GameId = Guid.NewGuid()
-};
-
-using var client = new WumpusClient(clientOptions);
+using var client = new WumpusClient(serverUrl);
 
 Console.WriteLine("Sending 100 events...");
 
@@ -94,33 +81,31 @@ for (int i = 0; i < 100; i++)
     var eventName = eventNames[random.Next(eventNames.Length)];
     var category = eventCategories[random.Next(eventCategories.Length)];
 
-    var eventRequest = new SubmitEventRequest
+    var standard = new StandardPayload
     {
-        Standard = new StandardPayload
+        GameVersion = version,
+        Platform = platform,
+        Environment = environment,
+        UserId = Guid.NewGuid(),
+        ComputerId = Guid.NewGuid(),
+        GameId = Guid.NewGuid(),
+        SequenceId = Guid.NewGuid()
+    };
+
+    var eventData = new EventPayload
+    {
+        Name = eventName,
+        Category = category,
+        Value = random.Next(1, 1000),
+        UserId = $"user_{random.Next(1, 50)}",
+        Metadata = new Dictionary<string, object>
         {
-            GameVersion = version,
-            Platform = platform,
-            Environment = environment,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
-        },
-        Data = new EventPayload
-        {
-            Name = eventName,
-            Category = category,
-            Value = random.Next(1, 1000),
-            UserId = $"user_{random.Next(1, 50)}",
-            Metadata = new Dictionary<string, object>
-            {
-                { "duration", random.Next(10, 300) },
-                { "score", random.Next(100, 10000) }
-            }
+            { "duration", random.Next(10, 300) },
+            { "score", random.Next(100, 10000) }
         }
     };
 
-    var success = await client.SendEventAsync(eventRequest);
+    var success = await client.SendEventAsync(standard, eventData);
     if (success)
     {
         eventCount++;
@@ -151,28 +136,26 @@ for (int i = 0; i < 50; i++)
 
     var log = $"{exceptionType}: {message}\n{stackTrace}";
 
-    var errorRequest = new SubmitErrorRequest
+    var standard = new StandardPayload
     {
-        Standard = new StandardPayload
-        {
-            GameVersion = version,
-            Platform = platform,
-            Environment = environment,
-            UserId = Guid.NewGuid(),
-            ComputerId = Guid.NewGuid(),
-            GameId = Guid.NewGuid(),
-            SequenceId = Guid.NewGuid()
-        },
-        Data = new ErrorPayload
-        {
-            Severity = severity,
-            Message = message,
-            StackTrace = stackTrace,
-            Log = log
-        }
+        GameVersion = version,
+        Platform = platform,
+        Environment = environment,
+        UserId = Guid.NewGuid(),
+        ComputerId = Guid.NewGuid(),
+        GameId = Guid.NewGuid(),
+        SequenceId = Guid.NewGuid()
     };
 
-    var success = await client.SendErrorAsync(errorRequest);
+    var errorData = new ErrorPayload
+    {
+        Severity = severity,
+        Message = message,
+        StackTrace = stackTrace,
+        Log = log
+    };
+
+    var success = await client.SendErrorAsync(standard, errorData);
     if (success)
     {
         errorCount++;
