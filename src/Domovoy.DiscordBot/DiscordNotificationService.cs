@@ -303,7 +303,6 @@ public class DiscordNotificationService : BackgroundService
             .AddField("Game Version", standard.GameVersion, inline: true)
             .AddField("Environment", standard.Environment.ToString(), inline: true)
             .AddField("Report Time", notification.Report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true)
-            .AddField("Retry Count", notification.RetryCount.ToString(), inline: true)
             .AddField("Stack Trace", $"```\n{stackTrace}\n```", inline: false);
 
         // Add log if present and not too long
