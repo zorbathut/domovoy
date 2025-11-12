@@ -40,7 +40,7 @@ else if (error != null)
                         <dd class="col-sm-8">@error.Standard.Environment</dd>
 
                         <dt class="col-sm-4">Timestamp:</dt>
-                        <dd class="col-sm-8">@error.Timestamp.ToLocalTime().ToString("g")</dd>
+                        <dd class="col-sm-8"><LocalTimestamp Value="@error.Timestamp" /></dd>
                     </dl>
                 </div>
             </div>

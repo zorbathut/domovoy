@@ -47,7 +47,7 @@ else if (errors != null && errors.Any())
             @foreach (var error in errors)
             {
                 <tr>
-                    <td>@error.Timestamp.ToLocalTime().ToString("g")</td>
+                    <td><LocalTimestamp Value="@error.Timestamp" /></td>
                     <td><span class="badge bg-danger">@error.Data.Severity</span></td>
                     <td>@(error.Data.Message.Length > 50 ? error.Data.Message.Substring(0, 50) + "..." : error.Data.Message)</td>
                     <td>@error.Standard.Platform</td>

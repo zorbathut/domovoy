@@ -1,0 +1,12 @@
+@* Component that displays a UTC timestamp converted to the user's local timezone via JavaScript *@
+<span class="local-timestamp" data-utc-timestamp="@Value.ToString("o")">
+    @Value.ToString("u")
+</span>
+
+@code {
+    /// <summary>
+    /// The UTC timestamp to display. Will be converted to the user's local timezone in the browser.
+    /// </summary>
+    [Parameter]
+    public DateTime Value { get; set; }
+}

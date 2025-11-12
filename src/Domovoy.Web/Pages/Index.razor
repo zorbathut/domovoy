@@ -57,7 +57,7 @@ else if (stats != null && recentCrashes != null)
             @foreach (var crash in recentCrashes)
             {
                 <tr>
-                    <td>@crash.Timestamp.ToLocalTime().ToString("g")</td>
+                    <td><LocalTimestamp Value="@crash.Timestamp" /></td>
                     <td><span class="badge bg-danger">@crash.Data.Severity</span></td>
                     <td>@crash.Standard.Platform</td>
                     <td>@crash.Standard.GameVersion</td>
