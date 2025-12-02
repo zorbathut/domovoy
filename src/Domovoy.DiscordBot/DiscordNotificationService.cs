@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,8 +52,12 @@ public class DiscordNotificationService : BackgroundService
             }
 
             await InitializeDiscordAsync(stoppingToken);
-            await InitializeDomovoyClientAsync();
+            await InitializeDomovoyClientAsync(stoppingToken);
             await ProcessNotificationsAsync(stoppingToken);
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Discord notification service was cancelled");
         }
         catch (Exception ex)
         {
@@ -161,7 +166,7 @@ public class DiscordNotificationService : BackgroundService
         _logger.LogInformation("Discord client initialized successfully");
     }
 
-    private async Task InitializeDomovoyClientAsync()
+    private async Task InitializeDomovoyClientAsync(CancellationToken stoppingToken)
     {
         var webApiUrl = _configuration["Domovoy:WebApiUrl"] ?? "http://localhost:1975";
         var subscriberName = _configuration["Domovoy:SubscriberName"] ?? "Discord Bot";
@@ -172,28 +177,60 @@ public class DiscordNotificationService : BackgroundService
 
         _domovoyClient = new DomovoyNotificationClient(webApiUrl);
 
-        // Try to load existing subscriber, or register if not found
-        var loaded = await _domovoyClient.LoadSubscriberAsync(_config.SubscriberId);
-        if (loaded)
-        {
-            _logger.LogInformation("Loaded existing Domovoy subscriber: {Name}", subscriberName);
-        }
-        else
-        {
-            _logger.LogInformation("Subscriber not found, registering new subscriber...");
-            await _domovoyClient.RegisterAsync(subscriberName, heartbeatTimeoutMinutes: 15);
-            _logger.LogInformation("Registered new Domovoy subscriber with ID {SubscriberId}", _domovoyClient.SubscriberId);
+        // Retry with exponential backoff if the API is not ready
+        const int maxRetries = 10;
+        var retryDelay = TimeSpan.FromSeconds(5);
 
-            if (_domovoyClient.SubscriberId != _config.SubscriberId)
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            stoppingToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                // Try to load existing subscriber, or register if not found
+                var loaded = await _domovoyClient.LoadSubscriberAsync(_config.SubscriberId);
+                if (loaded)
+                {
+                    _logger.LogInformation("Loaded existing Domovoy subscriber: {Name}", subscriberName);
+                    return;
+                }
+
+                _logger.LogInformation("Subscriber not found, registering new subscriber...");
+                await _domovoyClient.RegisterAsync(subscriberName, heartbeatTimeoutMinutes: 15);
+                _logger.LogInformation("Registered new Domovoy subscriber with ID {SubscriberId}", _domovoyClient.SubscriberId);
+
+                if (_domovoyClient.SubscriberId != _config.SubscriberId)
+                {
+                    _logger.LogWarning(
+                        "Registered subscriber ID {ActualId} doesn't match config {ConfigId}. " +
+                        "Update config/discord-bot.json with subscriberId: \"{ActualId}\"",
+                        _domovoyClient.SubscriberId,
+                        _config.SubscriberId,
+                        _domovoyClient.SubscriberId);
+                }
+
+                return; // Success
+            }
+            catch (HttpRequestException ex) when (attempt < maxRetries)
             {
                 _logger.LogWarning(
-                    "Registered subscriber ID {ActualId} doesn't match config {ConfigId}. " +
-                    "Update config/discord-bot.json with subscriberId: \"{ActualId}\"",
-                    _domovoyClient.SubscriberId,
-                    _config.SubscriberId,
-                    _domovoyClient.SubscriberId);
+                    ex,
+                    "Failed to connect to Domovoy API (attempt {Attempt}/{MaxRetries}). Retrying in {Delay}s...",
+                    attempt,
+                    maxRetries,
+                    retryDelay.TotalSeconds);
+
+                await Task.Delay(retryDelay, stoppingToken);
+
+                // Exponential backoff with max of 60 seconds
+                retryDelay = TimeSpan.FromSeconds(Math.Min(retryDelay.TotalSeconds * 2, 60));
             }
         }
+
+        // If we get here, all retries failed - let the last exception propagate
+        throw new InvalidOperationException(
+            $"Failed to initialize Domovoy client after {maxRetries} attempts. " +
+            "Check that the Web API is running and accessible.");
     }
 
     private async Task ProcessNotificationsAsync(CancellationToken stoppingToken)
