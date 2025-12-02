@@ -220,6 +220,12 @@ public class DiscordNotificationService : BackgroundService
                     maxRetries,
                     retryDelay.TotalSeconds);
 
+                // Report the first failure to Discord so operators know there's an issue
+                if (attempt == 1)
+                {
+                    await ReportApiConnectionErrorAsync(ex, webApiUrl);
+                }
+
                 await Task.Delay(retryDelay, stoppingToken);
 
                 // Exponential backoff with max of 60 seconds
@@ -376,6 +382,37 @@ public class DiscordNotificationService : BackgroundService
             _channelId,
             error.Severity,
             error.Message);
+    }
+
+    private async Task ReportApiConnectionErrorAsync(HttpRequestException ex, string webApiUrl)
+    {
+        try
+        {
+            var channel = await _discordClient!.GetChannelAsync(_channelId) as IMessageChannel;
+            if (channel == null)
+            {
+                _logger.LogWarning("Cannot report API error to Discord: channel {ChannelId} not found", _channelId);
+                return;
+            }
+
+            var embed = new EmbedBuilder()
+                .WithTitle("Domovoy API Connection Error")
+                .WithDescription($"Failed to connect to the Domovoy API. The bot will retry automatically.")
+                .WithColor(Color.Orange)
+                .WithCurrentTimestamp()
+                .AddField("API URL", webApiUrl, inline: true)
+                .AddField("Error", ex.Message, inline: false)
+                .WithFooter("The bot will continue retrying with exponential backoff");
+
+            await channel.SendMessageAsync(embed: embed.Build());
+
+            _logger.LogInformation("Reported API connection error to Discord channel {ChannelId}", _channelId);
+        }
+        catch (Exception reportEx)
+        {
+            // Don't let Discord reporting failure break the retry loop
+            _logger.LogWarning(reportEx, "Failed to report API connection error to Discord");
+        }
     }
 
     private Task LogDiscordMessage(LogMessage message)
