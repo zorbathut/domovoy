@@ -23,7 +23,7 @@ namespace Domovoy.Tests;
 public class WebUiTests : IAsyncLifetime
 {
     private readonly DatabaseFixture _dbFixture;
-    private TestContext? _testContext;
+    private BunitContext? _testContext;
 
     public WebUiTests(DatabaseFixture dbFixture)
     {
@@ -32,7 +32,7 @@ public class WebUiTests : IAsyncLifetime
 
     public Task InitializeAsync()
     {
-        _testContext = new TestContext();
+        _testContext = new BunitContext();
 
         // Register services needed by the Blazor components
         var dbContext = _dbFixture.CreateDbContext();
@@ -54,7 +54,7 @@ public class WebUiTests : IAsyncLifetime
         // Arrange - Database is empty
 
         // Act
-        var cut = _testContext!.RenderComponent<Crashes>();
+        var cut = _testContext!.Render<Crashes>();
         await Task.Delay(100); // Wait for async initialization
 
         // Assert
@@ -93,7 +93,7 @@ public class WebUiTests : IAsyncLifetime
         await dbContext.SaveChangesAsync();
 
         // Act
-        var cut = _testContext!.RenderComponent<Crashes>();
+        var cut = _testContext!.Render<Crashes>();
         await Task.Delay(100); // Wait for async initialization
 
         // Assert
@@ -104,14 +104,17 @@ public class WebUiTests : IAsyncLifetime
     }
 
     [Fact]
-    public void CrashesPage_ShowsLoadingMessage_DuringInitialization()
+    public async Task CrashesPage_ShowsLoadingMessage_DuringInitialization()
     {
         // Act
-        var cut = _testContext!.RenderComponent<Crashes>();
+        var cut = _testContext!.Render<Crashes>();
 
         // Assert - Before async initialization completes
         var initialMarkup = cut.Markup;
         initialMarkup.Should().Contain("Loading errors");
+
+        // Wait for async initialization to complete before disposal
+        await Task.Delay(100);
     }
 
     [Fact]
@@ -146,8 +149,7 @@ public class WebUiTests : IAsyncLifetime
         await dbContext.SaveChangesAsync();
 
         // Act
-        var parameters = new[] { ComponentParameter.CreateParameter("CrashId", errorId) };
-        var cut = _testContext!.RenderComponent<CrashDetail>(parameters);
+        var cut = _testContext!.Render<CrashDetail>(p => p.Add(c => c.CrashId, errorId));
         await Task.Delay(100); // Wait for async initialization
 
         // Assert
@@ -166,8 +168,7 @@ public class WebUiTests : IAsyncLifetime
         var nonExistentErrorId = Ulid.NewUlid().ToGuid();
 
         // Act
-        var parameters = new[] { ComponentParameter.CreateParameter("CrashId", nonExistentErrorId) };
-        var cut = _testContext!.RenderComponent<CrashDetail>(parameters);
+        var cut = _testContext!.Render<CrashDetail>(p => p.Add(c => c.CrashId, nonExistentErrorId));
         await Task.Delay(100); // Wait for async initialization
 
         // Assert
@@ -256,7 +257,7 @@ public class WebUiTests : IAsyncLifetime
         await dbContext.SaveChangesAsync();
 
         // Act
-        var cut = _testContext!.RenderComponent<Crashes>();
+        var cut = _testContext!.Render<Crashes>();
         await Task.Delay(100);
 
         // Assert

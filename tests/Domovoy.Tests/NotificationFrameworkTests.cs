@@ -167,7 +167,7 @@ public class NotificationFrameworkTests : IClassFixture<IntakeApiFactory>, IClas
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var subscribers = await response.Content.ReadFromJsonAsync<List<SubscriberResponse>>();
         subscribers.Should().NotBeNull();
-        subscribers!.Count.Should().BeGreaterOrEqualTo(3);
+        subscribers!.Count.Should().BeGreaterThanOrEqualTo(3);
     }
 
     #endregion
