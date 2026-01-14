@@ -1,6 +1,6 @@
 # Domovoy - Game Crash Tracker
 
-A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
+A crash tracker and analytics system for games built with C# and ASP.NET Core 10.
 
 ## Features
 
@@ -31,7 +31,7 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 9.
 
 ### Prerequisites
 
-- .NET 9.0 SDK
+- .NET 10.0 SDK
 - Docker and Docker Compose
 - (Optional) PostgreSQL 16+ if running locally
 
