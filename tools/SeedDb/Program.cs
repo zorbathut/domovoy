@@ -93,7 +93,7 @@ for (int i = 0; i < 100; i++)
         UserId = Ulid.NewUlid().ToGuid(),
         ComputerId = Ulid.NewUlid().ToGuid(),
         GameId = Ulid.NewUlid().ToGuid(),
-        GameSequenceId = Ulid.NewUlid().ToGuid(),
+        GameSequenceIds = [Ulid.NewUlid().ToGuid()],
         ProcessId = Ulid.NewUlid().ToGuid()
     };
 
@@ -149,7 +149,7 @@ for (int i = 0; i < 50; i++)
         UserId = Ulid.NewUlid().ToGuid(),
         ComputerId = Ulid.NewUlid().ToGuid(),
         GameId = Ulid.NewUlid().ToGuid(),
-        GameSequenceId = Ulid.NewUlid().ToGuid(),
+        GameSequenceIds = [Ulid.NewUlid().ToGuid()],
         ProcessId = Ulid.NewUlid().ToGuid()
     };
 

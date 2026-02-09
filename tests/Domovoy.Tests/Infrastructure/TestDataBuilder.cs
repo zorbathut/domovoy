@@ -34,7 +34,7 @@ public class TestDataBuilder
                 UserId = userId ?? Ulid.NewUlid().ToGuid(),
                 ComputerId = computerId ?? Ulid.NewUlid().ToGuid(),
                 GameId = gameId ?? Ulid.NewUlid().ToGuid(),
-                GameSequenceId = Ulid.NewUlid().ToGuid(),
+                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                 ProcessId = Ulid.NewUlid().ToGuid()
             },
             Data = new EventPayload
@@ -71,7 +71,7 @@ public class TestDataBuilder
                 UserId = userId ?? Ulid.NewUlid().ToGuid(),
                 ComputerId = computerId ?? Ulid.NewUlid().ToGuid(),
                 GameId = gameId ?? Ulid.NewUlid().ToGuid(),
-                GameSequenceId = Ulid.NewUlid().ToGuid(),
+                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                 ProcessId = Ulid.NewUlid().ToGuid()
             },
             Data = new ErrorPayload
@@ -124,7 +124,7 @@ public class TestDataBuilder
                 UserId = Guid.Empty,
                 ComputerId = Guid.Empty,
                 GameId = Guid.Empty,
-                GameSequenceId = Guid.Empty,
+                GameSequenceIds = [],
                 ProcessId = Guid.Empty
             },
             Data = new ErrorPayload

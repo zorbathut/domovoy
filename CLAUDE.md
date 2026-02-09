@@ -226,7 +226,7 @@ var standard = new StandardPayload
     UserId = Guid.NewGuid(),
     ComputerId = Guid.NewGuid(),
     GameId = Guid.NewGuid(),
-    SequenceId = Guid.NewGuid()  // Generate unique ID per request
+    GameSequenceIds = [Guid.NewGuid()]  // List of sequence IDs
 };
 ```
 

@@ -55,7 +55,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
             ProcessId = Ulid.NewUlid().ToGuid()
         };
 
@@ -83,7 +83,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
             ProcessId = Ulid.NewUlid().ToGuid()
         };
 
@@ -122,7 +122,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
             ProcessId = Ulid.NewUlid().ToGuid()
         };
 
@@ -197,7 +197,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
             ProcessId = Ulid.NewUlid().ToGuid()
         };
 
@@ -222,7 +222,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
             ProcessId = Ulid.NewUlid().ToGuid()
         };
 
@@ -256,7 +256,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
             ProcessId = Ulid.NewUlid().ToGuid()
         };
 

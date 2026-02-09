@@ -58,7 +58,7 @@ public class DomovoyDbContext : DbContext
                 owned.Property(s => s.GameId)
                     .IsRequired();
 
-                owned.Property(s => s.GameSequenceId)
+                owned.Property(s => s.GameSequenceIds)
                     .IsRequired();
 
                 owned.Property(s => s.ProcessId)

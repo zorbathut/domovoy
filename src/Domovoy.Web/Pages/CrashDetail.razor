@@ -62,8 +62,13 @@ else if (error != null)
                         <dt class="col-sm-4">Game ID:</dt>
                         <dd class="col-sm-8"><code>@error.Standard.GameId</code></dd>
 
-                        <dt class="col-sm-4">Game Sequence ID:</dt>
-                        <dd class="col-sm-8"><code>@error.Standard.GameSequenceId</code></dd>
+                        <dt class="col-sm-4">Game Sequence IDs:</dt>
+                        <dd class="col-sm-8">
+                            @foreach (var id in error.Standard.GameSequenceIds)
+                            {
+                                <code>@id</code><br />
+                            }
+                        </dd>
 
                         <dt class="col-sm-4">Process ID:</dt>
                         <dd class="col-sm-8"><code>@error.Standard.ProcessId</code></dd>

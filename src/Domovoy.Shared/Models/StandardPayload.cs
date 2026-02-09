@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domovoy.Shared.Models;
@@ -24,7 +25,7 @@ public class StandardPayload
 
     public Guid GameId { get; set; }
 
-    public Guid GameSequenceId { get; set; }
+    public List<Guid> GameSequenceIds { get; set; } = new();
 
     public Guid ProcessId { get; set; }
 }

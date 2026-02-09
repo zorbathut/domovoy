@@ -79,7 +79,7 @@ public class WebUiTests : IAsyncLifetime
                 UserId = Ulid.NewUlid().ToGuid(),
                 ComputerId = Ulid.NewUlid().ToGuid(),
                 GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceId = Ulid.NewUlid().ToGuid(),
+                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
             },
             Data = new ErrorPayload
@@ -136,7 +136,7 @@ public class WebUiTests : IAsyncLifetime
                 UserId = Ulid.NewUlid().ToGuid(),
                 ComputerId = Ulid.NewUlid().ToGuid(),
                 GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceId = Ulid.NewUlid().ToGuid(),
+                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
             },
             Data = new ErrorPayload
@@ -199,7 +199,7 @@ public class WebUiTests : IAsyncLifetime
                     UserId = Ulid.NewUlid().ToGuid(),
                     ComputerId = Ulid.NewUlid().ToGuid(),
                     GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceId = Ulid.NewUlid().ToGuid(),
+                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
                 },
                 Data = new ErrorPayload
@@ -222,7 +222,7 @@ public class WebUiTests : IAsyncLifetime
                     UserId = Ulid.NewUlid().ToGuid(),
                     ComputerId = Ulid.NewUlid().ToGuid(),
                     GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceId = Ulid.NewUlid().ToGuid(),
+                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
                 },
                 Data = new ErrorPayload
@@ -245,7 +245,7 @@ public class WebUiTests : IAsyncLifetime
                     UserId = Ulid.NewUlid().ToGuid(),
                     ComputerId = Ulid.NewUlid().ToGuid(),
                     GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceId = Ulid.NewUlid().ToGuid(),
+                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
                 },
                 Data = new ErrorPayload
@@ -293,7 +293,7 @@ public class WebUiTests : IAsyncLifetime
                 UserId = Ulid.NewUlid().ToGuid(),
                 ComputerId = Ulid.NewUlid().ToGuid(),
                 GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceId = Ulid.NewUlid().ToGuid(),
+                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
             },
             Data = new ErrorPayload
@@ -335,7 +335,7 @@ public class WebUiTests : IAsyncLifetime
                 UserId = Ulid.NewUlid().ToGuid(),
                 ComputerId = Ulid.NewUlid().ToGuid(),
                 GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceId = Ulid.NewUlid().ToGuid(),
+                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
             },
             Data = new ErrorPayload
@@ -379,7 +379,7 @@ public class WebUiTests : IAsyncLifetime
                     UserId = Ulid.NewUlid().ToGuid(),
                     ComputerId = Ulid.NewUlid().ToGuid(),
                     GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceId = Ulid.NewUlid().ToGuid(),
+                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
                 },
                 Data = new ErrorPayload { Severity = Severity.Fatal, Message = "M1", StackTrace = "S1", Log = "L1" }
@@ -396,7 +396,7 @@ public class WebUiTests : IAsyncLifetime
                     UserId = Ulid.NewUlid().ToGuid(),
                     ComputerId = Ulid.NewUlid().ToGuid(),
                     GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceId = Ulid.NewUlid().ToGuid(),
+                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
                     ProcessId = Ulid.NewUlid().ToGuid()
                 },
                 Data = new ErrorPayload { Severity = Severity.Error, Message = "M2", StackTrace = "S2", Log = "L2" }
