@@ -28,7 +28,8 @@ public static class Examples
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         try
@@ -57,7 +58,8 @@ public static class Examples
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         var errorData = new ErrorPayload
@@ -87,7 +89,8 @@ public static class Examples
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         var eventData = new EventPayload
@@ -123,7 +126,8 @@ public static class Examples
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         try
@@ -161,7 +165,8 @@ public static class Examples
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         Exception[] exceptions =
@@ -204,7 +209,8 @@ public static class Examples
                 UserId = Ulid.NewUlid().ToGuid(),
                 ComputerId = Ulid.NewUlid().ToGuid(),
                 GameId = Ulid.NewUlid().ToGuid(),
-                SequenceId = Ulid.NewUlid().ToGuid()
+                GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
             };
 
             var eventData = new EventPayload

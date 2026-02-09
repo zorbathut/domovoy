@@ -93,7 +93,8 @@ for (int i = 0; i < 100; i++)
         UserId = Ulid.NewUlid().ToGuid(),
         ComputerId = Ulid.NewUlid().ToGuid(),
         GameId = Ulid.NewUlid().ToGuid(),
-        SequenceId = Ulid.NewUlid().ToGuid()
+        GameSequenceId = Ulid.NewUlid().ToGuid(),
+        ProcessId = Ulid.NewUlid().ToGuid()
     };
 
     var eventData = new EventPayload
@@ -148,7 +149,8 @@ for (int i = 0; i < 50; i++)
         UserId = Ulid.NewUlid().ToGuid(),
         ComputerId = Ulid.NewUlid().ToGuid(),
         GameId = Ulid.NewUlid().ToGuid(),
-        SequenceId = Ulid.NewUlid().ToGuid()
+        GameSequenceId = Ulid.NewUlid().ToGuid(),
+        ProcessId = Ulid.NewUlid().ToGuid()
     };
 
     var errorData = new ErrorPayload

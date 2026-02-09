@@ -55,7 +55,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         var exception = new InvalidOperationException("Test exception for crash reporting");
@@ -82,7 +83,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
@@ -120,7 +122,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         // Create exception with a specific stack trace (by catching and re-throwing)
@@ -194,7 +197,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         // Act & Assert
@@ -218,7 +222,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         var eventData = new EventPayload
@@ -251,7 +256,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             UserId = Ulid.NewUlid().ToGuid(),
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
-            SequenceId = Ulid.NewUlid().ToGuid()
+            GameSequenceId = Ulid.NewUlid().ToGuid(),
+            ProcessId = Ulid.NewUlid().ToGuid()
         };
 
         var errorData = new ErrorPayload

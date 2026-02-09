@@ -58,7 +58,10 @@ public class DomovoyDbContext : DbContext
                 owned.Property(s => s.GameId)
                     .IsRequired();
 
-                owned.Property(s => s.SequenceId)
+                owned.Property(s => s.GameSequenceId)
+                    .IsRequired();
+
+                owned.Property(s => s.ProcessId)
                     .IsRequired();
 
                 // Indexes on standard payload fields

@@ -24,5 +24,7 @@ public class StandardPayload
 
     public Guid GameId { get; set; }
 
-    public Guid SequenceId { get; set; }
+    public Guid GameSequenceId { get; set; }
+
+    public Guid ProcessId { get; set; }
 }
