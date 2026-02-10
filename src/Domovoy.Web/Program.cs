@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Domovoy.Database;
+using Domovoy.MinIO;
 using Domovoy.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,7 @@ builder.Services.AddDbContext<DomovoyDbContext>(options =>
     options.UseNpgsql(dataSource));
 
 // Add application services
+builder.Services.AddDomovoyMinio(builder.Configuration);
 builder.Services.AddScoped<ReportViewService>();
 builder.Services.AddScoped<SubscriberService>();
 builder.Services.AddScoped<NotificationService>();

@@ -17,6 +17,22 @@ services:
       retries: 5
     restart: unless-stopped
 
+  minio:
+    image: minio/minio:latest
+    container_name: domovoy-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: domovoy
+      MINIO_ROOT_PASSWORD: domovoy123
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   intake:
     build:
       context: .
@@ -26,10 +42,17 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:1973
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=domovoy;Username=domovoy;Password=domovoy"
+      Minio__Endpoint: "minio:9000"
+      Minio__AccessKey: "domovoy"
+      Minio__SecretKey: "domovoy123"
+      Minio__BucketName: "domovoy-attachments"
+      Minio__UseSSL: "false"
     ports:
       - "1973:1973"
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     restart: unless-stopped
 
@@ -42,10 +65,17 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:1975
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=domovoy;Username=domovoy;Password=domovoy"
+      Minio__Endpoint: "minio:9000"
+      Minio__AccessKey: "domovoy"
+      Minio__SecretKey: "domovoy123"
+      Minio__BucketName: "domovoy-attachments"
+      Minio__UseSSL: "false"
     ports:
       - "1975:1975"
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     restart: unless-stopped
 
@@ -69,3 +99,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:

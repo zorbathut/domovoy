@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Domovoy.Shared.DTOs;
@@ -53,13 +56,11 @@ public class DomovoyClient : IDisposable
     /// <summary>
     /// Sends a game event.
     /// </summary>
-    /// <param name="standard">Standard payload containing game version, platform, etc.</param>
-    /// <param name="data">Event-specific data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if submission succeeded, false otherwise.</returns>
-    public async Task<bool> SendEventAsync(
+    /// <returns>The report ID if submission succeeded, null otherwise.</returns>
+    public async Task<Guid?> SendEventAsync(
         StandardPayload standard,
         EventPayload data,
+        IReadOnlyList<FileAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
         if (standard == null)
@@ -73,19 +74,19 @@ public class DomovoyClient : IDisposable
             Data = data
         };
 
-        return await SendRequestAsync("/api/v1/reports/event", request, cancellationToken);
+        var reportId = await SendRequestAsync("/api/v1/reports/event", request, cancellationToken);
+        await UploadAttachmentsAsync(reportId, attachments, cancellationToken);
+        return reportId;
     }
 
     /// <summary>
     /// Sends an error report.
     /// </summary>
-    /// <param name="standard">Standard payload containing game version, platform, etc.</param>
-    /// <param name="data">Error-specific data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if submission succeeded, false otherwise.</returns>
-    public async Task<bool> SendErrorAsync(
+    /// <returns>The report ID if submission succeeded, null otherwise.</returns>
+    public async Task<Guid?> SendErrorAsync(
         StandardPayload standard,
         ErrorPayload data,
+        IReadOnlyList<FileAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
         if (standard == null)
@@ -103,20 +104,20 @@ public class DomovoyClient : IDisposable
             Data = data
         };
 
-        return await SendRequestAsync("/api/v1/reports/error", request, cancellationToken);
+        var reportId = await SendRequestAsync("/api/v1/reports/error", request, cancellationToken);
+        await UploadAttachmentsAsync(reportId, attachments, cancellationToken);
+        return reportId;
     }
 
     /// <summary>
     /// Sends a crash report for the specified exception.
     /// This is a convenience method that builds an error report from the exception.
     /// </summary>
-    /// <param name="standard">Standard payload containing game version, platform, etc.</param>
-    /// <param name="exception">The exception to report</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if submission succeeded, false otherwise.</returns>
-    public async Task<bool> SendCrashAsync(
+    /// <returns>The report ID if submission succeeded, null otherwise.</returns>
+    public async Task<Guid?> SendCrashAsync(
         StandardPayload standard,
         Exception exception,
+        IReadOnlyList<FileAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
         if (standard == null)
@@ -139,20 +140,58 @@ public class DomovoyClient : IDisposable
             Log = exception.ToString()
         };
 
-        return await SendErrorAsync(standard, data, cancellationToken);
+        return await SendErrorAsync(standard, data, attachments, cancellationToken);
+    }
+
+    /// <summary>
+    /// Uploads an attachment for a previously submitted report.
+    /// </summary>
+    /// <returns>True if upload succeeded, false otherwise.</returns>
+    public async Task<bool> SendAttachmentAsync(
+        Guid reportId,
+        Stream stream,
+        string filename,
+        string? contentType = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (stream == null)
+            throw new ArgumentNullException(nameof(stream));
+        if (string.IsNullOrWhiteSpace(filename))
+            throw new ArgumentException("Filename is required", nameof(filename));
+
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType =
+                new System.Net.Http.Headers.MediaTypeHeaderValue(contentType ?? "application/octet-stream");
+            content.Add(streamContent, "file", filename);
+
+            var response = await _httpClient.PostAsync(
+                $"/api/v1/reports/{reportId}/attachments",
+                content,
+                cancellationToken);
+
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            // Silently fail - we don't want reporting to crash the app
+            return false;
+        }
     }
 
     /// <summary>
     /// Sends an event without waiting for the result.
     /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendEventFireAndForget(StandardPayload standard, EventPayload data)
+    public void SendEventFireAndForget(StandardPayload standard, EventPayload data, IReadOnlyList<FileAttachment>? attachments = null)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendEventAsync(standard, data);
+                await SendEventAsync(standard, data, attachments);
             }
             catch
             {
@@ -165,13 +204,13 @@ public class DomovoyClient : IDisposable
     /// Sends an error without waiting for the result.
     /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendErrorFireAndForget(StandardPayload standard, ErrorPayload data)
+    public void SendErrorFireAndForget(StandardPayload standard, ErrorPayload data, IReadOnlyList<FileAttachment>? attachments = null)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendErrorAsync(standard, data);
+                await SendErrorAsync(standard, data, attachments);
             }
             catch
             {
@@ -184,13 +223,13 @@ public class DomovoyClient : IDisposable
     /// Sends a crash report without waiting for the result.
     /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendCrashFireAndForget(StandardPayload standard, Exception exception)
+    public void SendCrashFireAndForget(StandardPayload standard, Exception exception, IReadOnlyList<FileAttachment>? attachments = null)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendCrashAsync(standard, exception);
+                await SendCrashAsync(standard, exception, attachments);
             }
             catch
             {
@@ -199,7 +238,44 @@ public class DomovoyClient : IDisposable
         });
     }
 
-    private async Task<bool> SendRequestAsync<T>(
+    /// <summary>
+    /// Uploads an attachment without waiting for the result.
+    /// Use this for fire-and-forget scenarios.
+    /// </summary>
+    public void SendAttachmentFireAndForget(Guid reportId, Stream stream, string filename, string? contentType = null)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await SendAttachmentAsync(reportId, stream, filename, contentType);
+            }
+            catch
+            {
+                // Silently fail
+            }
+        });
+    }
+
+    private async Task UploadAttachmentsAsync(
+        Guid? reportId,
+        IReadOnlyList<FileAttachment>? attachments,
+        CancellationToken cancellationToken)
+    {
+        if (reportId == null || reportId == Guid.Empty || attachments == null || attachments.Count == 0)
+            return;
+
+        foreach (var attachment in attachments)
+        {
+            // Silently skip invalid attachments
+            if (attachment?.Stream == null || string.IsNullOrWhiteSpace(attachment.Filename))
+                continue;
+
+            await SendAttachmentAsync(reportId.Value, attachment.Stream, attachment.Filename, attachment.ContentType, cancellationToken);
+        }
+    }
+
+    private async Task<Guid?> SendRequestAsync<T>(
         string endpoint,
         T request,
         CancellationToken cancellationToken)
@@ -211,12 +287,30 @@ public class DomovoyClient : IDisposable
                 request,
                 cancellationToken);
 
-            return response.IsSuccessStatusCode;
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            try
+            {
+                var body = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
+                if (body.TryGetProperty("reportId", out var reportIdProp) &&
+                    reportIdProp.TryGetGuid(out var reportId))
+                {
+                    return reportId;
+                }
+            }
+            catch
+            {
+                // If we can't parse the body, still return a non-null value to indicate success
+            }
+
+            // Fallback: success but couldn't parse reportId
+            return Guid.Empty;
         }
         catch
         {
             // Silently fail - we don't want reporting to crash the app
-            return false;
+            return null;
         }
     }
 

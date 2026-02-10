@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domovoy.Database\Domovoy.Database.csproj" />
+    <ProjectReference Include="..\Domovoy.MinIO\Domovoy.MinIO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

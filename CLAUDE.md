@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Domovoy is a telemetry and error tracking system for games built with C# and ASP.NET Core 9. It collects and visualizes two types of reports:
+Domovoy is a telemetry and error tracking system for games built with C# and ASP.NET Core 10. It collects and visualizes two types of reports:
 - **Events** - Game analytics and custom events (e.g., level completions, user actions)
 - **Errors** - Error conditions and crashes with stack traces
 
@@ -19,13 +19,14 @@ This project follows MVP/KISS principles (Minimum Viable Product / Keep It Simpl
 
 ## Solution Structure
 
-The solution contains 5 projects:
+The solution contains the following projects:
 
-- **Domovoy.Shared** - Shared models (`Report` base class, `Event` and `Error` types) and DTOs used across all projects
+- **Domovoy.Shared** - Shared models (`Report` base class, `Event`, `Error`, `Attachment` types) and DTOs used across all projects
 - **Domovoy.Database** - EF Core DbContext, migrations, and database configuration
-- **Domovoy.Intake** - ASP.NET Core Web API that receives events and errors via HTTP
-- **Domovoy.Web** - Blazor Server web interface for viewing events and errors
-- **Domovoy.Client** - Client library for games to send events and errors to the Intake API
+- **Domovoy.Intake** - ASP.NET Core Web API that receives events, errors, and attachments via HTTP
+- **Domovoy.Web** - Blazor Server web interface for viewing events, errors, and attachments
+- **Domovoy.Client** - Client library for games to send events, errors, and attachments to the Intake API
+- **Domovoy.MinIO** - Shared MinIO/S3 integration library for attachment storage (used by Intake and Web)
 
 ## Common Development Commands
 
@@ -42,8 +43,8 @@ dotnet build src/Domovoy.Intake/Domovoy.Intake.csproj
 
 **Local development (services outside Docker):**
 ```bash
-# Start PostgreSQL only
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres
+# Start PostgreSQL and MinIO
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio
 
 # Run Intake API (in separate terminal)
 dotnet run --project src/Domovoy.Intake/Domovoy.Intake.csproj
@@ -76,11 +77,11 @@ dotnet ef database update
 
 ### Testing
 
-**Prerequisites:** PostgreSQL must be running (via docker-compose) before running tests.
+**Prerequisites:** PostgreSQL and MinIO must be running (via docker-compose) before running tests.
 
 ```bash
-# Start PostgreSQL for tests
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres
+# Start PostgreSQL and MinIO for tests
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio
 
 # Run all tests
 dotnet test
@@ -100,6 +101,7 @@ The solution includes a single test project `Domovoy.Tests` that contains integr
 - **ReportServiceTests** - Tests the ReportService directly, including event and error creation
 - **DomovoyClientTests** - Tests the client library's end-to-end integration with the Intake API
 - **WebUiTests** - Tests Blazor components using bUnit, verifying UI rendering and data display
+- **AttachmentTests** - Tests attachment upload, validation, metadata persistence, and client integration
 
 #### Test Database
 
@@ -129,7 +131,7 @@ The test project includes several infrastructure components:
 
 #### Running Tests Locally
 
-1. Ensure PostgreSQL is running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres`
+1. Ensure PostgreSQL and MinIO are running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio`
 2. Run tests: `dotnet test`
 3. The first test run will create the `domovoy_test` database automatically
 4. Each test class cleans up after itself, so tests can be run repeatedly
@@ -141,8 +143,9 @@ The test project includes several infrastructure components:
 ### Service Communication
 
 - **Intake API** (port 1973) and **Web UI** (port 1975) do NOT communicate with each other
-- Both services independently connect to the same PostgreSQL database
+- Both services independently connect to the same PostgreSQL database and MinIO object store
 - Events and errors submitted to the Intake API are stored in the database and retrieved by the Web UI
+- Attachments: binary files are stored in MinIO, metadata is stored in PostgreSQL. Intake handles uploads, Web proxies downloads to the browser (MinIO is never exposed to end users)
 
 ### Data Model Design
 
@@ -174,6 +177,15 @@ The system uses a Table-Per-Type (TPT) pattern with a `Report` base class and tw
    - `Data_StackTrace` (text) - Full stack trace
    - `Data_Context` (text) - Additional context
 
+4. **Attachments** (linked to Reports via FK)
+   - `Id` (Guid, PK)
+   - `ReportId` (Guid, FK to Reports.Id, indexed, cascade delete)
+   - `Filename` (string, max 255 chars)
+   - `ContentType` (string, max 100 chars)
+   - `SizeBytes` (long)
+   - `StorageKey` (string, max 500 chars) - Path in MinIO
+   - `CreatedAt` (DateTime)
+
 **TPT Benefits:**
 - ✅ No NULL columns - each table only contains relevant fields
 - ✅ Can enforce NOT NULL at database level for type-specific fields
@@ -184,6 +196,19 @@ The system uses a Table-Per-Type (TPT) pattern with a `Report` base class and tw
 **Shared Payload Types**: `EventPayload` and `ErrorPayload` are used in both DTOs (SubmitEventRequest, SubmitErrorRequest) and entities (Event, Error) to eliminate duplication and ensure consistency. EF Core automatically handles JOINs between Reports and Events/Errors tables when querying. See `DomovoyDbContext.cs` for the EF Core TPT configuration.
 
 **Important**: Each submission creates a new record - there is NO deduplication. Every event and error is stored individually.
+
+### Attachment Storage
+
+Binary attachments (crash dumps, screenshots, log files, up to 50 MB) are stored in MinIO (S3-compatible object store). Metadata is in PostgreSQL, bytes are in MinIO at `{reportId}/{attachmentId}/{filename}`.
+
+**Intake API endpoints:**
+- `POST /api/v1/reports/{reportId}/attachments` - Upload attachment (multipart form data)
+
+**Web API endpoints (proxied, MinIO never exposed to end users):**
+- `GET /api/attachments/by-report/{reportId}` - List attachments for a report
+- `GET /api/attachments/{attachmentId}/download` - Download attachment
+
+The `Domovoy.MinIO` project contains `AttachmentStorageService` and `MinioServiceExtensions` used by both Intake and Web. MinIO settings are configured in `appsettings.json` under the `Minio` section.
 
 ### Connection String Configuration
 
@@ -201,6 +226,8 @@ The system uses a Table-Per-Type (TPT) pattern with a `Report` base class and tw
 - **Web UI**: 1975
 - **Intake API**: 1973
 - **PostgreSQL**: 5432
+- **MinIO S3 API**: 9000 (dev only, not exposed in production Docker)
+- **MinIO Console**: 9001 (dev only)
 
 Both Intake and Web expose `/health` endpoints for health checks.
 
@@ -246,7 +273,7 @@ var eventData = new EventPayload
     }
 };
 
-await client.SendEventAsync(standard, eventData);
+Guid? reportId = await client.SendEventAsync(standard, eventData);
 ```
 
 ### Sending Errors
@@ -261,7 +288,7 @@ var errorData = new ErrorPayload
     Log = "Full error log..."
 };
 
-await client.SendErrorAsync(standard, errorData);
+Guid? reportId = await client.SendErrorAsync(standard, errorData);
 
 // Send a crash report from an exception (convenience method)
 try
@@ -270,7 +297,23 @@ try
 }
 catch (Exception ex)
 {
-    await client.SendCrashAsync(standard, ex);  // Builds ErrorPayload automatically
+    Guid? reportId = await client.SendCrashAsync(standard, ex);
+}
+```
+
+### Sending Attachments
+
+Attachments use a two-phase upload: first submit a report and get back the report ID, then upload files against that ID.
+
+```csharp
+// Submit error and get report ID
+var reportId = await client.SendCrashAsync(standard, exception);
+
+// Upload attachment (up to 50 MB)
+if (reportId != null)
+{
+    using var stream = File.OpenRead("screenshot.png");
+    await client.SendAttachmentAsync(reportId.Value, stream, "screenshot.png", "image/png");
 }
 ```
 
@@ -282,6 +325,7 @@ For scenarios where you don't want to wait for the result:
 client.SendEventFireAndForget(standard, eventData);
 client.SendErrorFireAndForget(standard, errorData);
 client.SendCrashFireAndForget(standard, exception);
+client.SendAttachmentFireAndForget(reportId, stream, "file.dat");
 ```
 
-**Note**: The client is stateless - you provide the StandardPayload with each request, allowing you to easily vary platform, version, and other metadata per report. The client is designed to fail silently (returns false on error) to avoid telemetry from crashing the game.
+**Note**: The client is stateless - you provide the StandardPayload with each request, allowing you to easily vary platform, version, and other metadata per report. The `Send*Async` methods return `Guid?` (the report ID on success, null on failure). The client is designed to fail silently to avoid telemetry from crashing the game.

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Domovoy.Database;
 using Domovoy.Intake.Services;
+using Domovoy.MinIO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,7 @@ builder.Services.AddDbContext<DomovoyDbContext>(options =>
 
 // Add application services
 builder.Services.AddScoped<ReportService>();
+builder.Services.AddDomovoyMinio(builder.Configuration);
 
 // Add health checks
 builder.Services.AddHealthChecks()

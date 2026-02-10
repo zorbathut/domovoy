@@ -25,8 +25,8 @@ public class ReportsController : ControllerBase
     {
         try
         {
-            await _service.ProcessEventAsync(request);
-            return Accepted();
+            var reportId = await _service.ProcessEventAsync(request);
+            return Accepted(new { reportId });
         }
         catch (Exception ex)
         {
@@ -40,8 +40,8 @@ public class ReportsController : ControllerBase
     {
         try
         {
-            await _service.ProcessErrorAsync(request);
-            return Accepted();
+            var reportId = await _service.ProcessErrorAsync(request);
+            return Accepted(new { reportId });
         }
         catch (Exception ex)
         {

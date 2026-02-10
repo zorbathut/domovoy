@@ -162,4 +162,13 @@ public class ReportViewService
             .OrderByDescending(e => e.Timestamp)
             .ToListAsync();
     }
+
+    // Get attachments for a report
+    public async Task<List<Attachment>> GetAttachmentsByReportIdAsync(Guid reportId)
+    {
+        return await _context.Attachments
+            .Where(a => a.ReportId == reportId)
+            .OrderBy(a => a.CreatedAt)
+            .ToListAsync();
+    }
 }

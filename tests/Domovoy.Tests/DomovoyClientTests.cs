@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +44,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
     }
 
     [Fact]
-    public async Task SendCrashAsync_WithValidException_ReturnsTrue()
+    public async Task SendCrashAsync_WithValidException_ReturnsReportId()
     {
         // Arrange
         var httpClient = _factory.CreateClient();
@@ -62,10 +65,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         var exception = new InvalidOperationException("Test exception for crash reporting");
 
         // Act
-        var success = await client.SendCrashAsync(standard, exception);
+        var reportId = await client.SendCrashAsync(standard, exception);
 
         // Assert
-        success.Should().BeTrue();
+        reportId.Should().NotBeNull();
+        reportId.Should().NotBe(Guid.Empty);
     }
 
     [Fact]
@@ -90,10 +94,10 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
 
         // Act
-        var success = await client.SendCrashAsync(standard, exception);
+        var reportId = await client.SendCrashAsync(standard, exception);
 
         // Assert
-        success.Should().BeTrue();
+        reportId.Should().NotBeNull();
 
         await using var dbContext = _dbFixture.CreateDbContext();
         var savedError = await dbContext.Errors
@@ -138,12 +142,12 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         }
 
         // Act - Send the same exception twice
-        var success1 = await client.SendCrashAsync(standard, capturedException!);
-        var success2 = await client.SendCrashAsync(standard, capturedException!);
+        var reportId1 = await client.SendCrashAsync(standard, capturedException!);
+        var reportId2 = await client.SendCrashAsync(standard, capturedException!);
 
         // Assert - Both should succeed
-        success1.Should().BeTrue();
-        success2.Should().BeTrue();
+        reportId1.Should().NotBeNull();
+        reportId2.Should().NotBeNull();
 
         // Verify two separate records were created
         await using var dbContext = _dbFixture.CreateDbContext();
@@ -208,7 +212,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
     }
 
     [Fact]
-    public async Task SendEventAsync_WithValidData_ReturnsTrue()
+    public async Task SendEventAsync_WithValidData_ReturnsReportId()
     {
         // Arrange
         var httpClient = _factory.CreateClient();
@@ -235,14 +239,15 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         };
 
         // Act
-        var success = await client.SendEventAsync(standard, eventData);
+        var reportId = await client.SendEventAsync(standard, eventData);
 
         // Assert
-        success.Should().BeTrue();
+        reportId.Should().NotBeNull();
+        reportId.Should().NotBe(Guid.Empty);
     }
 
     [Fact]
-    public async Task SendErrorAsync_WithValidData_ReturnsTrue()
+    public async Task SendErrorAsync_WithValidData_ReturnsReportId()
     {
         // Arrange
         var httpClient = _factory.CreateClient();
@@ -269,9 +274,62 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         };
 
         // Act
-        var success = await client.SendErrorAsync(standard, errorData);
+        var reportId = await client.SendErrorAsync(standard, errorData);
 
         // Assert
-        success.Should().BeTrue();
+        reportId.Should().NotBeNull();
+        reportId.Should().NotBe(Guid.Empty);
+    }
+
+    [Fact]
+    public async Task SendErrorAsync_WithInlineAttachments_UploadsAttachments()
+    {
+        // Arrange
+        var httpClient = _factory.CreateClient();
+        using var client = new DomovoyClient(_serverUrl, httpClient);
+
+        var standard = new StandardPayload
+        {
+            GameVersion = "1.0.0",
+            Platform = "Windows",
+            Environment = Environment.Dev,
+            UserId = Ulid.NewUlid().ToGuid(),
+            ComputerId = Ulid.NewUlid().ToGuid(),
+            GameId = Ulid.NewUlid().ToGuid(),
+            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
+            ProcessId = Ulid.NewUlid().ToGuid()
+        };
+
+        var errorData = new ErrorPayload
+        {
+            Severity = Severity.Error,
+            Message = "Error with inline attachments",
+            StackTrace = "at TestMethod() in Test.cs:line 1",
+            Log = "Test log"
+        };
+
+        var attachments = new List<FileAttachment>
+        {
+            new() { Stream = new MemoryStream(Encoding.UTF8.GetBytes("screenshot data")), Filename = "screenshot.png", ContentType = "image/png" },
+            new() { Stream = new MemoryStream(Encoding.UTF8.GetBytes("log file data")), Filename = "game.log" }
+        };
+
+        // Act
+        var reportId = await client.SendErrorAsync(standard, errorData, attachments);
+
+        // Assert
+        reportId.Should().NotBeNull();
+        reportId.Should().NotBe(Guid.Empty);
+
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var savedAttachments = await dbContext.Attachments
+            .Where(a => a.ReportId == reportId!.Value)
+            .OrderBy(a => a.Filename)
+            .ToListAsync();
+
+        savedAttachments.Should().HaveCount(2);
+        savedAttachments[0].Filename.Should().Be("game.log");
+        savedAttachments[1].Filename.Should().Be("screenshot.png");
+        savedAttachments[1].ContentType.Should().Be("image/png");
     }
 }

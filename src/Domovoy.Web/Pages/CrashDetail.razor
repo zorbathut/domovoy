@@ -101,12 +101,46 @@ else if (error != null)
 
     @if (!string.IsNullOrEmpty(error.Data.Log))
     {
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">
                 <h5>Log</h5>
             </div>
             <div class="card-body">
                 <pre class="bg-dark text-light p-3" style="overflow-x: auto;">@error.Data.Log</pre>
+            </div>
+        </div>
+    }
+
+    @if (attachments != null && attachments.Count > 0)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5>Attachments</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Uploaded</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var attachment in attachments)
+                        {
+                            <tr>
+                                <td>@attachment.Filename</td>
+                                <td>@attachment.ContentType</td>
+                                <td>@FormatFileSize(attachment.SizeBytes)</td>
+                                <td><LocalTimestamp Value="@attachment.CreatedAt" /></td>
+                                <td><a href="/api/attachments/@attachment.Id/download" class="btn btn-sm btn-outline-primary">Download</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     }
@@ -125,16 +159,28 @@ else
     public Guid CrashId { get; set; }
 
     private Domovoy.Shared.Models.Error? error;
+    private List<Domovoy.Shared.Models.Attachment>? attachments;
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         error = await ReportService.GetErrorByIdAsync(CrashId);
+        if (error != null)
+        {
+            attachments = await ReportService.GetAttachmentsByReportIdAsync(CrashId);
+        }
         isLoading = false;
     }
 
     private void GoBack()
     {
         Navigation.NavigateTo("/crashes");
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
     }
 }

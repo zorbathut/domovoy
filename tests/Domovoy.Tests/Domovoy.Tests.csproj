@@ -31,6 +31,7 @@
     <ProjectReference Include="..\..\src\Domovoy.Intake\Domovoy.Intake.csproj" />
     <ProjectReference Include="..\..\src\Domovoy.Shared\Domovoy.Shared.csproj" />
     <ProjectReference Include="..\..\src\Domovoy.Web\Domovoy.Web.csproj" />
+    <ProjectReference Include="..\..\src\Domovoy.MinIO\Domovoy.MinIO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -38,8 +38,8 @@ public static class Examples
         }
         catch (Exception ex)
         {
-            var success = await client.SendCrashAsync(standard, ex);
-            Console.WriteLine($"Crash reported: {(success ? "Success" : "Failed")}");
+            var reportId = await client.SendCrashAsync(standard, ex);
+            Console.WriteLine($"Crash reported: {(reportId != null ? "Success" : "Failed")}");
         }
     }
 
@@ -70,8 +70,8 @@ public static class Examples
             Log = "TextureLoadException: Failed to load texture\n   at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42\n   at Game.Level.Initialize() in Level.cs:line 15"
         };
 
-        var success = await client.SendErrorAsync(standard, errorData);
-        Console.WriteLine($"Error reported: {(success ? "Success" : "Failed")}");
+        var reportId = await client.SendErrorAsync(standard, errorData);
+        Console.WriteLine($"Error reported: {(reportId != null ? "Success" : "Failed")}");
     }
 
     /// <summary>
@@ -107,8 +107,8 @@ public static class Examples
             }
         };
 
-        var success = await client.SendEventAsync(standard, eventData);
-        Console.WriteLine($"Event reported: {(success ? "Success" : "Failed")}");
+        var reportId = await client.SendEventAsync(standard, eventData);
+        Console.WriteLine($"Event reported: {(reportId != null ? "Success" : "Failed")}");
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public static class Examples
 
         for (int i = 0; i < results.Length; i++)
         {
-            Console.WriteLine($"Crash {i + 1}: {(results[i] ? "Success" : "Failed")}");
+            Console.WriteLine($"Crash {i + 1}: {(results[i] != null ? "Success" : "Failed")}");
         }
     }
 

@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Domovoy.Database;
+using Domovoy.MinIO;
+using Domovoy.Shared.Models;
+using Minio;
 
 namespace Domovoy.Tests.Infrastructure;
 
@@ -37,6 +40,34 @@ public class IntakeApiFactory : WebApplicationFactory<Domovoy.Intake.Program>
             {
                 options.UseNpgsql(dataSource);
             });
+
+            // Override MinIO settings to use localhost for test environment
+            var minioDescriptors = services
+                .Where(d => d.ServiceType == typeof(MinioSettings)
+                          || d.ServiceType == typeof(IMinioClient)
+                          || d.ServiceType == typeof(AttachmentStorageService))
+                .ToList();
+
+            foreach (var d in minioDescriptors)
+                services.Remove(d);
+
+            var testSettings = new MinioSettings
+            {
+                Endpoint = "localhost:9000",
+                AccessKey = "domovoy",
+                SecretKey = "domovoy123",
+                BucketName = "domovoy-test-attachments",
+                UseSSL = false
+            };
+
+            services.AddSingleton(testSettings);
+            services.AddSingleton<IMinioClient>(_ =>
+                new MinioClient()
+                    .WithEndpoint(testSettings.Endpoint)
+                    .WithCredentials(testSettings.AccessKey, testSettings.SecretKey)
+                    .WithSSL(testSettings.UseSSL)
+                    .Build());
+            services.AddSingleton<AttachmentStorageService>();
 
             // Build service provider and ensure database is created and migrated
             var sp = services.BuildServiceProvider();

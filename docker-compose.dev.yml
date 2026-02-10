@@ -1,9 +1,14 @@
-# Development override - run only Postgres in Docker
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres
+# Development override - run only Postgres and MinIO in Docker
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio
 
 services:
   postgres:
     # Keep postgres as-is
+
+  minio:
+    ports:
+      - "9000:9000"   # S3 API for local dev
+      - "9001:9001"   # Console UI for local dev
 
   intake:
     # Don't start intake by default in dev mode

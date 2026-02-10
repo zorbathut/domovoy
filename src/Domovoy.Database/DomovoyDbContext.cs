@@ -15,6 +15,7 @@ public class DomovoyDbContext : DbContext
     public DbSet<Error> Errors => Set<Error>();
     public DbSet<Subscriber> Subscribers => Set<Subscriber>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Attachment> Attachments => Set<Attachment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -192,6 +193,39 @@ public class DomovoyDbContext : DbContext
             entity.HasIndex(e => new { e.SubscriberId, e.CreatedAt });
             entity.HasIndex(e => e.LockedUntil)
                 .HasFilter("\"LockedUntil\" IS NOT NULL");
+            entity.HasIndex(e => e.ReportId);
+        });
+
+        // Configure Attachment entity
+        modelBuilder.Entity<Attachment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.ToTable("Attachments");
+
+            entity.Property(e => e.Filename)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.ContentType)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.SizeBytes)
+                .IsRequired();
+
+            entity.Property(e => e.StorageKey)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.HasOne(e => e.Report)
+                .WithMany()
+                .HasForeignKey(e => e.ReportId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(e => e.ReportId);
         });
     }

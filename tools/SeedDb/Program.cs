@@ -110,8 +110,8 @@ for (int i = 0; i < 100; i++)
         }
     };
 
-    var success = await client.SendEventAsync(standard, eventData);
-    if (success)
+    var reportId = await client.SendEventAsync(standard, eventData);
+    if (reportId != null)
     {
         eventCount++;
         if (eventCount % 20 == 0)
@@ -161,8 +161,8 @@ for (int i = 0; i < 50; i++)
         Log = log
     };
 
-    var success = await client.SendErrorAsync(standard, errorData);
-    if (success)
+    var reportId = await client.SendErrorAsync(standard, errorData);
+    if (reportId != null)
     {
         errorCount++;
         if (errorCount % 10 == 0)
