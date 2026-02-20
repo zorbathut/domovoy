@@ -1,12 +1,17 @@
-# Domovoy - Game Crash Tracker
+# Domovoy - Game Telemetry and Error Tracking
 
-A crash tracker and analytics system for games built with C# and ASP.NET Core 10.
+A telemetry and error tracking system for games built with C# and ASP.NET Core 10. It collects and visualizes two types of reports:
+- **Events** - Game analytics and custom events (e.g., level completions, user actions)
+- **Errors** - Error conditions and crashes with stack traces
 
 ## Features
 
-- **Crash Intake API** - HTTP endpoint for receiving crash reports from games
-- **Web Dashboard** - Blazor Server UI for viewing and analyzing crash reports
-- **Automatic Deduplication** - Groups similar crashes based on stack trace hashing
+- **Event and Error Intake API** - HTTP endpoints for receiving telemetry from games
+- **Web Dashboard** - Blazor Server UI for viewing and analyzing reports
+- **Attachment Support** - Upload crash dumps, screenshots, and log files (up to 50 MB) via MinIO
+- **Client Library** - Stateless C# client for games with sync, async, and fire-and-forget methods
+- **Subscriber/Notification System** - Subscribe to report events and receive notifications
+- **Discord Bot** - Optional Discord integration for report notifications
 - **PostgreSQL Database** - Reliable storage with JSONB support for flexible metadata
 - **Docker Support** - Easy deployment with Docker Compose
 - **Health Monitoring** - Built-in health checks for all services
@@ -16,16 +21,21 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 10
 
 ### Services
 
-- **Intake API** (Port 1973) - Receives and processes crash reports
-- **Web UI** (Port 1975) - Dashboard for viewing crashes
-- **PostgreSQL** (Port 5432) - Database for crash data
+- **Intake API** (Port 1973) - Receives events, errors, and attachments
+- **Web UI** (Port 1975) - Dashboard for viewing reports, managing subscribers
+- **PostgreSQL** (Port 5432) - Database for report data
+- **MinIO** (Ports 9000/9001 in dev) - S3-compatible object store for attachments
 
 ### Projects
 
-- `Domovoy.Shared` - Shared models and DTOs
+- `Domovoy.Shared` - Shared models (Report, Event, Error, Attachment) and DTOs
 - `Domovoy.Database` - EF Core DbContext and migrations
-- `Domovoy.Intake` - Crash intake API service
-- `Domovoy.Web` - Blazor Server web interface
+- `Domovoy.Intake` - Intake API service for events, errors, and attachments
+- `Domovoy.Web` - Blazor Server web interface with attachment proxy and notification API
+- `Domovoy.Client` - Client library for games
+- `Domovoy.MinIO` - Shared MinIO/S3 integration for attachment storage
+- `Domovoy.NotificationClient` - Client library for the notification system
+- `Domovoy.DiscordBot` - Discord bot for report notifications
 
 ## Quick Start
 
@@ -33,7 +43,6 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 10
 
 - .NET 10.0 SDK
 - Docker and Docker Compose
-- (Optional) PostgreSQL 16+ if running locally
 
 ### Running with Docker
 
@@ -42,16 +51,21 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 10
    docker-compose up
    ```
 
-2. **Access the services:**
+2. **Optionally include the Discord bot:**
+   ```bash
+   docker-compose --profile discord up
+   ```
+
+3. **Access the services:**
    - Web UI: http://localhost:1975
    - Intake API: http://localhost:1973
    - Health Checks: http://localhost:1975/health and http://localhost:1973/health
 
 ### Running Locally (Development)
 
-1. **Start only PostgreSQL in Docker:**
+1. **Start PostgreSQL and MinIO in Docker:**
    ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio
    ```
 
 2. **Run the Intake API:**
@@ -64,63 +78,120 @@ A crash tracker and analytics system for games built with C# and ASP.NET Core 10
    dotnet run --project src/Domovoy.Web/Domovoy.Web.csproj
    ```
 
-## Submitting Crash Reports
+## Submitting Reports
 
-### API Endpoint
+### Using the Client Library
 
+```csharp
+using var client = new DomovoyClient("http://localhost:1973");
+
+var standard = new StandardPayload
+{
+    GameVersion = "1.0.0",
+    Platform = "Windows",
+    Environment = Environment.Dev,
+    UserId = Guid.NewGuid(),
+    ComputerId = Guid.NewGuid(),
+    GameId = Guid.NewGuid(),
+    GameSequenceIds = [Guid.NewGuid()],
+    ProcessId = Guid.NewGuid()
+};
+
+// Send an event
+Guid? reportId = await client.SendEventAsync(standard, new EventPayload
+{
+    Name = "LevelCompleted",
+    Category = "Gameplay",
+    Value = 1,
+    Metadata = new Dictionary<string, object> { { "level", 5 } }
+});
+
+// Send an error
+Guid? errorId = await client.SendErrorAsync(standard, new ErrorPayload
+{
+    Severity = Severity.Error,
+    Message = "Failed to load texture",
+    StackTrace = "at Game.TextureLoader.Load() in TextureLoader.cs:line 42",
+    Log = "Full error log..."
+});
+
+// Upload an attachment against a report
+if (reportId != null)
+{
+    using var stream = File.OpenRead("screenshot.png");
+    await client.SendAttachmentAsync(reportId.Value, stream, "screenshot.png", "image/png");
+}
 ```
-POST http://localhost:1973/api/v1/crashes
+
+### API Endpoints
+
+**Submit an event:**
+```
+POST http://localhost:1973/api/v1/reports/event
 Content-Type: application/json
 ```
 
-### Example Request
-
 ```json
 {
-  "gameVersion": "1.0.0",
-  "platform": "Windows",
-  "exceptionType": "System.NullReferenceException",
-  "exceptionMessage": "Object reference not set to an instance of an object.",
-  "stackTrace": "   at MyGame.Player.Update() in C:\\Game\\Player.cs:line 42\\n   at MyGame.GameLoop.Tick() in C:\\Game\\GameLoop.cs:line 123",
-  "systemInfo": {
-    "OS": "Windows 11",
-    "RAM": "16GB",
-    "GPU": "NVIDIA RTX 3080"
+  "standard": {
+    "gameVersion": "1.0.0",
+    "platform": "Windows",
+    "environment": 0,
+    "userId": "00000000-0000-0000-0000-000000000001",
+    "computerId": "00000000-0000-0000-0000-000000000002",
+    "gameId": "00000000-0000-0000-0000-000000000003",
+    "gameSequenceIds": ["00000000-0000-0000-0000-000000000004"],
+    "processId": "00000000-0000-0000-0000-000000000005"
   },
-  "userContext": {
-    "userId": "user123",
-    "level": "5",
-    "sessionId": "abc-def-123"
+  "data": {
+    "name": "LevelCompleted",
+    "category": "Gameplay",
+    "value": 1,
+    "userId": "player123",
+    "metadata": { "level": 5 }
   }
 }
 ```
 
-### Example with curl
-
-```bash
-curl -X POST http://localhost:1973/api/v1/crashes \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "gameVersion": "1.0.0",
-    "platform": "Windows",
-    "exceptionType": "System.NullReferenceException",
-    "exceptionMessage": "Object reference not set to an instance of an object.",
-    "stackTrace": "   at MyGame.Player.Update()\n   at MyGame.GameLoop.Tick()",
-    "systemInfo": {
-      "OS": "Windows 11"
-    }
-  }'
+**Submit an error:**
 ```
-
-### Response
+POST http://localhost:1973/api/v1/reports/error
+Content-Type: application/json
+```
 
 ```json
 {
-  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  "standard": {
+    "gameVersion": "1.0.0",
+    "platform": "Windows",
+    "environment": 0,
+    "userId": "00000000-0000-0000-0000-000000000001",
+    "computerId": "00000000-0000-0000-0000-000000000002",
+    "gameId": "00000000-0000-0000-0000-000000000003",
+    "gameSequenceIds": ["00000000-0000-0000-0000-000000000004"],
+    "processId": "00000000-0000-0000-0000-000000000005"
+  },
+  "data": {
+    "severity": 3,
+    "message": "Failed to load texture",
+    "stackTrace": "at Game.TextureLoader.Load() in TextureLoader.cs:line 42",
+    "log": "Full error log..."
+  }
 }
 ```
 
-HTTP Status: `202 Accepted`
+**Upload an attachment:**
+```
+POST http://localhost:1973/api/v1/reports/{reportId}/attachments
+Content-Type: multipart/form-data
+```
+
+**Response** (HTTP 202 Accepted):
+```json
+{
+  "reportId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
 
 ## Database Migrations
 
@@ -152,9 +223,13 @@ Update `appsettings.json` in both Intake and Web projects:
 }
 ```
 
+### MinIO
+
+MinIO settings are configured in `appsettings.json` under the `Minio` section in both Intake and Web projects.
+
 ### Environment Variables (Docker)
 
-The `docker-compose.yml` file uses environment variables:
+See `.env.example` for available environment variables:
 
 - `POSTGRES_DB=domovoy`
 - `POSTGRES_USER=domovoy`
@@ -171,53 +246,43 @@ dotnet build
 
 ### Running Tests
 
+PostgreSQL and MinIO must be running before running tests:
+
 ```bash
+# Start dependencies
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio
+
+# Run all tests
 dotnet test
 ```
+
+Tests use a separate `domovoy_test` database and run sequentially.
 
 ### Project Structure
 
 ```
 Domovoy/
 ├── src/
-│   ├── Domovoy.Shared/        # Shared models and DTOs
-│   ├── Domovoy.Database/       # EF Core DbContext and migrations
-│   ├── Domovoy.Intake/         # Crash intake API
-│   └── Domovoy.Web/            # Blazor Server web UI
+│   ├── Domovoy.Shared/              # Shared models and DTOs
+│   ├── Domovoy.Database/            # EF Core DbContext and migrations
+│   ├── Domovoy.Intake/              # Intake API service
+│   ├── Domovoy.Web/                 # Blazor Server web UI
+│   ├── Domovoy.Client/              # Client library for games
+│   ├── Domovoy.MinIO/               # Shared MinIO/S3 integration
+│   ├── Domovoy.NotificationClient/  # Notification system client
+│   └── Domovoy.DiscordBot/          # Discord bot integration
+├── tests/
+│   └── Domovoy.Tests/               # Integration tests
 ├── docker/
-│   ├── Intake.Dockerfile      # Dockerfile for Intake API
-│   └── Web.Dockerfile         # Dockerfile for Web UI
-├── docker-compose.yml         # Main compose file
-├── docker-compose.dev.yml     # Development overrides
-└── README.md
+│   ├── Intake.Dockerfile
+│   ├── Web.Dockerfile
+│   └── DiscordBot.Dockerfile
+├── config/
+│   └── discord-bot.json
+├── docker-compose.yml
+├── docker-compose.dev.yml
+└── .env.example
 ```
-
-## How It Works
-
-### Crash Deduplication
-
-Domovoy automatically groups similar crashes together:
-
-1. When a crash report is received, the first 5 stack frames are extracted
-2. A SHA-256 hash is computed from these frames
-3. If a crash with the same hash exists, the occurrence count is incremented
-4. Otherwise, a new crash record is created
-
-### Data Model
-
-**CrashReport**:
-- `Id` - Unique identifier
-- `Timestamp` - When the crash was first reported
-- `GameVersion` - Version of the game
-- `Platform` - Windows, Linux, Mac, etc.
-- `ExceptionType` - Type of exception (e.g., NullReferenceException)
-- `ExceptionMessage` - Error message
-- `StackTrace` - Full stack trace
-- `StackTraceHash` - Hash for deduplication
-- `OccurrenceCount` - Number of times this crash has occurred
-- `FirstSeen` / `LastSeen` - Timestamps
-- `SystemInfo` - Optional JSON metadata about the system
-- `UserContext` - Optional JSON metadata about the user/session
 
 ## Monitoring
 
@@ -227,10 +292,6 @@ Both services expose health check endpoints:
 
 - Intake API: http://localhost:1973/health
 - Web UI: http://localhost:1975/health
-
-Health checks verify:
-- Service is running
-- Database connection is healthy
 
 ### Logs
 
@@ -242,41 +303,3 @@ To view logs from Docker:
 docker-compose logs -f intake
 docker-compose logs -f web
 ```
-
-## Troubleshooting
-
-### Database Connection Issues
-
-If services can't connect to PostgreSQL:
-
-1. Check that PostgreSQL is running:
-   ```bash
-   docker-compose ps postgres
-   ```
-
-2. Verify the connection string in `appsettings.json`
-
-3. Check PostgreSQL logs:
-   ```bash
-   docker-compose logs postgres
-   ```
-
-### Port Conflicts
-
-If ports 1975, 1973, or 5432 are already in use, modify `docker-compose.yml`:
-
-```yaml
-ports:
-  - "1985:1975"  # Map external port 1985 to internal port 1975 (change left side only)
-```
-
-## Future Enhancements
-
-- API key authentication for intake endpoint
-- Web UI authentication
-- Advanced filtering and search
-- Crash trend analysis and charts
-- Email notifications for new crash types
-- Crash report retention policies
-- Rate limiting on intake API
-- Symbol/source map support for better stack traces
