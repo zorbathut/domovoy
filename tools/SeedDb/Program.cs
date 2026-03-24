@@ -94,7 +94,12 @@ for (int i = 0; i < 100; i++)
         ComputerId = Ulid.NewUlid().ToGuid(),
         GameId = Ulid.NewUlid().ToGuid(),
         GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-        ProcessId = Ulid.NewUlid().ToGuid()
+        ProcessId = Ulid.NewUlid().ToGuid(),
+        Metadata = new Dictionary<string, object>
+        {
+            { "duration", random.Next(10, 300) },
+            { "score", random.Next(100, 10000) }
+        }
     };
 
     var eventData = new EventPayload
@@ -102,12 +107,7 @@ for (int i = 0; i < 100; i++)
         Name = eventName,
         Category = category,
         Value = random.Next(1, 1000),
-        UserId = $"user_{random.Next(1, 50)}",
-        Metadata = new Dictionary<string, object>
-        {
-            { "duration", random.Next(10, 300) },
-            { "score", random.Next(100, 10000) }
-        }
+        UserId = $"user_{random.Next(1, 50)}"
     };
 
     var reportId = await client.SendEventAsync(standard, eventData);

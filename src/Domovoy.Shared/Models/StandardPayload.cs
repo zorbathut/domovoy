@@ -28,4 +28,7 @@ public class StandardPayload
     public List<Guid> GameSequenceIds { get; set; } = new();
 
     public Guid ProcessId { get; set; }
+
+    // Flexible metadata stored as JSONB
+    public Dictionary<string, object>? Metadata { get; set; }
 }

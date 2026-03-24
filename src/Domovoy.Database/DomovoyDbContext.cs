@@ -65,6 +65,10 @@ public class DomovoyDbContext : DbContext
                 owned.Property(s => s.ProcessId)
                     .IsRequired();
 
+                // Configure Metadata as JSONB
+                owned.Property(s => s.Metadata)
+                    .HasColumnType("jsonb");
+
                 // Indexes on standard payload fields
                 owned.HasIndex(s => s.GameVersion);
                 owned.HasIndex(s => s.Platform);
@@ -94,10 +98,6 @@ public class DomovoyDbContext : DbContext
 
                 owned.Property(d => d.UserId)
                     .HasMaxLength(100);
-
-                // Configure Metadata as JSONB
-                owned.Property(d => d.Metadata)
-                    .HasColumnType("jsonb");
 
                 // Index for UserId (no filter needed - Events table only has events)
                 owned.HasIndex(d => d.UserId);

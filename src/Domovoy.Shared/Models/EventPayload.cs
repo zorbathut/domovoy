@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domovoy.Shared.Models;
@@ -20,7 +19,4 @@ public class EventPayload
 
     [MaxLength(100)]
     public string? UserId { get; set; }
-
-    // Flexible metadata stored as JSONB
-    public Dictionary<string, object>? Metadata { get; set; }
 }

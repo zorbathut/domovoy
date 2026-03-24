@@ -90,7 +90,13 @@ public static class Examples
             ComputerId = Ulid.NewUlid().ToGuid(),
             GameId = Ulid.NewUlid().ToGuid(),
             GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            ProcessId = Ulid.NewUlid().ToGuid(),
+            Metadata = new Dictionary<string, object>
+            {
+                { "level", 5 },
+                { "timeSeconds", 120.5 },
+                { "score", 9500 }
+            }
         };
 
         var eventData = new EventPayload
@@ -98,13 +104,7 @@ public static class Examples
             Name = "LevelCompleted",
             Category = "Gameplay",
             Value = 1,
-            UserId = "player123",
-            Metadata = new Dictionary<string, object>
-            {
-                { "level", 5 },
-                { "timeSeconds", 120.5 },
-                { "score", 9500 }
-            }
+            UserId = "player123"
         };
 
         var reportId = await client.SendEventAsync(standard, eventData);
