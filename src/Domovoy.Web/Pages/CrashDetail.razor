@@ -94,7 +94,12 @@ else if (error != null)
                 <h5>Stack Trace</h5>
             </div>
             <div class="card-body">
-                <pre class="bg-dark text-light p-3" style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@error.Data.StackTrace</pre>
+                <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
+                    @foreach (var line in error.Data.StackTrace.Split('\n'))
+                    {
+                        <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
+                    }
+                </div>
             </div>
         </div>
     }
@@ -106,7 +111,12 @@ else if (error != null)
                 <h5>Log</h5>
             </div>
             <div class="card-body">
-                <pre class="bg-dark text-light p-3" style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@error.Data.Log</pre>
+                <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
+                    @foreach (var line in error.Data.Log.Split('\n'))
+                    {
+                        <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
+                    }
+                </div>
             </div>
         </div>
     }
