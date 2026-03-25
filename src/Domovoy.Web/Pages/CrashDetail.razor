@@ -119,7 +119,7 @@ else if (error != null)
             </div>
             <div class="card-body">
                 <dl class="row">
-                    @foreach (var kvp in error.Standard.Metadata)
+                    @foreach (var kvp in error.Standard.Metadata.OrderBy(x => x.Key))
                     {
                         <dt class="col-sm-3">@kvp.Key</dt>
                         <dd class="col-sm-9"><code>@kvp.Value</code></dd>
