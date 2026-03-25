@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U domovoy"]
       interval: 5s
@@ -25,7 +25,7 @@ services:
       MINIO_ROOT_USER: domovoy
       MINIO_ROOT_PASSWORD: domovoy123
     volumes:
-      - minio_data:/data
+      - ./data/minio:/data
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 5s
@@ -97,6 +97,3 @@ services:
     profiles:
       - discord
 
-volumes:
-  postgres_data:
-  minio_data:
