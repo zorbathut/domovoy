@@ -16,8 +16,6 @@ namespace Domovoy.Tests.Infrastructure;
 /// </summary>
 public class IntakeApiFactory : WebApplicationFactory<Domovoy.Intake.Program>
 {
-    private const string TestConnectionString = "Host=localhost;Database=domovoy_test;Username=domovoy;Password=domovoy";
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
@@ -32,7 +30,7 @@ public class IntakeApiFactory : WebApplicationFactory<Domovoy.Intake.Program>
             }
 
             // Add DbContext with test database connection string and dynamic JSON support
-            var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(TestConnectionString);
+            var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(DatabaseFixture.TestConnectionString);
             dataSourceBuilder.EnableDynamicJson();
             var dataSource = dataSourceBuilder.Build();
 
@@ -41,7 +39,7 @@ public class IntakeApiFactory : WebApplicationFactory<Domovoy.Intake.Program>
                 options.UseNpgsql(dataSource);
             });
 
-            // Override MinIO settings to use localhost for test environment
+            // Override MinIO settings to use test container
             var minioDescriptors = services
                 .Where(d => d.ServiceType == typeof(MinioSettings)
                           || d.ServiceType == typeof(IMinioClient)
@@ -53,10 +51,10 @@ public class IntakeApiFactory : WebApplicationFactory<Domovoy.Intake.Program>
 
             var testSettings = new MinioSettings
             {
-                Endpoint = "localhost:9000",
-                AccessKey = "domovoy",
-                SecretKey = "domovoy123",
-                BucketName = "domovoy-test-attachments",
+                Endpoint = DatabaseFixture.MinioEndpoint,
+                AccessKey = DatabaseFixture.MinioAccessKey,
+                SecretKey = DatabaseFixture.MinioSecretKey,
+                BucketName = DatabaseFixture.MinioBucketName,
                 UseSSL = false
             };
 

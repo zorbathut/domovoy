@@ -13,8 +13,6 @@ namespace Domovoy.Tests.Infrastructure;
 /// </summary>
 public class WebUiFactory : WebApplicationFactory<Domovoy.Web.Program>
 {
-    private const string TestConnectionString = "Host=localhost;Database=domovoy_test;Username=domovoy;Password=domovoy";
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
@@ -29,7 +27,7 @@ public class WebUiFactory : WebApplicationFactory<Domovoy.Web.Program>
             }
 
             // Add DbContext with test database connection string and dynamic JSON support
-            var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(TestConnectionString);
+            var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(DatabaseFixture.TestConnectionString);
             dataSourceBuilder.EnableDynamicJson();
             var dataSource = dataSourceBuilder.Build();
 

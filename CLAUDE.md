@@ -77,12 +77,9 @@ dotnet ef database update
 
 ### Testing
 
-**Prerequisites:** PostgreSQL and MinIO must be running (via docker-compose) before running tests.
+**Prerequisites:** Docker daemon must be running. Tests automatically spin up their own PostgreSQL and MinIO containers using Docker.DotNet — no manual `docker-compose` needed.
 
 ```bash
-# Start PostgreSQL and MinIO for tests
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio
-
 # Run all tests
 dotnet test
 
@@ -107,10 +104,10 @@ The solution includes a single test project `Domovoy.Tests` that contains integr
 
 Tests use a separate `domovoy_test` database to avoid interfering with development data:
 
-- The `DatabaseFixture` (in `tests/Domovoy.Tests/Infrastructure/DatabaseFixture.cs`) manages the test database lifecycle
-- The test database is dropped and recreated before each test run to ensure clean state
+- The `DatabaseFixture` (in `tests/Domovoy.Tests/Infrastructure/DatabaseFixture.cs`) manages test container and database lifecycle
+- PostgreSQL and MinIO containers are started automatically per test run using Docker.DotNet with random port allocation
 - Tests clean up after themselves using `IAsyncLifetime.DisposeAsync()`
-- Connection string: `Host=localhost;Database=domovoy_test;Username=domovoy;Password=domovoy`
+- Connection string is dynamically generated with a random port from the test container
 
 #### Test Infrastructure
 
@@ -118,7 +115,9 @@ The test project includes several infrastructure components:
 
 - **IntakeApiFactory** - Custom `WebApplicationFactory` for testing the Intake API
 - **WebUiFactory** - Custom `WebApplicationFactory` for testing the Web UI
-- **DatabaseFixture** - Manages test database creation, cleanup, and provides helper methods
+- **DatabaseFixture** - Manages Docker containers (PostgreSQL, MinIO), test database creation, cleanup, and provides helper methods
+- **TestPostgresContainer** - Spins up a PostgreSQL container with random port allocation and tmpfs for speed
+- **TestMinioContainer** - Spins up a MinIO container with random port allocation
 - **TestDataBuilder** - Fluent builder for creating test event and error report data
 
 #### What the Tests Cover
@@ -131,10 +130,11 @@ The test project includes several infrastructure components:
 
 #### Running Tests Locally
 
-1. Ensure PostgreSQL and MinIO are running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up postgres minio`
+1. Ensure Docker daemon is running
 2. Run tests: `dotnet test`
-3. The first test run will create the `domovoy_test` database automatically
+3. Containers and the test database are created automatically on each run
 4. Each test class cleans up after itself, so tests can be run repeatedly
+5. Containers are automatically removed after the test run (or by a watchdog if the process crashes)
 
 **Note**: Tests are configured to run sequentially (not in parallel) via `xunit.runner.json` because they share a single test database. This ensures reliability but makes tests slightly slower (~2-4 seconds total).
 

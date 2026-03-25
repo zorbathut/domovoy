@@ -8,13 +8,31 @@ using Xunit;
 namespace Domovoy.Tests.Infrastructure;
 
 /// <summary>
-/// Fixture for managing the test database lifecycle.
-/// Implements IAsyncLifetime to set up and tear down the database for each test collection.
+/// Fixture for managing the test database and container lifecycle.
+/// Spins up PostgreSQL and MinIO containers, then creates and migrates the test database.
 /// </summary>
 public class DatabaseFixture : IAsyncLifetime
 {
-    private const string TestConnectionString = "Host=localhost;Database=domovoy_test;Username=domovoy;Password=domovoy";
-    private const string AdminConnectionString = "Host=localhost;Database=postgres;Username=domovoy;Password=domovoy";
+    private TestPostgresContainer? _postgres;
+    private TestMinioContainer? _minio;
+
+    /// <summary>Dynamic connection string set after PostgreSQL container starts.</summary>
+    public static string TestConnectionString { get; private set; } = null!;
+
+    /// <summary>Admin connection string (postgres database) for DDL operations.</summary>
+    public static string AdminConnectionString { get; private set; } = null!;
+
+    /// <summary>MinIO endpoint (localhost:port) set after MinIO container starts.</summary>
+    public static string MinioEndpoint { get; private set; } = null!;
+
+    /// <summary>MinIO access key.</summary>
+    public static string MinioAccessKey { get; private set; } = null!;
+
+    /// <summary>MinIO secret key.</summary>
+    public static string MinioSecretKey { get; private set; } = null!;
+
+    /// <summary>MinIO bucket name for test attachments.</summary>
+    public static string MinioBucketName => "domovoy-test-attachments";
 
     private static NpgsqlDataSource CreateDataSource()
     {
@@ -25,18 +43,36 @@ public class DatabaseFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Drop and recreate the test database to ensure clean state
-        await DropDatabaseIfExistsAsync();
-        await CreateDatabaseAsync();
+        // Clean up stale containers from previous crashed runs
+        await TestPostgresContainer.CleanupStaleContainersAsync();
+
+        // Start both containers in parallel
+        _postgres = new TestPostgresContainer();
+        _minio = new TestMinioContainer();
+
+        await Task.WhenAll(_postgres.StartAsync(), _minio.StartAsync());
+
+        // Set static properties for factories to read
+        TestConnectionString = _postgres.ConnectionString;
+        AdminConnectionString = _postgres.AdminConnectionString;
+        MinioEndpoint = _minio.Endpoint;
+        MinioAccessKey = _minio.AccessKey;
+        MinioSecretKey = _minio.SecretKey;
+
+        // Spawn watchdog to clean up containers if the test process crashes
+        TestPostgresContainer.SpawnWatchdog();
+
+        // Create and migrate the test database
         await RunMigrationsAsync();
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        // Optionally drop the database after tests complete
-        // Comment this out if you want to inspect the database after test runs
-        // await DropDatabaseIfExistsAsync();
-        return Task.CompletedTask;
+        if (_minio != null)
+            await _minio.DisposeAsync();
+
+        if (_postgres != null)
+            await _postgres.DisposeAsync();
     }
 
     /// <summary>
@@ -65,49 +101,6 @@ public class DatabaseFixture : IAsyncLifetime
             .Options;
 
         return new DomovoyDbContext(options);
-    }
-
-    private async Task DropDatabaseIfExistsAsync()
-    {
-        try
-        {
-            await using var connection = new NpgsqlConnection(AdminConnectionString);
-            await connection.OpenAsync();
-
-            // Terminate existing connections to the test database
-            await using var terminateCmd = new NpgsqlCommand(
-                @"SELECT pg_terminate_backend(pg_stat_activity.pid)
-                  FROM pg_stat_activity
-                  WHERE pg_stat_activity.datname = 'domovoy_test'
-                    AND pid <> pg_backend_pid();",
-                connection);
-            await terminateCmd.ExecuteNonQueryAsync();
-
-            // Drop the database
-            await using var dropCmd = new NpgsqlCommand("DROP DATABASE IF EXISTS domovoy_test;", connection);
-            await dropCmd.ExecuteNonQueryAsync();
-        }
-        catch (Exception ex)
-        {
-            // If database doesn't exist, that's fine
-            Console.WriteLine($"Note: Could not drop database (may not exist): {ex.Message}");
-        }
-        finally
-        {
-            // Clear Npgsql connection pool to prevent reusing terminated connections
-            // This is critical because pg_terminate_backend() kills connections,
-            // but Npgsql's connection pool doesn't know they're dead
-            NpgsqlConnection.ClearAllPools();
-        }
-    }
-
-    private async Task CreateDatabaseAsync()
-    {
-        await using var connection = new NpgsqlConnection(AdminConnectionString);
-        await connection.OpenAsync();
-
-        await using var cmd = new NpgsqlCommand("CREATE DATABASE domovoy_test;", connection);
-        await cmd.ExecuteNonQueryAsync();
     }
 
     private async Task RunMigrationsAsync()
