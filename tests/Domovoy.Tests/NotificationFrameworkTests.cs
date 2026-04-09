@@ -7,7 +7,6 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using NUlid;
 using Domovoy.Database;
 using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
@@ -410,7 +409,7 @@ public class NotificationFrameworkTests : IClassFixture<IntakeApiFactory>, IClas
     public async Task AcknowledgeNotification_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
-        var invalidId = Ulid.NewUlid().ToGuid();
+        var invalidId = Guid.CreateVersion7();
 
         // Act
         var response = await _webClient.DeleteAsync($"/api/notifications/{invalidId}");

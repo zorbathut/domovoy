@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using NUlid;
 using Domovoy.Database;
 using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
@@ -28,7 +27,7 @@ public class SubscriberService
 
         var subscriber = new Subscriber
         {
-            Id = Ulid.NewUlid().ToGuid(),
+            Id = Guid.CreateVersion7(),
             Name = request.Name,
             IsActive = true,
             CreatedAt = now,

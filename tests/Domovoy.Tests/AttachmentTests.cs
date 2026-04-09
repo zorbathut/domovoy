@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using NUlid;
 using Domovoy.Client;
 using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
@@ -73,7 +72,7 @@ public class AttachmentTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     public async Task UploadAttachment_ToNonexistentReport_ReturnsNotFound()
     {
         // Arrange
-        var fakeReportId = Ulid.NewUlid().ToGuid();
+        var fakeReportId = Guid.CreateVersion7();
         var fileContent = Encoding.UTF8.GetBytes("test file content");
 
         using var content = new MultipartFormDataContent();
@@ -165,11 +164,11 @@ public class AttachmentTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         var errorData = new ErrorPayload

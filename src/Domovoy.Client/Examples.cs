@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NUlid;
 using Domovoy.Shared.Models;
 using Environment = Domovoy.Shared.Models.Environment;
 
@@ -25,11 +24,11 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         try
@@ -55,11 +54,11 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         var errorData = new ErrorPayload
@@ -86,11 +85,11 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid(),
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7(),
             Metadata = new Dictionary<string, object>
             {
                 { "level", 5 },
@@ -123,11 +122,11 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "macOS",
             Environment = Environment.Release,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         try
@@ -162,11 +161,11 @@ public static class Examples
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         Exception[] exceptions =
@@ -206,11 +205,11 @@ public static class Examples
                 GameVersion = versions[random.Next(versions.Length)],
                 Platform = platforms[random.Next(platforms.Length)],
                 Environment = Environment.Dev,
-                UserId = Ulid.NewUlid().ToGuid(),
-                ComputerId = Ulid.NewUlid().ToGuid(),
-                GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+                UserId = Guid.CreateVersion7(),
+                ComputerId = Guid.CreateVersion7(),
+                GameId = Guid.CreateVersion7(),
+                GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
             };
 
             var eventData = new EventPayload

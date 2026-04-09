@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Bunit;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using NUlid;
 using Domovoy.Database;
 using Domovoy.Shared.Models;
 using Domovoy.Tests.Infrastructure;
@@ -69,18 +68,18 @@ public class WebUiTests : IAsyncLifetime
         await using var dbContext = _dbFixture.CreateDbContext();
         var error = new Error
         {
-            Id = Ulid.NewUlid().ToGuid(),
+            Id = Guid.CreateVersion7(),
             Timestamp = DateTime.UtcNow,
             Standard = new StandardPayload
             {
                 GameVersion = "1.5.0",
                 Platform = "Windows",
                 Environment = Environment.Dev,
-                UserId = Ulid.NewUlid().ToGuid(),
-                ComputerId = Ulid.NewUlid().ToGuid(),
-                GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                UserId = Guid.CreateVersion7(),
+                ComputerId = Guid.CreateVersion7(),
+                GameId = Guid.CreateVersion7(),
+                GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
             },
             Data = new ErrorPayload
             {
@@ -123,7 +122,7 @@ public class WebUiTests : IAsyncLifetime
     {
         // Arrange - Add an error to the database
         await using var dbContext = _dbFixture.CreateDbContext();
-        var errorId = Ulid.NewUlid().ToGuid();
+        var errorId = Guid.CreateVersion7();
         var error = new Error
         {
             Id = errorId,
@@ -133,11 +132,11 @@ public class WebUiTests : IAsyncLifetime
                 GameVersion = "2.0.0",
                 Platform = "Linux",
                 Environment = Environment.Release,
-                UserId = Ulid.NewUlid().ToGuid(),
-                ComputerId = Ulid.NewUlid().ToGuid(),
-                GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                UserId = Guid.CreateVersion7(),
+                ComputerId = Guid.CreateVersion7(),
+                GameId = Guid.CreateVersion7(),
+                GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
             },
             Data = new ErrorPayload
             {
@@ -167,7 +166,7 @@ public class WebUiTests : IAsyncLifetime
     public async Task CrashDetailPage_WithInvalidErrorId_ShowsNotFoundMessage()
     {
         // Arrange
-        var nonExistentErrorId = Ulid.NewUlid().ToGuid();
+        var nonExistentErrorId = Guid.CreateVersion7();
 
         // Act
         var cut = _testContext!.Render<CrashDetail>(p => p.Add(c => c.CrashId, nonExistentErrorId));
@@ -189,18 +188,18 @@ public class WebUiTests : IAsyncLifetime
         {
             new Error
             {
-                Id = Ulid.NewUlid().ToGuid(),
+                Id = Guid.CreateVersion7(),
                 Timestamp = DateTime.UtcNow,
                 Standard = new StandardPayload
                 {
                     GameVersion = "1.0.0",
                     Platform = "Windows",
                     Environment = Environment.Dev,
-                    UserId = Ulid.NewUlid().ToGuid(),
-                    ComputerId = Ulid.NewUlid().ToGuid(),
-                    GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                    UserId = Guid.CreateVersion7(),
+                    ComputerId = Guid.CreateVersion7(),
+                    GameId = Guid.CreateVersion7(),
+                    GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
                 },
                 Data = new ErrorPayload
                 {
@@ -212,18 +211,18 @@ public class WebUiTests : IAsyncLifetime
             },
             new Error
             {
-                Id = Ulid.NewUlid().ToGuid(),
+                Id = Guid.CreateVersion7(),
                 Timestamp = DateTime.UtcNow,
                 Standard = new StandardPayload
                 {
                     GameVersion = "1.0.0",
                     Platform = "Linux",
                     Environment = Environment.Dev,
-                    UserId = Ulid.NewUlid().ToGuid(),
-                    ComputerId = Ulid.NewUlid().ToGuid(),
-                    GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                    UserId = Guid.CreateVersion7(),
+                    ComputerId = Guid.CreateVersion7(),
+                    GameId = Guid.CreateVersion7(),
+                    GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
                 },
                 Data = new ErrorPayload
                 {
@@ -235,18 +234,18 @@ public class WebUiTests : IAsyncLifetime
             },
             new Error
             {
-                Id = Ulid.NewUlid().ToGuid(),
+                Id = Guid.CreateVersion7(),
                 Timestamp = DateTime.UtcNow,
                 Standard = new StandardPayload
                 {
                     GameVersion = "2.0.0",
                     Platform = "macOS",
                     Environment = Environment.Release,
-                    UserId = Ulid.NewUlid().ToGuid(),
-                    ComputerId = Ulid.NewUlid().ToGuid(),
-                    GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                    UserId = Guid.CreateVersion7(),
+                    ComputerId = Guid.CreateVersion7(),
+                    GameId = Guid.CreateVersion7(),
+                    GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
                 },
                 Data = new ErrorPayload
                 {
@@ -284,17 +283,17 @@ public class WebUiTests : IAsyncLifetime
 
         var error = new Error
         {
-            Id = Ulid.NewUlid().ToGuid(),
+            Id = Guid.CreateVersion7(),
             Timestamp = DateTime.UtcNow,
             Standard = new StandardPayload
             {
                 GameVersion = "1.0.0",
                 Platform = "Windows",
-                UserId = Ulid.NewUlid().ToGuid(),
-                ComputerId = Ulid.NewUlid().ToGuid(),
-                GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                UserId = Guid.CreateVersion7(),
+                ComputerId = Guid.CreateVersion7(),
+                GameId = Guid.CreateVersion7(),
+                GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
             },
             Data = new ErrorPayload
             {
@@ -323,7 +322,7 @@ public class WebUiTests : IAsyncLifetime
         await using var dbContext = _dbFixture.CreateDbContext();
         var service = new ReportViewService(dbContext);
 
-        var errorId = Ulid.NewUlid().ToGuid();
+        var errorId = Guid.CreateVersion7();
         var error = new Error
         {
             Id = errorId,
@@ -332,11 +331,11 @@ public class WebUiTests : IAsyncLifetime
             {
                 GameVersion = "1.0.0",
                 Platform = "Windows",
-                UserId = Ulid.NewUlid().ToGuid(),
-                ComputerId = Ulid.NewUlid().ToGuid(),
-                GameId = Ulid.NewUlid().ToGuid(),
-                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                UserId = Guid.CreateVersion7(),
+                ComputerId = Guid.CreateVersion7(),
+                GameId = Guid.CreateVersion7(),
+                GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
             },
             Data = new ErrorPayload
             {
@@ -369,35 +368,35 @@ public class WebUiTests : IAsyncLifetime
         {
             new Error
             {
-                Id = Ulid.NewUlid().ToGuid(),
+                Id = Guid.CreateVersion7(),
                 Timestamp = DateTime.UtcNow,
                 Standard = new StandardPayload
                 {
                     GameVersion = "1.0.0",
                     Platform = "Windows",
                     Environment = Environment.Dev,
-                    UserId = Ulid.NewUlid().ToGuid(),
-                    ComputerId = Ulid.NewUlid().ToGuid(),
-                    GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                    UserId = Guid.CreateVersion7(),
+                    ComputerId = Guid.CreateVersion7(),
+                    GameId = Guid.CreateVersion7(),
+                    GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
                 },
                 Data = new ErrorPayload { Severity = Severity.Fatal, Message = "M1", StackTrace = "S1", Log = "L1" }
             },
             new Error
             {
-                Id = Ulid.NewUlid().ToGuid(),
+                Id = Guid.CreateVersion7(),
                 Timestamp = DateTime.UtcNow,
                 Standard = new StandardPayload
                 {
                     GameVersion = "1.0.0",
                     Platform = "Linux",
                     Environment = Environment.Dev,
-                    UserId = Ulid.NewUlid().ToGuid(),
-                    ComputerId = Ulid.NewUlid().ToGuid(),
-                    GameId = Ulid.NewUlid().ToGuid(),
-                    GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                    ProcessId = Ulid.NewUlid().ToGuid()
+                    UserId = Guid.CreateVersion7(),
+                    ComputerId = Guid.CreateVersion7(),
+                    GameId = Guid.CreateVersion7(),
+                    GameSequenceIds = [Guid.CreateVersion7()],
+                    ProcessId = Guid.CreateVersion7()
                 },
                 Data = new ErrorPayload { Severity = Severity.Error, Message = "M2", StackTrace = "S2", Log = "L2" }
             }

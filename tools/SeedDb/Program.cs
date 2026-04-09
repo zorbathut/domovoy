@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUlid;
 using Domovoy.Client;
 using Domovoy.Shared.Models;
 
@@ -90,11 +89,11 @@ for (int i = 0; i < 100; i++)
         GameVersion = version,
         Platform = platform,
         Environment = environment,
-        UserId = Ulid.NewUlid().ToGuid(),
-        ComputerId = Ulid.NewUlid().ToGuid(),
-        GameId = Ulid.NewUlid().ToGuid(),
-        GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-        ProcessId = Ulid.NewUlid().ToGuid(),
+        UserId = Guid.CreateVersion7(),
+        ComputerId = Guid.CreateVersion7(),
+        GameId = Guid.CreateVersion7(),
+        GameSequenceIds = [Guid.CreateVersion7()],
+        ProcessId = Guid.CreateVersion7(),
         Metadata = new Dictionary<string, object>
         {
             { "duration", random.Next(10, 300) },
@@ -146,11 +145,11 @@ for (int i = 0; i < 50; i++)
         GameVersion = version,
         Platform = platform,
         Environment = environment,
-        UserId = Ulid.NewUlid().ToGuid(),
-        ComputerId = Ulid.NewUlid().ToGuid(),
-        GameId = Ulid.NewUlid().ToGuid(),
-        GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-        ProcessId = Ulid.NewUlid().ToGuid()
+        UserId = Guid.CreateVersion7(),
+        ComputerId = Guid.CreateVersion7(),
+        GameId = Guid.CreateVersion7(),
+        GameSequenceIds = [Guid.CreateVersion7()],
+        ProcessId = Guid.CreateVersion7()
     };
 
     var errorData = new ErrorPayload

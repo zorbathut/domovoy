@@ -8,8 +8,6 @@ using Domovoy.Database;
 using Domovoy.MinIO;
 using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
-using NUlid;
-
 namespace Domovoy.Intake.Controllers;
 
 [ApiController]
@@ -46,7 +44,7 @@ public class AttachmentsController : ControllerBase
         if (!reportExists)
             return NotFound(new { error = $"Report {reportId} not found." });
 
-        var attachmentId = Ulid.NewUlid().ToGuid();
+        var attachmentId = Guid.CreateVersion7();
         var filename = file.FileName;
         var contentType = file.ContentType ?? "application/octet-stream";
         var storageKey = $"{reportId}/{attachmentId}/{filename}";

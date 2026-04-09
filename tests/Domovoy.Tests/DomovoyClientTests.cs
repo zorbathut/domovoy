@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using NUlid;
 using Domovoy.Client;
 using Domovoy.Shared.Models;
 using Domovoy.Tests.Infrastructure;
@@ -55,11 +54,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             GameVersion = "1.5.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         var exception = new InvalidOperationException("Test exception for crash reporting");
@@ -84,11 +83,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             GameVersion = "2.0.0",
             Platform = "Linux",
             Environment = Environment.Release,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
@@ -123,11 +122,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         // Create exception with a specific stack trace (by catching and re-throwing)
@@ -198,11 +197,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         // Act & Assert
@@ -223,11 +222,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         var eventData = new EventPayload
@@ -258,11 +257,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         var errorData = new ErrorPayload
@@ -293,11 +292,11 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
             GameVersion = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
-            UserId = Ulid.NewUlid().ToGuid(),
-            ComputerId = Ulid.NewUlid().ToGuid(),
-            GameId = Ulid.NewUlid().ToGuid(),
-            GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-            ProcessId = Ulid.NewUlid().ToGuid()
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            GameId = Guid.CreateVersion7(),
+            GameSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
         };
 
         var errorData = new ErrorPayload

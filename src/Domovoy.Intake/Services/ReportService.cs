@@ -6,8 +6,6 @@ using Microsoft.Extensions.Logging;
 using Domovoy.Database;
 using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
-using NUlid;
-
 namespace Domovoy.Intake.Services;
 
 public class ReportService
@@ -27,7 +25,7 @@ public class ReportService
 
         var eventReport = new Event
         {
-            Id = Ulid.NewUlid().ToGuid(),
+            Id = Guid.CreateVersion7(),
             Timestamp = now,
             Standard = request.Standard,
             Data = request.Data
@@ -54,7 +52,7 @@ public class ReportService
 
         var errorReport = new Error
         {
-            Id = Ulid.NewUlid().ToGuid(),
+            Id = Guid.CreateVersion7(),
             Timestamp = now,
             Standard = request.Standard,
             Data = request.Data
@@ -92,7 +90,7 @@ public class ReportService
         // Create notifications for each active subscriber
         var notifications = activeSubscribers.Select(subscriberId => new Notification
         {
-            Id = Ulid.NewUlid().ToGuid(),
+            Id = Guid.CreateVersion7(),
             ReportId = reportId,
             SubscriberId = subscriberId,
             CreatedAt = now,

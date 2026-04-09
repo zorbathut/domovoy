@@ -1,5 +1,4 @@
 using System;
-using NUlid;
 using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
 
@@ -31,11 +30,11 @@ public class TestDataBuilder
                 GameVersion = gameVersion ?? "1.0.0",
                 Platform = platform ?? "Windows",
                 Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
-                UserId = userId ?? Ulid.NewUlid().ToGuid(),
-                ComputerId = computerId ?? Ulid.NewUlid().ToGuid(),
-                GameId = gameId ?? Ulid.NewUlid().ToGuid(),
-                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                ProcessId = Ulid.NewUlid().ToGuid()
+                UserId = userId ?? Guid.CreateVersion7(),
+                ComputerId = computerId ?? Guid.CreateVersion7(),
+                GameId = gameId ?? Guid.CreateVersion7(),
+                GameSequenceIds = [Guid.CreateVersion7()],
+                ProcessId = Guid.CreateVersion7()
             },
             Data = new EventPayload
             {
@@ -68,11 +67,11 @@ public class TestDataBuilder
                 GameVersion = gameVersion ?? "1.0.0",
                 Platform = platform ?? "Windows",
                 Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
-                UserId = userId ?? Ulid.NewUlid().ToGuid(),
-                ComputerId = computerId ?? Ulid.NewUlid().ToGuid(),
-                GameId = gameId ?? Ulid.NewUlid().ToGuid(),
-                GameSequenceIds = [Ulid.NewUlid().ToGuid()],
-                ProcessId = Ulid.NewUlid().ToGuid()
+                UserId = userId ?? Guid.CreateVersion7(),
+                ComputerId = computerId ?? Guid.CreateVersion7(),
+                GameId = gameId ?? Guid.CreateVersion7(),
+                GameSequenceIds = [Guid.CreateVersion7()],
+                ProcessId = Guid.CreateVersion7()
             },
             Data = new ErrorPayload
             {
