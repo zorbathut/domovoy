@@ -27,21 +27,21 @@ public class ReportService
         {
             Id = Guid.CreateVersion7(),
             Timestamp = now,
-            Standard = request.Standard,
+            Category = request.Category,
+            Name = request.Name,
             Data = request.Data
         };
+        MapCommonFields(eventReport, request);
 
         _context.Events.Add(eventReport);
 
-        // Create notifications for active subscribers (transactionally)
         await CreateNotificationsForReportAsync(eventReport.Id, now);
-
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
             "Created event report {ReportId} for {EventName}",
             eventReport.Id,
-            eventReport.Data.Name);
+            eventReport.Name);
 
         return eventReport.Id;
     }
@@ -54,24 +54,38 @@ public class ReportService
         {
             Id = Guid.CreateVersion7(),
             Timestamp = now,
-            Standard = request.Standard,
-            Data = request.Data
+            Severity = request.Severity,
+            Message = request.Message,
+            StackTrace = request.StackTrace,
+            Log = request.Log
         };
+        MapCommonFields(errorReport, request);
 
         _context.Errors.Add(errorReport);
 
-        // Create notifications for active subscribers (transactionally)
         await CreateNotificationsForReportAsync(errorReport.Id, now);
-
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
             "Created error report {ReportId} with severity {Severity}: {Message}",
             errorReport.Id,
-            errorReport.Data.Severity,
-            errorReport.Data.Message);
+            errorReport.Severity,
+            errorReport.Message);
 
         return errorReport.Id;
+    }
+
+    private static void MapCommonFields(Report report, SubmitReportRequest request)
+    {
+        report.Version = request.Version;
+        report.Platform = request.Platform;
+        report.Environment = request.Environment;
+        report.UserId = request.UserId;
+        report.ComputerId = request.ComputerId;
+        report.CampaignId = request.CampaignId;
+        report.CampaignSequenceIds = request.CampaignSequenceIds;
+        report.ProcessId = request.ProcessId;
+        report.Metadata = request.Metadata;
     }
 
     private async Task CreateNotificationsForReportAsync(Guid reportId, DateTime now)

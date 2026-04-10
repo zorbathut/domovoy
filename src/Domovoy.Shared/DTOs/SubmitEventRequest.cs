@@ -1,13 +1,17 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Domovoy.Shared.Models;
 
 namespace Domovoy.Shared.DTOs;
 
-public class SubmitEventRequest
+public class SubmitEventRequest : SubmitReportRequest
 {
     [Required]
-    public required StandardPayload Standard { get; set; }
+    [MaxLength(100)]
+    public required string Category { get; set; }
 
     [Required]
-    public required EventPayload Data { get; set; }
+    [MaxLength(200)]
+    public required string Name { get; set; }
+
+    public Dictionary<string, object>? Data { get; set; }
 }

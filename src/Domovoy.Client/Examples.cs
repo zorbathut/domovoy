@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
 using Environment = Domovoy.Shared.Models.Environment;
 
@@ -19,15 +20,15 @@ public static class Examples
     {
         using var client = new DomovoyClient("http://localhost:1973");
 
-        var standard = new StandardPayload
+        var common = new SubmitReportRequest
         {
-            GameVersion = "1.0.0",
+            Version = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
             ProcessId = Guid.CreateVersion7()
         };
 
@@ -37,7 +38,7 @@ public static class Examples
         }
         catch (Exception ex)
         {
-            var reportId = await client.SendCrashAsync(standard, ex);
+            var reportId = await client.SendCrashAsync(common, ex);
             Console.WriteLine($"Crash reported: {(reportId != null ? "Success" : "Failed")}");
         }
     }
@@ -49,27 +50,24 @@ public static class Examples
     {
         using var client = new DomovoyClient("http://localhost:1973");
 
-        var standard = new StandardPayload
+        var common = new SubmitReportRequest
         {
-            GameVersion = "1.0.0",
+            Version = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
             ProcessId = Guid.CreateVersion7()
         };
 
-        var errorData = new ErrorPayload
-        {
-            Severity = Severity.Error,
-            Message = "Failed to load texture",
-            StackTrace = "at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42",
-            Log = "TextureLoadException: Failed to load texture\n   at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42\n   at Game.Level.Initialize() in Level.cs:line 15"
-        };
-
-        var reportId = await client.SendErrorAsync(standard, errorData);
+        var reportId = await client.SendErrorAsync(
+            common,
+            Severity.Error,
+            "Failed to load texture",
+            "at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42",
+            "TextureLoadException: Failed to load texture\n   at Game.TextureLoader.Load(String path) in TextureLoader.cs:line 42\n   at Game.Level.Initialize() in Level.cs:line 15");
         Console.WriteLine($"Error reported: {(reportId != null ? "Success" : "Failed")}");
     }
 
@@ -80,15 +78,15 @@ public static class Examples
     {
         using var client = new DomovoyClient("http://localhost:1973");
 
-        var standard = new StandardPayload
+        var common = new SubmitReportRequest
         {
-            GameVersion = "1.0.0",
+            Version = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
             ProcessId = Guid.CreateVersion7(),
             Metadata = new Dictionary<string, object>
             {
@@ -98,13 +96,7 @@ public static class Examples
             }
         };
 
-        var eventData = new EventPayload
-        {
-            Category = "Gameplay",
-            Name = "LevelCompleted"
-        };
-
-        var reportId = await client.SendEventAsync(standard, eventData);
+        var reportId = await client.SendEventAsync(common, "Gameplay", "LevelCompleted");
         Console.WriteLine($"Event reported: {(reportId != null ? "Success" : "Failed")}");
     }
 
@@ -115,15 +107,15 @@ public static class Examples
     {
         var client = new DomovoyClient("http://localhost:1973");
 
-        var standard = new StandardPayload
+        var common = new SubmitReportRequest
         {
-            GameVersion = "1.0.0",
+            Version = "1.0.0",
             Platform = "macOS",
             Environment = Environment.Release,
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
             ProcessId = Guid.CreateVersion7()
         };
 
@@ -133,18 +125,12 @@ public static class Examples
         }
         catch (Exception ex)
         {
-            // Report without waiting (useful for shutdown scenarios)
-            client.SendCrashFireAndForget(standard, ex);
+            client.SendCrashFireAndForget(common, ex);
             Console.WriteLine("Crash report queued for sending");
         }
 
         // Fire and forget for events
-        var eventData = new EventPayload
-        {
-            Category = "Multiplayer",
-            Name = "PlayerJoined"
-        };
-        client.SendEventFireAndForget(standard, eventData);
+        client.SendEventFireAndForget(common, "Multiplayer", "PlayerJoined");
     }
 
     /// <summary>
@@ -154,15 +140,15 @@ public static class Examples
     {
         using var client = new DomovoyClient("http://localhost:1973");
 
-        var standard = new StandardPayload
+        var common = new SubmitReportRequest
         {
-            GameVersion = "1.0.0",
+            Version = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
             ProcessId = Guid.CreateVersion7()
         };
 
@@ -173,8 +159,7 @@ public static class Examples
             new NullReferenceException("Reference 3 null")
         ];
 
-        // Send multiple reports concurrently
-        var tasks = exceptions.Select(ex => client.SendCrashAsync(standard, ex));
+        var tasks = exceptions.Select(ex => client.SendCrashAsync(common, ex));
         var results = await Task.WhenAll(tasks);
 
         for (int i = 0; i < results.Length; i++)
@@ -190,7 +175,6 @@ public static class Examples
     {
         using var client = new DomovoyClient("http://localhost:1973");
 
-        // Send events from different platforms and versions
         var platforms = new[] { "Windows", "Linux", "macOS", "Android", "iOS" };
         var versions = new[] { "1.0.0", "1.1.0", "2.0.0" };
 
@@ -198,25 +182,19 @@ public static class Examples
 
         for (int i = 0; i < 10; i++)
         {
-            var standard = new StandardPayload
+            var common = new SubmitReportRequest
             {
-                GameVersion = versions[random.Next(versions.Length)],
+                Version = versions[random.Next(versions.Length)],
                 Platform = platforms[random.Next(platforms.Length)],
                 Environment = Environment.Dev,
                 UserId = Guid.CreateVersion7(),
                 ComputerId = Guid.CreateVersion7(),
-                GameId = Guid.CreateVersion7(),
-                GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
+                CampaignId = Guid.CreateVersion7(),
+                CampaignSequenceIds = [Guid.CreateVersion7()],
+                ProcessId = Guid.CreateVersion7()
             };
 
-            var eventData = new EventPayload
-            {
-                Category = "Testing",
-                Name = "TestEvent"
-            };
-
-            await client.SendEventAsync(standard, eventData);
+            await client.SendEventAsync(common, "Testing", "TestEvent");
         }
 
         Console.WriteLine("Sent 10 events with varied platforms and versions");

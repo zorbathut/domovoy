@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Domovoy.Shared.Models;
 
 public class Error : Report
@@ -7,5 +9,15 @@ public class Error : Report
         ReportType = ReportType.Error;
     }
 
-    public required ErrorPayload Data { get; set; }
+    [Required]
+    public Severity Severity { get; set; } = Severity.Error;
+
+    [Required]
+    public required string Message { get; set; }
+
+    [Required]
+    public required string StackTrace { get; set; }
+
+    [Required]
+    public required string Log { get; set; }
 }

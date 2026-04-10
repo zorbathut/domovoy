@@ -56,7 +56,7 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
     {
         // Arrange
         var errorReport = TestDataBuilder.CreateErrorReport(
-            gameVersion: "2.0.0",
+            version: "2.0.0",
             platform: "Linux",
             message: "Invalid operation occurred"
         );
@@ -69,11 +69,11 @@ public class IntakeApiTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         await using var dbContext = _dbFixture.CreateDbContext();
         var savedError = await dbContext.Errors
-            .Where(e => e.Standard.GameVersion == "2.0.0" && e.Standard.Platform == "Linux")
+            .Where(e => e.Version == "2.0.0" && e.Platform == "Linux")
             .FirstOrDefaultAsync();
 
         savedError.Should().NotBeNull();
-        savedError!.Data.Message.Should().Be("Invalid operation occurred");
+        savedError!.Message.Should().Be("Invalid operation occurred");
     }
 
     [Fact]

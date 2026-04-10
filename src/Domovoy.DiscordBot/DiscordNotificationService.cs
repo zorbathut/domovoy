@@ -265,39 +265,37 @@ public class DiscordNotificationService : BackgroundService
         try
         {
             // Only process error reports (ignore events)
-            if (notification.Report.ErrorData == null)
+            if (notification.Report.Severity == null)
             {
                 _logger.LogDebug("Skipping non-error notification {NotificationId}", notification.Id);
                 return true; // ACK it to remove from queue
             }
 
-            var error = notification.Report.ErrorData;
-
             // Only process warnings and above (ignore Info and Unknown)
-            if (error.Severity < Severity.Warning)
+            if (notification.Report.Severity < Severity.Warning)
             {
                 _logger.LogDebug(
                     "Skipping error notification {NotificationId} with severity {Severity}",
                     notification.Id,
-                    error.Severity);
+                    notification.Report.Severity);
                 return true; // ACK it to remove from queue
             }
 
             // Only process errors from Release environment
-            if (notification.Report.Standard.Environment != Domovoy.Shared.Models.Environment.Release)
+            if (notification.Report.Environment != Domovoy.Shared.Models.Environment.Release)
             {
                 _logger.LogDebug(
                     "Skipping error notification {NotificationId} from non-Release environment {Environment}",
                     notification.Id,
-                    notification.Report.Standard.Environment);
+                    notification.Report.Environment);
                 return true; // ACK it to remove from queue
             }
 
             _logger.LogInformation(
                 "Processing error notification {NotificationId}: {Severity} - {Message}",
                 notification.Id,
-                error.Severity,
-                error.Message);
+                notification.Report.Severity,
+                notification.Report.Message);
 
             await SendToDiscordAsync(notification);
 
@@ -318,11 +316,10 @@ public class DiscordNotificationService : BackgroundService
             throw new InvalidOperationException($"Cannot find Discord channel with ID {_channelId}");
         }
 
-        var error = notification.Report.ErrorData!;
-        var standard = notification.Report.Standard;
+        var report = notification.Report;
 
         // Determine embed color based on severity
-        var color = error.Severity switch
+        var color = report.Severity switch
         {
             Severity.Fatal => Color.DarkRed,
             Severity.Error => Color.Red,
@@ -331,34 +328,34 @@ public class DiscordNotificationService : BackgroundService
         };
 
         // Truncate stack trace if too long (Discord has 1024 char field limit)
-        var stackTrace = error.StackTrace;
+        var stackTrace = report.StackTrace ?? "";
         if (stackTrace.Length > 1000)
         {
             stackTrace = stackTrace.Substring(0, 997) + "...";
         }
 
         var embed = new EmbedBuilder()
-            .WithTitle($"{error.Severity} Reported")
-            .WithDescription(error.Message)
+            .WithTitle($"{report.Severity} Reported")
+            .WithDescription(report.Message)
             .WithColor(color)
             .WithCurrentTimestamp()
-            .AddField("Platform", standard.Platform, inline: true)
-            .AddField("Game Version", standard.GameVersion, inline: true)
-            .AddField("Environment", standard.Environment.ToString(), inline: true)
-            .AddField("Report Time", notification.Report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true)
+            .AddField("Platform", report.Platform, inline: true)
+            .AddField("Version", report.Version, inline: true)
+            .AddField("Environment", report.Environment.ToString(), inline: true)
+            .AddField("Report Time", report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true)
             .AddField("Stack Trace", $"```\n{stackTrace}\n```", inline: false);
 
         // Add link to detail page if webUiUrl is configured
         if (!string.IsNullOrWhiteSpace(_config!.WebUiUrl))
         {
-            var detailUrl = $"{_config.WebUiUrl.TrimEnd('/')}/crashes/{notification.Report.Id}";
+            var detailUrl = $"{_config.WebUiUrl.TrimEnd('/')}/crashes/{report.Id}";
             embed.WithUrl(detailUrl);
         }
 
         // Add log if present and not too long
-        if (!string.IsNullOrEmpty(error.Log))
+        if (!string.IsNullOrEmpty(report.Log))
         {
-            var log = error.Log;
+            var log = report.Log;
             if (log.Length > 500)
             {
                 log = log.Substring(0, 497) + "...";
@@ -366,7 +363,7 @@ public class DiscordNotificationService : BackgroundService
             embed.AddField("Log", $"```\n{log}\n```", inline: false);
         }
 
-        embed.WithFooter($"Report ID: {notification.Report.Id} | Notification ID: {notification.Id}");
+        embed.WithFooter($"Report ID: {report.Id} | Notification ID: {notification.Id}");
 
         // Build message with optional role mention
         string? messageContent = null;
@@ -380,8 +377,8 @@ public class DiscordNotificationService : BackgroundService
         _logger.LogInformation(
             "Sent error notification to Discord channel {ChannelId}: {Severity} - {Message}",
             _channelId,
-            error.Severity,
-            error.Message);
+            report.Severity,
+            report.Message);
     }
 
     private async Task ReportApiConnectionErrorAsync(HttpRequestException ex, string webApiUrl)

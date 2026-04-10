@@ -342,9 +342,8 @@ public class NotificationFrameworkTests : IClassFixture<IntakeApiFactory>, IClas
         var notification = notifications!.First();
         notification.Report.Should().NotBeNull();
         notification.Report.ReportType.Should().Be("Event");
-        notification.Report.EventData.Should().NotBeNull();
-        notification.Report.EventData!.Name.Should().NotBeEmpty();
-        notification.Report.Standard.Should().NotBeNull();
+        notification.Report.Name.Should().NotBeEmpty();
+        notification.Report.Version.Should().NotBeEmpty();
     }
 
     [Fact]

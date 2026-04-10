@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace Domovoy.Shared.Models;
 
 public class Event : Report
@@ -7,5 +10,13 @@ public class Event : Report
         ReportType = ReportType.Event;
     }
 
-    public required EventPayload Data { get; set; }
+    [Required]
+    [MaxLength(100)]
+    public required string Category { get; set; }
+
+    [Required]
+    [MaxLength(200)]
+    public required string Name { get; set; }
+
+    public Dictionary<string, object>? Data { get; set; }
 }

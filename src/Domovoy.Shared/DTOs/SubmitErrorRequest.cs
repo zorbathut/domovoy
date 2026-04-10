@@ -3,11 +3,16 @@ using Domovoy.Shared.Models;
 
 namespace Domovoy.Shared.DTOs;
 
-public class SubmitErrorRequest
+public class SubmitErrorRequest : SubmitReportRequest
 {
-    [Required]
-    public required StandardPayload Standard { get; set; }
+    public Severity Severity { get; set; } = Severity.Error;
 
     [Required]
-    public required ErrorPayload Data { get; set; }
+    public required string Message { get; set; }
+
+    [Required]
+    public required string StackTrace { get; set; }
+
+    [Required]
+    public required string Log { get; set; }
 }

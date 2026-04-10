@@ -87,18 +87,31 @@ public class NotificationService
         {
             Id = report.Id,
             Timestamp = report.Timestamp,
-            Standard = report.Standard
+            Version = report.Version,
+            Platform = report.Platform,
+            Environment = report.Environment,
+            UserId = report.UserId,
+            ComputerId = report.ComputerId,
+            CampaignId = report.CampaignId,
+            CampaignSequenceIds = report.CampaignSequenceIds,
+            ProcessId = report.ProcessId,
+            Metadata = report.Metadata
         };
 
         if (report is Event eventReport)
         {
             reportDto.ReportType = "Event";
-            reportDto.EventData = eventReport.Data;
+            reportDto.Category = eventReport.Category;
+            reportDto.Name = eventReport.Name;
+            reportDto.Data = eventReport.Data;
         }
         else if (report is Error errorReport)
         {
             reportDto.ReportType = "Error";
-            reportDto.ErrorData = errorReport.Data;
+            reportDto.Severity = errorReport.Severity;
+            reportDto.Message = errorReport.Message;
+            reportDto.StackTrace = errorReport.StackTrace;
+            reportDto.Log = errorReport.Log;
         }
 
         return new NotificationResponse

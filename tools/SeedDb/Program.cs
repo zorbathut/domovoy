@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domovoy.Client;
+using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
 
 Console.WriteLine("Domovoy Database Seeder");
@@ -84,15 +85,15 @@ for (int i = 0; i < 100; i++)
     var eventName = eventNames[random.Next(eventNames.Length)];
     var category = eventCategories[random.Next(eventCategories.Length)];
 
-    var standard = new StandardPayload
+    var common = new SubmitReportRequest
     {
-        GameVersion = version,
+        Version = version,
         Platform = platform,
         Environment = environment,
         UserId = Guid.CreateVersion7(),
         ComputerId = Guid.CreateVersion7(),
-        GameId = Guid.CreateVersion7(),
-        GameSequenceIds = [Guid.CreateVersion7()],
+        CampaignId = Guid.CreateVersion7(),
+        CampaignSequenceIds = [Guid.CreateVersion7()],
         ProcessId = Guid.CreateVersion7(),
         Metadata = new Dictionary<string, object>
         {
@@ -101,13 +102,7 @@ for (int i = 0; i < 100; i++)
         }
     };
 
-    var eventData = new EventPayload
-    {
-        Category = category,
-        Name = eventName
-    };
-
-    var reportId = await client.SendEventAsync(standard, eventData);
+    var reportId = await client.SendEventAsync(common, category, eventName);
     if (reportId != null)
     {
         eventCount++;
@@ -138,27 +133,19 @@ for (int i = 0; i < 50; i++)
 
     var log = $"{exceptionType}: {message}\n{stackTrace}";
 
-    var standard = new StandardPayload
+    var common = new SubmitReportRequest
     {
-        GameVersion = version,
+        Version = version,
         Platform = platform,
         Environment = environment,
         UserId = Guid.CreateVersion7(),
         ComputerId = Guid.CreateVersion7(),
-        GameId = Guid.CreateVersion7(),
-        GameSequenceIds = [Guid.CreateVersion7()],
+        CampaignId = Guid.CreateVersion7(),
+        CampaignSequenceIds = [Guid.CreateVersion7()],
         ProcessId = Guid.CreateVersion7()
     };
 
-    var errorData = new ErrorPayload
-    {
-        Severity = severity,
-        Message = message,
-        StackTrace = stackTrace,
-        Log = log
-    };
-
-    var reportId = await client.SendErrorAsync(standard, errorData);
+    var reportId = await client.SendErrorAsync(common, severity, message, stackTrace, log);
     if (reportId != null)
     {
         errorCount++;

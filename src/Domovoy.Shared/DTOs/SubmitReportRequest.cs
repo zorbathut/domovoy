@@ -1,24 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Domovoy.Shared.Models;
 
-namespace Domovoy.Shared.Models;
+namespace Domovoy.Shared.DTOs;
 
-public abstract class Report
+public class SubmitReportRequest
 {
-    public Guid Id { get; set; }
-    public DateTime Timestamp { get; set; }
-    public ReportType ReportType { get; protected set; }
+    [Required]
+    [MaxLength(50)]
+    public required string Version { get; set; }
 
     [Required]
     [MaxLength(50)]
-    public string Version { get; set; } = string.Empty;
+    public required string Platform { get; set; }
 
-    [Required]
-    [MaxLength(50)]
-    public string Platform { get; set; } = string.Empty;
-
-    public Environment Environment { get; set; }
+    public Models.Environment Environment { get; set; }
 
     public Guid UserId { get; set; }
 

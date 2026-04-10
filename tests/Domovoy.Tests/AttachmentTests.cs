@@ -159,28 +159,25 @@ public class AttachmentTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
 
-        var standard = new StandardPayload
+        var common = new SubmitReportRequest
         {
-            GameVersion = "1.0.0",
+            Version = "1.0.0",
             Platform = "Windows",
             Environment = Environment.Dev,
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
             ProcessId = Guid.CreateVersion7()
         };
 
-        var errorData = new ErrorPayload
-        {
-            Severity = Severity.Fatal,
-            Message = "Crash with attachment",
-            StackTrace = "at Test() in Test.cs:line 1",
-            Log = "Test log"
-        };
-
         // Act - Send error, get reportId, then upload attachment
-        var reportId = await client.SendErrorAsync(standard, errorData);
+        var reportId = await client.SendErrorAsync(
+            common,
+            Severity.Fatal,
+            "Crash with attachment",
+            "at Test() in Test.cs:line 1",
+            "Test log");
         reportId.Should().NotBeNull();
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes("crash dump data"));

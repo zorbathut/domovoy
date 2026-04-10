@@ -28,16 +28,16 @@ else if (error != null)
                         <dd class="col-sm-8"><code>@error.Id</code></dd>
 
                         <dt class="col-sm-4">Severity:</dt>
-                        <dd class="col-sm-8"><span class="badge bg-danger">@error.Data.Severity</span></dd>
+                        <dd class="col-sm-8"><span class="badge bg-danger">@error.Severity</span></dd>
 
                         <dt class="col-sm-4">Platform:</dt>
-                        <dd class="col-sm-8">@error.Standard.Platform</dd>
+                        <dd class="col-sm-8">@error.Platform</dd>
 
-                        <dt class="col-sm-4">Game Version:</dt>
-                        <dd class="col-sm-8">@error.Standard.GameVersion</dd>
+                        <dt class="col-sm-4">Version:</dt>
+                        <dd class="col-sm-8">@error.Version</dd>
 
                         <dt class="col-sm-4">Environment:</dt>
-                        <dd class="col-sm-8">@error.Standard.Environment</dd>
+                        <dd class="col-sm-8">@error.Environment</dd>
 
                         <dt class="col-sm-4">Timestamp:</dt>
                         <dd class="col-sm-8"><LocalTimestamp Value="@error.Timestamp" /></dd>
@@ -54,24 +54,24 @@ else if (error != null)
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">User ID:</dt>
-                        <dd class="col-sm-8"><code>@error.Standard.UserId</code></dd>
+                        <dd class="col-sm-8"><code>@error.UserId</code></dd>
 
                         <dt class="col-sm-4">Computer ID:</dt>
-                        <dd class="col-sm-8"><code>@error.Standard.ComputerId</code></dd>
+                        <dd class="col-sm-8"><code>@error.ComputerId</code></dd>
 
-                        <dt class="col-sm-4">Game ID:</dt>
-                        <dd class="col-sm-8"><code>@error.Standard.GameId</code></dd>
+                        <dt class="col-sm-4">Campaign ID:</dt>
+                        <dd class="col-sm-8"><code>@error.CampaignId</code></dd>
 
-                        <dt class="col-sm-4">Game Sequence IDs:</dt>
+                        <dt class="col-sm-4">Campaign Sequence IDs:</dt>
                         <dd class="col-sm-8">
-                            @foreach (var id in error.Standard.GameSequenceIds)
+                            @foreach (var id in error.CampaignSequenceIds)
                             {
                                 <code>@id</code><br />
                             }
                         </dd>
 
                         <dt class="col-sm-4">Process ID:</dt>
-                        <dd class="col-sm-8"><code>@error.Standard.ProcessId</code></dd>
+                        <dd class="col-sm-8"><code>@error.ProcessId</code></dd>
                     </dl>
                 </div>
             </div>
@@ -83,11 +83,11 @@ else if (error != null)
             <h5>Error Message</h5>
         </div>
         <div class="card-body">
-            <p class="font-monospace">@error.Data.Message</p>
+            <p class="font-monospace">@error.Message</p>
         </div>
     </div>
 
-    @if (!string.IsNullOrEmpty(error.Data.StackTrace))
+    @if (!string.IsNullOrEmpty(error.StackTrace))
     {
         <div class="card mb-3">
             <div class="card-header">
@@ -95,7 +95,7 @@ else if (error != null)
             </div>
             <div class="card-body">
                 <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
-                    @foreach (var line in error.Data.StackTrace.Split('\n'))
+                    @foreach (var line in error.StackTrace.Split('\n'))
                     {
                         <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
                     }
@@ -104,7 +104,7 @@ else if (error != null)
         </div>
     }
 
-    @if (!string.IsNullOrEmpty(error.Data.Log))
+    @if (!string.IsNullOrEmpty(error.Log))
     {
         <div class="card mb-3">
             <div class="card-header">
@@ -112,7 +112,7 @@ else if (error != null)
             </div>
             <div class="card-body">
                 <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
-                    @foreach (var line in error.Data.Log.Split('\n'))
+                    @foreach (var line in error.Log.Split('\n'))
                     {
                         <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
                     }
@@ -121,7 +121,7 @@ else if (error != null)
         </div>
     }
 
-    @if (error.Standard.Metadata != null && error.Standard.Metadata.Count > 0)
+    @if (error.Metadata != null && error.Metadata.Count > 0)
     {
         <div class="card mb-3">
             <div class="card-header">
@@ -129,7 +129,7 @@ else if (error != null)
             </div>
             <div class="card-body">
                 <dl class="row">
-                    @foreach (var kvp in error.Standard.Metadata.OrderBy(x => x.Key))
+                    @foreach (var kvp in error.Metadata.OrderBy(x => x.Key))
                     {
                         <dt class="col-sm-3">@kvp.Key</dt>
                         <dd class="col-sm-9"><code>@kvp.Value</code></dd>

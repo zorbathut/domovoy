@@ -76,7 +76,7 @@ public class ReportViewService
         var totalErrors = await _context.Errors.CountAsync();
 
         var platforms = await _context.Reports
-            .GroupBy(r => r.Standard.Platform)
+            .GroupBy(r => r.Platform)
             .Select(g => new { Platform = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Platform, x => x.Count);
 
@@ -99,20 +99,20 @@ public class ReportViewService
     public async Task<List<Event>> FilterEventsAsync(
         string? category = null,
         string? platform = null,
-        string? gameVersion = null,
+        string? version = null,
         DateTime? startDate = null,
         DateTime? endDate = null)
     {
         var query = _context.Events.AsQueryable();
 
         if (!string.IsNullOrEmpty(category))
-            query = query.Where(e => e.Data.Category == category);
+            query = query.Where(e => e.Category == category);
 
         if (!string.IsNullOrEmpty(platform))
-            query = query.Where(e => EF.Functions.ILike(e.Standard.Platform, $"%{platform}%"));
+            query = query.Where(e => EF.Functions.ILike(e.Platform, $"%{platform}%"));
 
-        if (!string.IsNullOrEmpty(gameVersion))
-            query = query.Where(e => EF.Functions.ILike(e.Standard.GameVersion, $"%{gameVersion}%"));
+        if (!string.IsNullOrEmpty(version))
+            query = query.Where(e => EF.Functions.ILike(e.Version, $"%{version}%"));
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);
@@ -129,7 +129,7 @@ public class ReportViewService
     public async Task<List<Error>> FilterErrorsAsync(
         Severity? severity = null,
         string? platform = null,
-        string? gameVersion = null,
+        string? version = null,
         string? environment = null,
         DateTime? startDate = null,
         DateTime? endDate = null)
@@ -137,16 +137,16 @@ public class ReportViewService
         var query = _context.Errors.AsQueryable();
 
         if (severity.HasValue)
-            query = query.Where(e => e.Data.Severity == severity.Value);
+            query = query.Where(e => e.Severity == severity.Value);
 
         if (!string.IsNullOrEmpty(platform))
-            query = query.Where(e => EF.Functions.ILike(e.Standard.Platform, $"%{platform}%"));
+            query = query.Where(e => EF.Functions.ILike(e.Platform, $"%{platform}%"));
 
-        if (!string.IsNullOrEmpty(gameVersion))
-            query = query.Where(e => EF.Functions.ILike(e.Standard.GameVersion, $"%{gameVersion}%"));
+        if (!string.IsNullOrEmpty(version))
+            query = query.Where(e => EF.Functions.ILike(e.Version, $"%{version}%"));
 
         if (!string.IsNullOrEmpty(environment))
-            query = query.Where(e => EF.Functions.ILike(e.Standard.Environment.ToString(), $"%{environment}%"));
+            query = query.Where(e => EF.Functions.ILike(e.Environment.ToString(), $"%{environment}%"));
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);

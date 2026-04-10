@@ -5,7 +5,7 @@ using Domovoy.Shared.Models;
 namespace Domovoy.Tests.Infrastructure;
 
 /// <summary>
-/// Builder class for creating test error report data with sensible defaults.
+/// Builder class for creating test report data with sensible defaults.
 /// </summary>
 public class TestDataBuilder
 {
@@ -13,33 +13,27 @@ public class TestDataBuilder
     /// Creates a default event report request.
     /// </summary>
     public static SubmitEventRequest CreateEventReport(
-        string? gameVersion = null,
+        string? version = null,
         string? platform = null,
         string? eventName = null,
         string? category = null,
         Domovoy.Shared.Models.Environment? environment = null,
         Guid? userId = null,
         Guid? computerId = null,
-        Guid? gameId = null)
+        Guid? campaignId = null)
     {
         return new SubmitEventRequest
         {
-            Standard = new StandardPayload
-            {
-                GameVersion = gameVersion ?? "1.0.0",
-                Platform = platform ?? "Windows",
-                Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
-                UserId = userId ?? Guid.CreateVersion7(),
-                ComputerId = computerId ?? Guid.CreateVersion7(),
-                GameId = gameId ?? Guid.CreateVersion7(),
-                GameSequenceIds = [Guid.CreateVersion7()],
-                ProcessId = Guid.CreateVersion7()
-            },
-            Data = new EventPayload
-            {
-                Category = category ?? "TestCategory",
-                Name = eventName ?? "TestEvent"
-            }
+            Version = version ?? "1.0.0",
+            Platform = platform ?? "Windows",
+            Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
+            UserId = userId ?? Guid.CreateVersion7(),
+            ComputerId = computerId ?? Guid.CreateVersion7(),
+            CampaignId = campaignId ?? Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7(),
+            Category = category ?? "TestCategory",
+            Name = eventName ?? "TestEvent"
         };
     }
 
@@ -47,7 +41,7 @@ public class TestDataBuilder
     /// Creates a default error report request with typical crash values.
     /// </summary>
     public static SubmitErrorRequest CreateErrorReport(
-        string? gameVersion = null,
+        string? version = null,
         string? platform = null,
         string? message = null,
         string? stackTrace = null,
@@ -56,28 +50,22 @@ public class TestDataBuilder
         Domovoy.Shared.Models.Environment? environment = null,
         Guid? userId = null,
         Guid? computerId = null,
-        Guid? gameId = null)
+        Guid? campaignId = null)
     {
         return new SubmitErrorRequest
         {
-            Standard = new StandardPayload
-            {
-                GameVersion = gameVersion ?? "1.0.0",
-                Platform = platform ?? "Windows",
-                Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
-                UserId = userId ?? Guid.CreateVersion7(),
-                ComputerId = computerId ?? Guid.CreateVersion7(),
-                GameId = gameId ?? Guid.CreateVersion7(),
-                GameSequenceIds = [Guid.CreateVersion7()],
-                ProcessId = Guid.CreateVersion7()
-            },
-            Data = new ErrorPayload
-            {
-                Severity = severity ?? Severity.Fatal,
-                Message = message ?? "Object reference not set to an instance of an object.",
-                StackTrace = stackTrace ?? CreateDefaultStackTrace(),
-                Log = log ?? CreateDefaultLog()
-            }
+            Version = version ?? "1.0.0",
+            Platform = platform ?? "Windows",
+            Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
+            UserId = userId ?? Guid.CreateVersion7(),
+            ComputerId = computerId ?? Guid.CreateVersion7(),
+            CampaignId = campaignId ?? Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7(),
+            Severity = severity ?? Severity.Fatal,
+            Message = message ?? "Object reference not set to an instance of an object.",
+            StackTrace = stackTrace ?? CreateDefaultStackTrace(),
+            Log = log ?? CreateDefaultLog()
         };
     }
 
@@ -113,24 +101,18 @@ public class TestDataBuilder
     {
         return new SubmitErrorRequest
         {
-            Standard = new StandardPayload
-            {
-                GameVersion = "",
-                Platform = "",
-                Environment = Domovoy.Shared.Models.Environment.Dev,
-                UserId = Guid.Empty,
-                ComputerId = Guid.Empty,
-                GameId = Guid.Empty,
-                GameSequenceIds = [],
-                ProcessId = Guid.Empty
-            },
-            Data = new ErrorPayload
-            {
-                Severity = Severity.Error,
-                Message = "",
-                StackTrace = "",
-                Log = ""
-            }
+            Version = "",
+            Platform = "",
+            Environment = Domovoy.Shared.Models.Environment.Dev,
+            UserId = Guid.Empty,
+            ComputerId = Guid.Empty,
+            CampaignId = Guid.Empty,
+            CampaignSequenceIds = [],
+            ProcessId = Guid.Empty,
+            Severity = Severity.Error,
+            Message = "",
+            StackTrace = "",
+            Log = ""
         };
     }
 

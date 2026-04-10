@@ -48,11 +48,11 @@ else if (errors != null && errors.Any())
             {
                 <tr>
                     <td><LocalTimestamp Value="@error.Timestamp" /></td>
-                    <td><span class="badge bg-danger">@error.Data.Severity</span></td>
-                    <td>@(error.Data.Message.Length > 50 ? error.Data.Message.Substring(0, 50) + "..." : error.Data.Message)</td>
-                    <td>@error.Standard.Platform</td>
-                    <td>@error.Standard.GameVersion</td>
-                    <td>@error.Standard.Environment</td>
+                    <td><span class="badge bg-danger">@error.Severity</span></td>
+                    <td>@(error.Message.Length > 50 ? error.Message.Substring(0, 50) + "..." : error.Message)</td>
+                    <td>@error.Platform</td>
+                    <td>@error.Version</td>
+                    <td>@error.Environment</td>
                     <td><a href="/crashes/@error.Id" class="btn btn-sm btn-primary">Details</a></td>
                 </tr>
             }
@@ -88,7 +88,7 @@ else
         isLoading = true;
         errors = await ReportService.FilterErrorsAsync(
             platform: string.IsNullOrEmpty(selectedPlatform) ? null : selectedPlatform,
-            gameVersion: string.IsNullOrEmpty(selectedVersion) ? null : selectedVersion,
+            version: string.IsNullOrEmpty(selectedVersion) ? null : selectedVersion,
             environment: string.IsNullOrEmpty(selectedEnvironment) ? null : selectedEnvironment
         );
         isLoading = false;

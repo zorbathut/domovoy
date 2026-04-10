@@ -58,19 +58,29 @@ public class DomovoyClient : IDisposable
     /// </summary>
     /// <returns>The report ID if submission succeeded, null otherwise.</returns>
     public async Task<Guid?> SendEventAsync(
-        StandardPayload standard,
-        EventPayload data,
+        SubmitReportRequest common,
+        string category,
+        string name,
+        Dictionary<string, object>? data = null,
         IReadOnlyList<FileAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
-        if (standard == null)
-            throw new ArgumentNullException(nameof(standard));
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        if (common == null)
+            throw new ArgumentNullException(nameof(common));
 
         var request = new SubmitEventRequest
         {
-            Standard = standard,
+            Version = common.Version,
+            Platform = common.Platform,
+            Environment = common.Environment,
+            UserId = common.UserId,
+            ComputerId = common.ComputerId,
+            CampaignId = common.CampaignId,
+            CampaignSequenceIds = common.CampaignSequenceIds,
+            ProcessId = common.ProcessId,
+            Metadata = common.Metadata,
+            Category = category,
+            Name = name,
             Data = data
         };
 
@@ -84,24 +94,36 @@ public class DomovoyClient : IDisposable
     /// </summary>
     /// <returns>The report ID if submission succeeded, null otherwise.</returns>
     public async Task<Guid?> SendErrorAsync(
-        StandardPayload standard,
-        ErrorPayload data,
+        SubmitReportRequest common,
+        Severity severity,
+        string message,
+        string stackTrace,
+        string log,
         IReadOnlyList<FileAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
-        if (standard == null)
-            throw new ArgumentNullException(nameof(standard));
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        if (common == null)
+            throw new ArgumentNullException(nameof(common));
 
         // Truncate message if needed
-        if (data.Message != null && data.Message.Length > 2000)
-            data.Message = data.Message.Substring(0, 2000);
+        if (message != null && message.Length > 2000)
+            message = message.Substring(0, 2000);
 
         var request = new SubmitErrorRequest
         {
-            Standard = standard,
-            Data = data
+            Version = common.Version,
+            Platform = common.Platform,
+            Environment = common.Environment,
+            UserId = common.UserId,
+            ComputerId = common.ComputerId,
+            CampaignId = common.CampaignId,
+            CampaignSequenceIds = common.CampaignSequenceIds,
+            ProcessId = common.ProcessId,
+            Metadata = common.Metadata,
+            Severity = severity,
+            Message = message,
+            StackTrace = stackTrace,
+            Log = log
         };
 
         var reportId = await SendRequestAsync("/api/v1/reports/error", request, cancellationToken);
@@ -115,32 +137,30 @@ public class DomovoyClient : IDisposable
     /// </summary>
     /// <returns>The report ID if submission succeeded, null otherwise.</returns>
     public async Task<Guid?> SendCrashAsync(
-        StandardPayload standard,
+        SubmitReportRequest common,
         Exception exception,
         IReadOnlyList<FileAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
-        if (standard == null)
-            throw new ArgumentNullException(nameof(standard));
+        if (common == null)
+            throw new ArgumentNullException(nameof(common));
         if (exception == null)
             throw new ArgumentNullException(nameof(exception));
 
         var stackTrace = exception.StackTrace;
         if (string.IsNullOrWhiteSpace(stackTrace))
         {
-            // If no stack trace, use the ToString() which includes type and message
             stackTrace = exception.ToString();
         }
 
-        var data = new ErrorPayload
-        {
-            Severity = Severity.Fatal,
-            Message = exception.Message,
-            StackTrace = stackTrace,
-            Log = exception.ToString()
-        };
-
-        return await SendErrorAsync(standard, data, attachments, cancellationToken);
+        return await SendErrorAsync(
+            common,
+            Severity.Fatal,
+            exception.Message,
+            stackTrace,
+            exception.ToString(),
+            attachments,
+            cancellationToken);
     }
 
     /// <summary>
@@ -183,15 +203,14 @@ public class DomovoyClient : IDisposable
 
     /// <summary>
     /// Sends an event without waiting for the result.
-    /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendEventFireAndForget(StandardPayload standard, EventPayload data, IReadOnlyList<FileAttachment>? attachments = null)
+    public void SendEventFireAndForget(SubmitReportRequest common, string category, string name, Dictionary<string, object>? data = null, IReadOnlyList<FileAttachment>? attachments = null)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendEventAsync(standard, data, attachments);
+                await SendEventAsync(common, category, name, data, attachments);
             }
             catch
             {
@@ -202,15 +221,14 @@ public class DomovoyClient : IDisposable
 
     /// <summary>
     /// Sends an error without waiting for the result.
-    /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendErrorFireAndForget(StandardPayload standard, ErrorPayload data, IReadOnlyList<FileAttachment>? attachments = null)
+    public void SendErrorFireAndForget(SubmitReportRequest common, Severity severity, string message, string stackTrace, string log, IReadOnlyList<FileAttachment>? attachments = null)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendErrorAsync(standard, data, attachments);
+                await SendErrorAsync(common, severity, message, stackTrace, log, attachments);
             }
             catch
             {
@@ -221,15 +239,14 @@ public class DomovoyClient : IDisposable
 
     /// <summary>
     /// Sends a crash report without waiting for the result.
-    /// Use this for fire-and-forget scenarios.
     /// </summary>
-    public void SendCrashFireAndForget(StandardPayload standard, Exception exception, IReadOnlyList<FileAttachment>? attachments = null)
+    public void SendCrashFireAndForget(SubmitReportRequest common, Exception exception, IReadOnlyList<FileAttachment>? attachments = null)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                await SendCrashAsync(standard, exception, attachments);
+                await SendCrashAsync(common, exception, attachments);
             }
             catch
             {
@@ -240,7 +257,6 @@ public class DomovoyClient : IDisposable
 
     /// <summary>
     /// Uploads an attachment without waiting for the result.
-    /// Use this for fire-and-forget scenarios.
     /// </summary>
     public void SendAttachmentFireAndForget(Guid reportId, Stream stream, string filename, string? contentType = null)
     {
@@ -267,7 +283,6 @@ public class DomovoyClient : IDisposable
 
         foreach (var attachment in attachments)
         {
-            // Silently skip invalid attachments
             if (attachment?.Stream == null || string.IsNullOrWhiteSpace(attachment.Filename))
                 continue;
 
@@ -304,7 +319,6 @@ public class DomovoyClient : IDisposable
                 // If we can't parse the body, still return a non-null value to indicate success
             }
 
-            // Fallback: success but couldn't parse reportId
             return Guid.Empty;
         }
         catch

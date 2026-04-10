@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Domovoy.Client;
+using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
 using Domovoy.Tests.Infrastructure;
 using Xunit;
@@ -42,29 +43,36 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         await _dbFixture.ClearReportsAsync();
     }
 
+    private static SubmitReportRequest CreateCommon(
+        string version = "1.0.0",
+        string platform = "Windows",
+        Environment environment = Environment.Dev)
+    {
+        return new SubmitReportRequest
+        {
+            Version = version,
+            Platform = platform,
+            Environment = environment,
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7()
+        };
+    }
+
     [Fact]
     public async Task SendCrashAsync_WithValidException_ReturnsReportId()
     {
         // Arrange
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
-
-        var standard = new StandardPayload
-        {
-            GameVersion = "1.5.0",
-            Platform = "Windows",
-            Environment = Environment.Dev,
-            UserId = Guid.CreateVersion7(),
-            ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
-        };
+        var common = CreateCommon(version: "1.5.0");
 
         var exception = new InvalidOperationException("Test exception for crash reporting");
 
         // Act
-        var reportId = await client.SendCrashAsync(standard, exception);
+        var reportId = await client.SendCrashAsync(common, exception);
 
         // Assert
         reportId.Should().NotBeNull();
@@ -77,36 +85,25 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         // Arrange
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
-
-        var standard = new StandardPayload
-        {
-            GameVersion = "2.0.0",
-            Platform = "Linux",
-            Environment = Environment.Release,
-            UserId = Guid.CreateVersion7(),
-            ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
-        };
+        var common = CreateCommon(version: "2.0.0", platform: "Linux", environment: Environment.Release);
 
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
 
         // Act
-        var reportId = await client.SendCrashAsync(standard, exception);
+        var reportId = await client.SendCrashAsync(common, exception);
 
         // Assert
         reportId.Should().NotBeNull();
 
         await using var dbContext = _dbFixture.CreateDbContext();
         var savedError = await dbContext.Errors
-            .Where(e => e.Standard.GameVersion == "2.0.0" && e.Standard.Platform == "Linux")
+            .Where(e => e.Version == "2.0.0" && e.Platform == "Linux")
             .FirstOrDefaultAsync();
 
         savedError.Should().NotBeNull();
-        savedError!.Data.Message.Should().Contain("Test parameter cannot be null");
-        savedError.Data.StackTrace.Should().NotBeEmpty();
-        savedError.Data.Log.Should().NotBeEmpty();
+        savedError!.Message.Should().Contain("Test parameter cannot be null");
+        savedError.StackTrace.Should().NotBeEmpty();
+        savedError.Log.Should().NotBeEmpty();
     }
 
 
@@ -116,18 +113,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         // Arrange
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
-
-        var standard = new StandardPayload
-        {
-            GameVersion = "1.0.0",
-            Platform = "Windows",
-            Environment = Environment.Dev,
-            UserId = Guid.CreateVersion7(),
-            ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
-        };
+        var common = CreateCommon();
 
         // Create exception with a specific stack trace (by catching and re-throwing)
         Exception? capturedException = null;
@@ -141,8 +127,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         }
 
         // Act - Send the same exception twice
-        var reportId1 = await client.SendCrashAsync(standard, capturedException!);
-        var reportId2 = await client.SendCrashAsync(standard, capturedException!);
+        var reportId1 = await client.SendCrashAsync(common, capturedException!);
+        var reportId2 = await client.SendCrashAsync(common, capturedException!);
 
         // Assert - Both should succeed
         reportId1.Should().NotBeNull();
@@ -183,7 +169,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         // Act & Assert
         var act = async () => await client.SendCrashAsync(null!, exception);
         await act.Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("standard");
+            .WithParameterName("common");
     }
 
     [Fact]
@@ -191,21 +177,10 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
     {
         // Arrange
         using var client = new DomovoyClient(_serverUrl);
-
-        var standard = new StandardPayload
-        {
-            GameVersion = "1.0.0",
-            Platform = "Windows",
-            Environment = Environment.Dev,
-            UserId = Guid.CreateVersion7(),
-            ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
-        };
+        var common = CreateCommon();
 
         // Act & Assert
-        var act = async () => await client.SendCrashAsync(standard, null!);
+        var act = async () => await client.SendCrashAsync(common, null!);
         await act.Should().ThrowAsync<ArgumentNullException>()
             .WithParameterName("exception");
     }
@@ -216,27 +191,10 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         // Arrange
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
-
-        var standard = new StandardPayload
-        {
-            GameVersion = "1.0.0",
-            Platform = "Windows",
-            Environment = Environment.Dev,
-            UserId = Guid.CreateVersion7(),
-            ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
-        };
-
-        var eventData = new EventPayload
-        {
-            Category = "Testing",
-            Name = "TestEvent"
-        };
+        var common = CreateCommon();
 
         // Act
-        var reportId = await client.SendEventAsync(standard, eventData);
+        var reportId = await client.SendEventAsync(common, "Testing", "TestEvent");
 
         // Assert
         reportId.Should().NotBeNull();
@@ -249,29 +207,15 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         // Arrange
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
-
-        var standard = new StandardPayload
-        {
-            GameVersion = "1.0.0",
-            Platform = "Windows",
-            Environment = Environment.Dev,
-            UserId = Guid.CreateVersion7(),
-            ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
-        };
-
-        var errorData = new ErrorPayload
-        {
-            Severity = Severity.Error,
-            Message = "Test error",
-            StackTrace = "at TestMethod() in Test.cs:line 1",
-            Log = "Test error log"
-        };
+        var common = CreateCommon();
 
         // Act
-        var reportId = await client.SendErrorAsync(standard, errorData);
+        var reportId = await client.SendErrorAsync(
+            common,
+            Severity.Error,
+            "Test error",
+            "at TestMethod() in Test.cs:line 1",
+            "Test error log");
 
         // Assert
         reportId.Should().NotBeNull();
@@ -284,26 +228,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         // Arrange
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
-
-        var standard = new StandardPayload
-        {
-            GameVersion = "1.0.0",
-            Platform = "Windows",
-            Environment = Environment.Dev,
-            UserId = Guid.CreateVersion7(),
-            ComputerId = Guid.CreateVersion7(),
-            GameId = Guid.CreateVersion7(),
-            GameSequenceIds = [Guid.CreateVersion7()],
-            ProcessId = Guid.CreateVersion7()
-        };
-
-        var errorData = new ErrorPayload
-        {
-            Severity = Severity.Error,
-            Message = "Error with inline attachments",
-            StackTrace = "at TestMethod() in Test.cs:line 1",
-            Log = "Test log"
-        };
+        var common = CreateCommon();
 
         var attachments = new List<FileAttachment>
         {
@@ -312,7 +237,13 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         };
 
         // Act
-        var reportId = await client.SendErrorAsync(standard, errorData, attachments);
+        var reportId = await client.SendErrorAsync(
+            common,
+            Severity.Error,
+            "Error with inline attachments",
+            "at TestMethod() in Test.cs:line 1",
+            "Test log",
+            attachments);
 
         // Assert
         reportId.Should().NotBeNull();

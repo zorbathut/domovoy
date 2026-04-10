@@ -31,52 +31,37 @@ public class DomovoyDbContext : DbContext
             entity.UseTptMappingStrategy();
             entity.ToTable("Reports");
 
-            // Indexes on common fields
+            // Common fields
             entity.HasIndex(e => e.Timestamp);
 
-            // Configure Standard payload as owned type
-            entity.OwnsOne(e => e.Standard, owned =>
-            {
-                owned.Property(s => s.GameVersion)
-                    .IsRequired()
-                    .HasMaxLength(50);
+            entity.Property(e => e.Version)
+                .IsRequired()
+                .HasMaxLength(50);
 
-                owned.Property(s => s.Platform)
-                    .IsRequired()
-                    .HasMaxLength(50);
+            entity.Property(e => e.Platform)
+                .IsRequired()
+                .HasMaxLength(50);
 
-                owned.Property(s => s.Environment)
-                    .IsRequired()
-                    .HasConversion<string>()
-                    .HasMaxLength(20);
+            entity.Property(e => e.Environment)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasMaxLength(20);
 
-                owned.Property(s => s.UserId)
-                    .IsRequired();
+            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.ComputerId).IsRequired();
+            entity.Property(e => e.CampaignId).IsRequired();
+            entity.Property(e => e.CampaignSequenceIds).IsRequired();
+            entity.Property(e => e.ProcessId).IsRequired();
 
-                owned.Property(s => s.ComputerId)
-                    .IsRequired();
+            entity.Property(e => e.Metadata)
+                .HasColumnType("jsonb");
 
-                owned.Property(s => s.GameId)
-                    .IsRequired();
-
-                owned.Property(s => s.GameSequenceIds)
-                    .IsRequired();
-
-                owned.Property(s => s.ProcessId)
-                    .IsRequired();
-
-                // Configure Metadata as JSONB
-                owned.Property(s => s.Metadata)
-                    .HasColumnType("jsonb");
-
-                // Indexes on standard payload fields
-                owned.HasIndex(s => s.GameVersion);
-                owned.HasIndex(s => s.Platform);
-                owned.HasIndex(s => s.Environment);
-                owned.HasIndex(s => s.UserId);
-                owned.HasIndex(s => s.ComputerId);
-                owned.HasIndex(s => s.GameId);
-            });
+            entity.HasIndex(e => e.Version);
+            entity.HasIndex(e => e.Platform);
+            entity.HasIndex(e => e.Environment);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ComputerId);
+            entity.HasIndex(e => e.CampaignId);
         });
 
         // Configure Event entity - maps to Events table
@@ -84,19 +69,16 @@ public class DomovoyDbContext : DbContext
         {
             entity.ToTable("Events");
 
-            entity.OwnsOne(e => e.Data, owned =>
-            {
-                owned.Property(d => d.Category)
-                    .IsRequired()
-                    .HasMaxLength(100);
+            entity.Property(e => e.Category)
+                .IsRequired()
+                .HasMaxLength(100);
 
-                owned.Property(d => d.Name)
-                    .IsRequired()
-                    .HasMaxLength(200);
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(200);
 
-                owned.Property(d => d.Data)
-                    .HasColumnType("jsonb");
-            });
+            entity.Property(e => e.Data)
+                .HasColumnType("jsonb");
         });
 
         // Configure Error entity - maps to Errors table
@@ -104,28 +86,24 @@ public class DomovoyDbContext : DbContext
         {
             entity.ToTable("Errors");
 
-            entity.OwnsOne(e => e.Data, owned =>
-            {
-                owned.Property(d => d.Severity)
-                    .IsRequired()
-                    .HasConversion<string>()
-                    .HasMaxLength(20);
+            entity.Property(e => e.Severity)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasMaxLength(20);
 
-                owned.Property(d => d.Message)
-                    .IsRequired()
-                    .HasMaxLength(2000);
+            entity.Property(e => e.Message)
+                .IsRequired()
+                .HasMaxLength(2000);
 
-                owned.Property(d => d.StackTrace)
-                    .IsRequired()
-                    .HasColumnType("text");
+            entity.Property(e => e.StackTrace)
+                .IsRequired()
+                .HasColumnType("text");
 
-                owned.Property(d => d.Log)
-                    .IsRequired()
-                    .HasColumnType("text");
+            entity.Property(e => e.Log)
+                .IsRequired()
+                .HasColumnType("text");
 
-                // Index for Severity (no filter needed - Errors table only has errors)
-                owned.HasIndex(d => d.Severity);
-            });
+            entity.HasIndex(e => e.Severity);
         });
 
         // Configure Subscriber entity

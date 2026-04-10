@@ -47,6 +47,35 @@ public class WebUiTests : IAsyncLifetime
         await _dbFixture.ClearReportsAsync();
     }
 
+    private static Error CreateTestError(
+        string version = "1.0.0",
+        string platform = "Windows",
+        Environment environment = Environment.Dev,
+        Severity severity = Severity.Fatal,
+        string message = "Object reference not set",
+        string stackTrace = "at Game.Player.Move()",
+        string? log = null,
+        Guid? id = null)
+    {
+        return new Error
+        {
+            Id = id ?? Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            Version = version,
+            Platform = platform,
+            Environment = environment,
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7(),
+            Severity = severity,
+            Message = message,
+            StackTrace = stackTrace,
+            Log = log ?? $"System.NullReferenceException: {message}\n{stackTrace}"
+        };
+    }
+
     [Fact]
     public async Task CrashesPage_WithNoErrors_ShowsNoErrorsMessage()
     {
@@ -66,29 +95,11 @@ public class WebUiTests : IAsyncLifetime
     {
         // Arrange - Add an error to the database
         await using var dbContext = _dbFixture.CreateDbContext();
-        var error = new Error
-        {
-            Id = Guid.CreateVersion7(),
-            Timestamp = DateTime.UtcNow,
-            Standard = new StandardPayload
-            {
-                GameVersion = "1.5.0",
-                Platform = "Windows",
-                Environment = Environment.Dev,
-                UserId = Guid.CreateVersion7(),
-                ComputerId = Guid.CreateVersion7(),
-                GameId = Guid.CreateVersion7(),
-                GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-            },
-            Data = new ErrorPayload
-            {
-                Severity = Severity.Fatal,
-                Message = "Object reference not set",
-                StackTrace = "at Game.Player.Move()",
-                Log = "System.NullReferenceException: Object reference not set\nat Game.Player.Move()"
-            }
-        };
+        var error = CreateTestError(
+            version: "1.5.0",
+            platform: "Windows",
+            message: "Object reference not set",
+            stackTrace: "at Game.Player.Move()");
         dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
@@ -123,29 +134,13 @@ public class WebUiTests : IAsyncLifetime
         // Arrange - Add an error to the database
         await using var dbContext = _dbFixture.CreateDbContext();
         var errorId = Guid.CreateVersion7();
-        var error = new Error
-        {
-            Id = errorId,
-            Timestamp = DateTime.UtcNow,
-            Standard = new StandardPayload
-            {
-                GameVersion = "2.0.0",
-                Platform = "Linux",
-                Environment = Environment.Release,
-                UserId = Guid.CreateVersion7(),
-                ComputerId = Guid.CreateVersion7(),
-                GameId = Guid.CreateVersion7(),
-                GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-            },
-            Data = new ErrorPayload
-            {
-                Severity = Severity.Fatal,
-                Message = "Invalid argument provided",
-                StackTrace = "at Game.Combat.Attack()\nat Game.Player.DoAction()",
-                Log = "System.ArgumentException: Invalid argument provided\nat Game.Combat.Attack()\nat Game.Player.DoAction()"
-            }
-        };
+        var error = CreateTestError(
+            id: errorId,
+            version: "2.0.0",
+            platform: "Linux",
+            environment: Environment.Release,
+            message: "Invalid argument provided",
+            stackTrace: "at Game.Combat.Attack()\nat Game.Player.DoAction()");
         dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
@@ -186,75 +181,9 @@ public class WebUiTests : IAsyncLifetime
 
         var errors = new[]
         {
-            new Error
-            {
-                Id = Guid.CreateVersion7(),
-                Timestamp = DateTime.UtcNow,
-                Standard = new StandardPayload
-                {
-                    GameVersion = "1.0.0",
-                    Platform = "Windows",
-                    Environment = Environment.Dev,
-                    UserId = Guid.CreateVersion7(),
-                    ComputerId = Guid.CreateVersion7(),
-                    GameId = Guid.CreateVersion7(),
-                    GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-                },
-                Data = new ErrorPayload
-                {
-                    Severity = Severity.Fatal,
-                    Message = "Null ref 1",
-                    StackTrace = "stack1",
-                    Log = "log1"
-                }
-            },
-            new Error
-            {
-                Id = Guid.CreateVersion7(),
-                Timestamp = DateTime.UtcNow,
-                Standard = new StandardPayload
-                {
-                    GameVersion = "1.0.0",
-                    Platform = "Linux",
-                    Environment = Environment.Dev,
-                    UserId = Guid.CreateVersion7(),
-                    ComputerId = Guid.CreateVersion7(),
-                    GameId = Guid.CreateVersion7(),
-                    GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-                },
-                Data = new ErrorPayload
-                {
-                    Severity = Severity.Error,
-                    Message = "Arg exception",
-                    StackTrace = "stack2",
-                    Log = "log2"
-                }
-            },
-            new Error
-            {
-                Id = Guid.CreateVersion7(),
-                Timestamp = DateTime.UtcNow,
-                Standard = new StandardPayload
-                {
-                    GameVersion = "2.0.0",
-                    Platform = "macOS",
-                    Environment = Environment.Release,
-                    UserId = Guid.CreateVersion7(),
-                    ComputerId = Guid.CreateVersion7(),
-                    GameId = Guid.CreateVersion7(),
-                    GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-                },
-                Data = new ErrorPayload
-                {
-                    Severity = Severity.Fatal,
-                    Message = "Invalid op",
-                    StackTrace = "stack3",
-                    Log = "log3"
-                }
-            }
+            CreateTestError(platform: "Windows", message: "Null ref 1"),
+            CreateTestError(platform: "Linux", severity: Severity.Error, message: "Arg exception"),
+            CreateTestError(version: "2.0.0", platform: "macOS", environment: Environment.Release, message: "Invalid op")
         };
 
         dbContext.Errors.AddRange(errors);
@@ -281,28 +210,7 @@ public class WebUiTests : IAsyncLifetime
         await using var dbContext = _dbFixture.CreateDbContext();
         var service = new ReportViewService(dbContext);
 
-        var error = new Error
-        {
-            Id = Guid.CreateVersion7(),
-            Timestamp = DateTime.UtcNow,
-            Standard = new StandardPayload
-            {
-                GameVersion = "1.0.0",
-                Platform = "Windows",
-                UserId = Guid.CreateVersion7(),
-                ComputerId = Guid.CreateVersion7(),
-                GameId = Guid.CreateVersion7(),
-                GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-            },
-            Data = new ErrorPayload
-            {
-                Severity = Severity.Fatal,
-                Message = "Test message",
-                StackTrace = "Test stack",
-                Log = "Test.Exception: Test message\nTest stack"
-            }
-        };
+        var error = CreateTestError(message: "Test message", stackTrace: "Test stack");
         dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
@@ -312,7 +220,7 @@ public class WebUiTests : IAsyncLifetime
         // Assert
         results.Should().NotBeNull();
         results.Should().HaveCount(1);
-        results[0].Data.Message.Should().Be("Test message");
+        results[0].Message.Should().Be("Test message");
     }
 
     [Fact]
@@ -323,28 +231,7 @@ public class WebUiTests : IAsyncLifetime
         var service = new ReportViewService(dbContext);
 
         var errorId = Guid.CreateVersion7();
-        var error = new Error
-        {
-            Id = errorId,
-            Timestamp = DateTime.UtcNow,
-            Standard = new StandardPayload
-            {
-                GameVersion = "1.0.0",
-                Platform = "Windows",
-                UserId = Guid.CreateVersion7(),
-                ComputerId = Guid.CreateVersion7(),
-                GameId = Guid.CreateVersion7(),
-                GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-            },
-            Data = new ErrorPayload
-            {
-                Severity = Severity.Fatal,
-                Message = "Test message",
-                StackTrace = "Test stack",
-                Log = "Test.Exception: Test message\nTest stack"
-            }
-        };
+        var error = CreateTestError(id: errorId, message: "Test message", stackTrace: "Test stack");
         dbContext.Errors.Add(error);
         await dbContext.SaveChangesAsync();
 
@@ -354,7 +241,7 @@ public class WebUiTests : IAsyncLifetime
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(errorId);
-        result.Data.Message.Should().Be("Test message");
+        result.Message.Should().Be("Test message");
     }
 
     [Fact]
@@ -366,40 +253,8 @@ public class WebUiTests : IAsyncLifetime
 
         var errors = new[]
         {
-            new Error
-            {
-                Id = Guid.CreateVersion7(),
-                Timestamp = DateTime.UtcNow,
-                Standard = new StandardPayload
-                {
-                    GameVersion = "1.0.0",
-                    Platform = "Windows",
-                    Environment = Environment.Dev,
-                    UserId = Guid.CreateVersion7(),
-                    ComputerId = Guid.CreateVersion7(),
-                    GameId = Guid.CreateVersion7(),
-                    GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-                },
-                Data = new ErrorPayload { Severity = Severity.Fatal, Message = "M1", StackTrace = "S1", Log = "L1" }
-            },
-            new Error
-            {
-                Id = Guid.CreateVersion7(),
-                Timestamp = DateTime.UtcNow,
-                Standard = new StandardPayload
-                {
-                    GameVersion = "1.0.0",
-                    Platform = "Linux",
-                    Environment = Environment.Dev,
-                    UserId = Guid.CreateVersion7(),
-                    ComputerId = Guid.CreateVersion7(),
-                    GameId = Guid.CreateVersion7(),
-                    GameSequenceIds = [Guid.CreateVersion7()],
-                    ProcessId = Guid.CreateVersion7()
-                },
-                Data = new ErrorPayload { Severity = Severity.Error, Message = "M2", StackTrace = "S2", Log = "L2" }
-            }
+            CreateTestError(platform: "Windows", message: "M1"),
+            CreateTestError(platform: "Linux", severity: Severity.Error, message: "M2")
         };
         dbContext.Errors.AddRange(errors);
         await dbContext.SaveChangesAsync();
@@ -409,6 +264,6 @@ public class WebUiTests : IAsyncLifetime
 
         // Assert
         results.Should().HaveCount(1);
-        results[0].Standard.Platform.Should().Be("Windows");
+        results[0].Platform.Should().Be("Windows");
     }
 }
