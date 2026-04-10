@@ -100,10 +100,8 @@ public static class Examples
 
         var eventData = new EventPayload
         {
-            Name = "LevelCompleted",
             Category = "Gameplay",
-            Value = 1,
-            UserId = "player123"
+            Name = "LevelCompleted"
         };
 
         var reportId = await client.SendEventAsync(standard, eventData);
@@ -143,8 +141,8 @@ public static class Examples
         // Fire and forget for events
         var eventData = new EventPayload
         {
-            Name = "PlayerJoined",
-            Category = "Multiplayer"
+            Category = "Multiplayer",
+            Name = "PlayerJoined"
         };
         client.SendEventFireAndForget(standard, eventData);
     }
@@ -214,9 +212,8 @@ public static class Examples
 
             var eventData = new EventPayload
             {
-                Name = "TestEvent",
                 Category = "Testing",
-                Value = i
+                Name = "TestEvent"
             };
 
             await client.SendEventAsync(standard, eventData);

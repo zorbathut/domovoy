@@ -98,7 +98,6 @@ public class ReportViewService
     // Filter events
     public async Task<List<Event>> FilterEventsAsync(
         string? category = null,
-        string? userId = null,
         string? platform = null,
         string? gameVersion = null,
         DateTime? startDate = null,
@@ -108,9 +107,6 @@ public class ReportViewService
 
         if (!string.IsNullOrEmpty(category))
             query = query.Where(e => e.Data.Category == category);
-
-        if (!string.IsNullOrEmpty(userId))
-            query = query.Where(e => e.Data.UserId == userId);
 
         if (!string.IsNullOrEmpty(platform))
             query = query.Where(e => EF.Functions.ILike(e.Standard.Platform, $"%{platform}%"));

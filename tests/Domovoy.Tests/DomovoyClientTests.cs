@@ -231,10 +231,8 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
 
         var eventData = new EventPayload
         {
-            Name = "TestEvent",
             Category = "Testing",
-            Value = 42,
-            UserId = "test_user"
+            Name = "TestEvent"
         };
 
         // Act

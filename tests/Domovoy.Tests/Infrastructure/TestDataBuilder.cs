@@ -17,7 +17,6 @@ public class TestDataBuilder
         string? platform = null,
         string? eventName = null,
         string? category = null,
-        decimal? value = null,
         Domovoy.Shared.Models.Environment? environment = null,
         Guid? userId = null,
         Guid? computerId = null,
@@ -38,9 +37,8 @@ public class TestDataBuilder
             },
             Data = new EventPayload
             {
-                Name = eventName ?? "TestEvent",
                 Category = category ?? "TestCategory",
-                Value = value
+                Name = eventName ?? "TestEvent"
             }
         };
     }

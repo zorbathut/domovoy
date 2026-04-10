@@ -86,21 +86,16 @@ public class DomovoyDbContext : DbContext
 
             entity.OwnsOne(e => e.Data, owned =>
             {
+                owned.Property(d => d.Category)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
                 owned.Property(d => d.Name)
                     .IsRequired()
                     .HasMaxLength(200);
 
-                owned.Property(d => d.Category)
-                    .HasMaxLength(100);
-
-                owned.Property(d => d.Value)
-                    .HasPrecision(18, 2);
-
-                owned.Property(d => d.UserId)
-                    .HasMaxLength(100);
-
-                // Index for UserId (no filter needed - Events table only has events)
-                owned.HasIndex(d => d.UserId);
+                owned.Property(d => d.Data)
+                    .HasColumnType("jsonb");
             });
         });
 

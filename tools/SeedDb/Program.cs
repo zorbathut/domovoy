@@ -103,10 +103,8 @@ for (int i = 0; i < 100; i++)
 
     var eventData = new EventPayload
     {
-        Name = eventName,
         Category = category,
-        Value = random.Next(1, 1000),
-        UserId = $"user_{random.Next(1, 50)}"
+        Name = eventName
     };
 
     var reportId = await client.SendEventAsync(standard, eventData);
