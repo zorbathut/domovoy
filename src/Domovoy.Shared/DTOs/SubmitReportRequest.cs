@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Domovoy.Shared.Models;
 
 namespace Domovoy.Shared.DTOs;
 
@@ -15,7 +14,9 @@ public class SubmitReportRequest
     [MaxLength(50)]
     public required string Platform { get; set; }
 
-    public Models.Environment Environment { get; set; }
+    [Required]
+    [MaxLength(50)]
+    public required string Environment { get; set; }
 
     public Guid UserId { get; set; }
 

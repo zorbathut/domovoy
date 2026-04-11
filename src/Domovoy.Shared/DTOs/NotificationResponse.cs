@@ -22,7 +22,7 @@ public class ReportDto
     // Common fields
     public string Version { get; set; } = string.Empty;
     public string Platform { get; set; } = string.Empty;
-    public Models.Environment Environment { get; set; }
+    public string Environment { get; set; } = string.Empty;
     public Guid UserId { get; set; }
     public Guid ComputerId { get; set; }
     public Guid CampaignId { get; set; }

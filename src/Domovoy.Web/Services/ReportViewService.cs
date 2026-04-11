@@ -146,7 +146,7 @@ public class ReportViewService
             query = query.Where(e => EF.Functions.ILike(e.Version, $"%{version}%"));
 
         if (!string.IsNullOrEmpty(environment))
-            query = query.Where(e => EF.Functions.ILike(e.Environment.ToString(), $"%{environment}%"));
+            query = query.Where(e => EF.Functions.ILike(e.Environment, $"%{environment}%"));
 
         if (startDate.HasValue)
             query = query.Where(e => e.Timestamp >= startDate.Value);

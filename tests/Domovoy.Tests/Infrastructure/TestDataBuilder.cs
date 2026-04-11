@@ -17,7 +17,7 @@ public class TestDataBuilder
         string? platform = null,
         string? eventName = null,
         string? category = null,
-        Domovoy.Shared.Models.Environment? environment = null,
+        string? environment = null,
         Guid? userId = null,
         Guid? computerId = null,
         Guid? campaignId = null)
@@ -26,7 +26,7 @@ public class TestDataBuilder
         {
             Version = version ?? "1.0.0",
             Platform = platform ?? "Windows",
-            Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
+            Environment = environment ?? "Dev",
             UserId = userId ?? Guid.CreateVersion7(),
             ComputerId = computerId ?? Guid.CreateVersion7(),
             CampaignId = campaignId ?? Guid.CreateVersion7(),
@@ -47,7 +47,7 @@ public class TestDataBuilder
         string? stackTrace = null,
         string? log = null,
         Severity? severity = null,
-        Domovoy.Shared.Models.Environment? environment = null,
+        string? environment = null,
         Guid? userId = null,
         Guid? computerId = null,
         Guid? campaignId = null)
@@ -56,7 +56,7 @@ public class TestDataBuilder
         {
             Version = version ?? "1.0.0",
             Platform = platform ?? "Windows",
-            Environment = environment ?? Domovoy.Shared.Models.Environment.Dev,
+            Environment = environment ?? "Dev",
             UserId = userId ?? Guid.CreateVersion7(),
             ComputerId = computerId ?? Guid.CreateVersion7(),
             CampaignId = campaignId ?? Guid.CreateVersion7(),
@@ -103,7 +103,7 @@ public class TestDataBuilder
         {
             Version = "",
             Platform = "",
-            Environment = Domovoy.Shared.Models.Environment.Dev,
+            Environment = "Dev",
             UserId = Guid.Empty,
             ComputerId = Guid.Empty,
             CampaignId = Guid.Empty,

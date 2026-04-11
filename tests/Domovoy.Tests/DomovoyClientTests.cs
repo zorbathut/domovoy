@@ -11,7 +11,6 @@ using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
 using Domovoy.Tests.Infrastructure;
 using Xunit;
-using Environment = Domovoy.Shared.Models.Environment;
 
 namespace Domovoy.Tests;
 
@@ -46,7 +45,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
     private static SubmitReportRequest CreateCommon(
         string version = "1.0.0",
         string platform = "Windows",
-        Environment environment = Environment.Dev)
+        string environment = "Dev")
     {
         return new SubmitReportRequest
         {
@@ -85,7 +84,7 @@ public class DomovoyClientTests : IClassFixture<IntakeApiFactory>, IAsyncLifetim
         // Arrange
         var httpClient = _factory.CreateClient();
         using var client = new DomovoyClient(_serverUrl, httpClient);
-        var common = CreateCommon(version: "2.0.0", platform: "Linux", environment: Environment.Release);
+        var common = CreateCommon(version: "2.0.0", platform: "Linux", environment: "Release");
 
         var exception = new ArgumentNullException("testParam", "Test parameter cannot be null");
 

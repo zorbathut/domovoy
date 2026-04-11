@@ -18,7 +18,9 @@ public abstract class Report
     [MaxLength(50)]
     public string Platform { get; set; } = string.Empty;
 
-    public Environment Environment { get; set; }
+    [Required]
+    [MaxLength(50)]
+    public string Environment { get; set; } = string.Empty;
 
     public Guid UserId { get; set; }
 

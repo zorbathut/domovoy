@@ -14,7 +14,6 @@ using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
 using Domovoy.Tests.Infrastructure;
 using Xunit;
-using Environment = Domovoy.Shared.Models.Environment;
 
 namespace Domovoy.Tests;
 
@@ -163,7 +162,7 @@ public class AttachmentTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         {
             Version = "1.0.0",
             Platform = "Windows",
-            Environment = Environment.Dev,
+            Environment = "Dev",
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),

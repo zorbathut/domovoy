@@ -37,10 +37,7 @@ var versions = new[] {
     "2.0.0-alpha", "2.0.0-beta", "2.0.0", "2.1.0", "2.2.0",
     "3.0.0-rc1", "3.0.0"
 };
-var environments = new[] {
-    Domovoy.Shared.Models.Environment.Dev,
-    Domovoy.Shared.Models.Environment.Release
-};
+var environments = new[] { "Dev", "Release" };
 
 var eventCategories = new[] { "Gameplay", "UI", "Multiplayer", "Combat", "Progression" };
 var eventNames = new[] {

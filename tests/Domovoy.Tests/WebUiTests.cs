@@ -10,7 +10,6 @@ using Domovoy.Tests.Infrastructure;
 using Domovoy.Web.Pages;
 using Domovoy.Web.Services;
 using Xunit;
-using Environment = Domovoy.Shared.Models.Environment;
 
 namespace Domovoy.Tests;
 
@@ -50,7 +49,7 @@ public class WebUiTests : IAsyncLifetime
     private static Error CreateTestError(
         string version = "1.0.0",
         string platform = "Windows",
-        Environment environment = Environment.Dev,
+        string environment = "Dev",
         Severity severity = Severity.Fatal,
         string message = "Object reference not set",
         string stackTrace = "at Game.Player.Move()",
@@ -138,7 +137,7 @@ public class WebUiTests : IAsyncLifetime
             id: errorId,
             version: "2.0.0",
             platform: "Linux",
-            environment: Environment.Release,
+            environment: "Release",
             message: "Invalid argument provided",
             stackTrace: "at Game.Combat.Attack()\nat Game.Player.DoAction()");
         dbContext.Errors.Add(error);
@@ -183,7 +182,7 @@ public class WebUiTests : IAsyncLifetime
         {
             CreateTestError(platform: "Windows", message: "Null ref 1"),
             CreateTestError(platform: "Linux", severity: Severity.Error, message: "Arg exception"),
-            CreateTestError(version: "2.0.0", platform: "macOS", environment: Environment.Release, message: "Invalid op")
+            CreateTestError(version: "2.0.0", platform: "macOS", environment: "Release", message: "Invalid op")
         };
 
         dbContext.Errors.AddRange(errors);

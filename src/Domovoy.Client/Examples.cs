@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domovoy.Shared.DTOs;
 using Domovoy.Shared.Models;
-using Environment = Domovoy.Shared.Models.Environment;
 
 namespace Domovoy.Client.Examples;
 
@@ -24,7 +23,7 @@ public static class Examples
         {
             Version = "1.0.0",
             Platform = "Windows",
-            Environment = Environment.Dev,
+            Environment = "Dev",
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
@@ -54,7 +53,7 @@ public static class Examples
         {
             Version = "1.0.0",
             Platform = "Windows",
-            Environment = Environment.Dev,
+            Environment = "Dev",
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
@@ -82,7 +81,7 @@ public static class Examples
         {
             Version = "1.0.0",
             Platform = "Windows",
-            Environment = Environment.Dev,
+            Environment = "Dev",
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
@@ -111,7 +110,7 @@ public static class Examples
         {
             Version = "1.0.0",
             Platform = "macOS",
-            Environment = Environment.Release,
+            Environment = "Release",
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
@@ -144,7 +143,7 @@ public static class Examples
         {
             Version = "1.0.0",
             Platform = "Windows",
-            Environment = Environment.Dev,
+            Environment = "Dev",
             UserId = Guid.CreateVersion7(),
             ComputerId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
@@ -186,7 +185,7 @@ public static class Examples
             {
                 Version = versions[random.Next(versions.Length)],
                 Platform = platforms[random.Next(platforms.Length)],
-                Environment = Environment.Dev,
+                Environment = "Dev",
                 UserId = Guid.CreateVersion7(),
                 ComputerId = Guid.CreateVersion7(),
                 CampaignId = Guid.CreateVersion7(),

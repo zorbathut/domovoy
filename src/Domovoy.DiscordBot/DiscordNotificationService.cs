@@ -282,7 +282,7 @@ public class DiscordNotificationService : BackgroundService
             }
 
             // Only process errors from Release environment
-            if (notification.Report.Environment != Domovoy.Shared.Models.Environment.Release)
+            if (notification.Report.Environment != "Release")
             {
                 _logger.LogDebug(
                     "Skipping error notification {NotificationId} from non-Release environment {Environment}",
@@ -341,7 +341,7 @@ public class DiscordNotificationService : BackgroundService
             .WithCurrentTimestamp()
             .AddField("Platform", report.Platform, inline: true)
             .AddField("Version", report.Version, inline: true)
-            .AddField("Environment", report.Environment.ToString(), inline: true)
+            .AddField("Environment", report.Environment, inline: true)
             .AddField("Report Time", report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true)
             .AddField("Stack Trace", $"```\n{stackTrace}\n```", inline: false);
 

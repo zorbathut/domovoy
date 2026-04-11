@@ -44,8 +44,7 @@ public class DomovoyDbContext : DbContext
 
             entity.Property(e => e.Environment)
                 .IsRequired()
-                .HasConversion<string>()
-                .HasMaxLength(20);
+                .HasMaxLength(50);
 
             entity.Property(e => e.UserId).IsRequired();
             entity.Property(e => e.ComputerId).IsRequired();
