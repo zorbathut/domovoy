@@ -106,7 +106,7 @@ public class DomovoyClient : IDisposable
             throw new ArgumentNullException(nameof(common));
 
         // Truncate message if needed
-        if (message != null && message.Length > 2000)
+        if (message.Length > 2000)
             message = message.Substring(0, 2000);
 
         var request = new SubmitErrorRequest
