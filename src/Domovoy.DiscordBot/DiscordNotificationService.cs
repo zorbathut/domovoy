@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -260,46 +261,40 @@ public class DiscordNotificationService : BackgroundService
         await processor.StartAsync(ProcessNotificationAsync, stoppingToken);
     }
 
+    private const string ReportEventCategory = "Report";
+
     private async Task<bool> ProcessNotificationAsync(NotificationResponse notification)
     {
         try
         {
-            // Only process error reports (ignore events)
-            if (notification.Report.Severity == null)
+            var report = notification.Report;
+
+            if (report.Severity != null)
             {
-                _logger.LogDebug("Skipping non-error notification {NotificationId}", notification.Id);
-                return true; // ACK it to remove from queue
+                if (!ShouldNotifyError(notification)) return true;
+
+                _logger.LogInformation(
+                    "Processing error notification {NotificationId}: {Severity} - {Message}",
+                    notification.Id, report.Severity, report.Message);
+
+                await SendErrorEmbedAsync(notification);
+                return true;
             }
 
-            // Only process warnings and above (ignore Info and Unknown)
-            if (notification.Report.Severity < Severity.Warning)
+            if (string.Equals(report.Category, ReportEventCategory, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogDebug(
-                    "Skipping error notification {NotificationId} with severity {Severity}",
-                    notification.Id,
-                    notification.Report.Severity);
-                return true; // ACK it to remove from queue
+                _logger.LogInformation(
+                    "Processing report-event notification {NotificationId}: {Name}",
+                    notification.Id, report.Name);
+
+                await SendEventEmbedAsync(notification);
+                return true;
             }
 
-            // Only process errors from Release environment
-            if (notification.Report.Environment != "Release")
-            {
-                _logger.LogDebug(
-                    "Skipping error notification {NotificationId} from non-Release environment {Environment}",
-                    notification.Id,
-                    notification.Report.Environment);
-                return true; // ACK it to remove from queue
-            }
-
-            _logger.LogInformation(
-                "Processing error notification {NotificationId}: {Severity} - {Message}",
-                notification.Id,
-                notification.Report.Severity,
-                notification.Report.Message);
-
-            await SendToDiscordAsync(notification);
-
-            return true; // ACK on success
+            _logger.LogDebug(
+                "Skipping notification {NotificationId} (type={ReportType}, category={Category})",
+                notification.Id, report.ReportType, report.Category);
+            return true;
         }
         catch (Exception ex)
         {
@@ -308,17 +303,33 @@ public class DiscordNotificationService : BackgroundService
         }
     }
 
-    private async Task SendToDiscordAsync(NotificationResponse notification)
+    private bool ShouldNotifyError(NotificationResponse notification)
     {
-        var channel = await _discordClient!.GetChannelAsync(_channelId) as IMessageChannel;
-        if (channel == null)
-        {
-            throw new InvalidOperationException($"Cannot find Discord channel with ID {_channelId}");
-        }
-
         var report = notification.Report;
 
-        // Determine embed color based on severity
+        if (report.Severity < Severity.Warning)
+        {
+            _logger.LogDebug(
+                "Skipping error notification {NotificationId} with severity {Severity}",
+                notification.Id, report.Severity);
+            return false;
+        }
+
+        if (report.Environment != "Release")
+        {
+            _logger.LogDebug(
+                "Skipping error notification {NotificationId} from non-Release environment {Environment}",
+                notification.Id, report.Environment);
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task SendErrorEmbedAsync(NotificationResponse notification)
+    {
+        var report = notification.Report;
+
         var color = report.Severity switch
         {
             Severity.Fatal => Color.DarkRed,
@@ -327,12 +338,7 @@ public class DiscordNotificationService : BackgroundService
             _ => Color.LightGrey
         };
 
-        // Truncate stack trace if too long (Discord has 1024 char field limit)
-        var stackTrace = report.StackTrace ?? "";
-        if (stackTrace.Length > 1000)
-        {
-            stackTrace = stackTrace.Substring(0, 997) + "...";
-        }
+        var stackTrace = Truncate(report.StackTrace ?? "", 1000);
 
         var embed = new EmbedBuilder()
             .WithTitle($"{report.Severity} Reported")
@@ -345,27 +351,66 @@ public class DiscordNotificationService : BackgroundService
             .AddField("Report Time", report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true)
             .AddField("Stack Trace", $"```\n{stackTrace}\n```", inline: false);
 
-        // Add link to detail page if webUiUrl is configured
-        if (!string.IsNullOrWhiteSpace(_config!.WebUiUrl))
-        {
-            var detailUrl = $"{_config.WebUiUrl.TrimEnd('/')}/crashes/{report.Id}";
-            embed.WithUrl(detailUrl);
-        }
+        AddDetailUrl(embed, "crashes", report.Id);
 
-        // Add log if present and not too long
         if (!string.IsNullOrEmpty(report.Log))
         {
-            var log = report.Log;
-            if (log.Length > 500)
-            {
-                log = log.Substring(0, 497) + "...";
-            }
-            embed.AddField("Log", $"```\n{log}\n```", inline: false);
+            embed.AddField("Log", $"```\n{Truncate(report.Log, 500)}\n```", inline: false);
         }
 
         embed.WithFooter($"Report ID: {report.Id} | Notification ID: {notification.Id}");
 
-        // Build message with optional role mention
+        await SendAsync(embed);
+
+        _logger.LogInformation(
+            "Sent error notification to Discord channel {ChannelId}: {Severity} - {Message}",
+            _channelId, report.Severity, report.Message);
+    }
+
+    private async Task SendEventEmbedAsync(NotificationResponse notification)
+    {
+        var report = notification.Report;
+
+        var embed = new EmbedBuilder()
+            .WithTitle($"Report: {report.Name}")
+            .WithColor(Color.Blue)
+            .WithCurrentTimestamp()
+            .AddField("Platform", report.Platform, inline: true)
+            .AddField("Version", report.Version, inline: true)
+            .AddField("Environment", report.Environment, inline: true)
+            .AddField("Report Time", report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true);
+
+        if (report.Data is { Count: > 0 })
+        {
+            var dataLines = string.Join("\n",
+                report.Data.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+            embed.AddField("Data", $"```\n{Truncate(dataLines, 1000)}\n```", inline: false);
+        }
+
+        AddDetailUrl(embed, "events", report.Id);
+
+        embed.WithFooter($"Report ID: {report.Id} | Notification ID: {notification.Id}");
+
+        await SendAsync(embed);
+
+        _logger.LogInformation(
+            "Sent report-event notification to Discord channel {ChannelId}: {Name}",
+            _channelId, report.Name);
+    }
+
+    private void AddDetailUrl(EmbedBuilder embed, string segment, Guid reportId)
+    {
+        if (!string.IsNullOrWhiteSpace(_config!.WebUiUrl))
+        {
+            embed.WithUrl($"{_config.WebUiUrl.TrimEnd('/')}/{segment}/{reportId}");
+        }
+    }
+
+    private async Task SendAsync(EmbedBuilder embed)
+    {
+        var channel = await _discordClient!.GetChannelAsync(_channelId) as IMessageChannel
+            ?? throw new InvalidOperationException($"Cannot find Discord channel with ID {_channelId}");
+
         string? messageContent = null;
         if (!string.IsNullOrWhiteSpace(_config!.MentionRoleId))
         {
@@ -373,13 +418,10 @@ public class DiscordNotificationService : BackgroundService
         }
 
         await channel.SendMessageAsync(text: messageContent, embed: embed.Build());
-
-        _logger.LogInformation(
-            "Sent error notification to Discord channel {ChannelId}: {Severity} - {Message}",
-            _channelId,
-            report.Severity,
-            report.Message);
     }
+
+    private static string Truncate(string value, int maxLength) =>
+        value.Length <= maxLength ? value : value.Substring(0, maxLength - 3) + "...";
 
     private async Task ReportApiConnectionErrorAsync(HttpRequestException ex, string webApiUrl)
     {
