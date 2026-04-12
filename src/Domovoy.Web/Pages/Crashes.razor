@@ -49,34 +49,7 @@
 }
 else if (page != null && page.Items.Count > 0)
 {
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Severity</th>
-                <th>Message</th>
-                <th>Platform</th>
-                <th>Version</th>
-                <th>Environment</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var error in page.Items)
-            {
-                <tr>
-                    <td><LocalTimestamp Value="@error.Timestamp" /></td>
-                    <td><span class="badge bg-danger">@error.Severity</span></td>
-                    <td>@(error.Message.Length > 50 ? error.Message.Substring(0, 50) + "..." : error.Message)</td>
-                    <td>@error.Platform</td>
-                    <td>@error.Version</td>
-                    <td>@error.Environment</td>
-                    <td><a href="/crashes/@error.Id" class="btn btn-sm btn-primary">Details</a></td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
+    <ErrorsTable Items="page.Items" />
     <Pager CurrentPage="currentPage" PageSize="pageSize" TotalCount="page.TotalCount" OnPageChange="OnPageChange" />
 }
 else

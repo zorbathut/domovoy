@@ -1,0 +1,7 @@
+@* Renders a GUID identifier as a link to the search page that lists every report referencing it. *@
+<a href="/by/@Field/@Value" title="View all reports for this @Field ID"><code>@Value</code></a>
+
+@code {
+    [Parameter, EditorRequired] public string Field { get; set; } = "";
+    [Parameter, EditorRequired] public Guid Value { get; set; }
+}

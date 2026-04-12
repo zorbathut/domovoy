@@ -69,7 +69,11 @@ public class ReportViewService
         string? version = null,
         string? environment = null,
         DateTime? startDate = null,
-        DateTime? endDate = null)
+        DateTime? endDate = null,
+        Guid? userId = null,
+        Guid? computerId = null,
+        Guid? campaignId = null,
+        Guid? processId = null)
     {
         var query = _context.Errors.AsQueryable();
 
@@ -91,6 +95,18 @@ public class ReportViewService
         if (endDate.HasValue)
             query = query.Where(e => e.Timestamp <= endDate.Value);
 
+        if (userId.HasValue)
+            query = query.Where(e => e.UserId == userId.Value);
+
+        if (computerId.HasValue)
+            query = query.Where(e => e.ComputerId == computerId.Value);
+
+        if (campaignId.HasValue)
+            query = query.Where(e => e.CampaignId == campaignId.Value);
+
+        if (processId.HasValue)
+            query = query.Where(e => e.ProcessId == processId.Value);
+
         var total = await query.CountAsync();
 
         var items = await query
@@ -110,7 +126,11 @@ public class ReportViewService
         string? version = null,
         string? environment = null,
         DateTime? startDate = null,
-        DateTime? endDate = null)
+        DateTime? endDate = null,
+        Guid? userId = null,
+        Guid? computerId = null,
+        Guid? campaignId = null,
+        Guid? processId = null)
     {
         var query = _context.Events.AsQueryable();
 
@@ -131,6 +151,18 @@ public class ReportViewService
 
         if (endDate.HasValue)
             query = query.Where(e => e.Timestamp <= endDate.Value);
+
+        if (userId.HasValue)
+            query = query.Where(e => e.UserId == userId.Value);
+
+        if (computerId.HasValue)
+            query = query.Where(e => e.ComputerId == computerId.Value);
+
+        if (campaignId.HasValue)
+            query = query.Where(e => e.CampaignId == campaignId.Value);
+
+        if (processId.HasValue)
+            query = query.Where(e => e.ProcessId == processId.Value);
 
         var total = await query.CountAsync();
 

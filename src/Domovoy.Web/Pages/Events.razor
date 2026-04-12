@@ -43,34 +43,7 @@
 }
 else if (page != null && page.Items.Count > 0)
 {
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Category</th>
-                <th>Name</th>
-                <th>Platform</th>
-                <th>Version</th>
-                <th>Environment</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var ev in page.Items)
-            {
-                <tr>
-                    <td><LocalTimestamp Value="@ev.Timestamp" /></td>
-                    <td><span class="badge bg-info">@ev.Category</span></td>
-                    <td>@ev.Name</td>
-                    <td>@ev.Platform</td>
-                    <td>@ev.Version</td>
-                    <td>@ev.Environment</td>
-                    <td><a href="/events/@ev.Id" class="btn btn-sm btn-primary">Details</a></td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
+    <EventsTable Items="page.Items" />
     <Pager CurrentPage="currentPage" PageSize="pageSize" TotalCount="page.TotalCount" OnPageChange="OnPageChange" />
 }
 else

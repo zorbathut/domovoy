@@ -46,13 +46,13 @@ else if (Report != null)
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">User ID:</dt>
-                        <dd class="col-sm-8"><code>@Report.UserId</code></dd>
+                        <dd class="col-sm-8"><IdentifierLink Field="user" Value="@Report.UserId" /></dd>
 
                         <dt class="col-sm-4">Computer ID:</dt>
-                        <dd class="col-sm-8"><code>@Report.ComputerId</code></dd>
+                        <dd class="col-sm-8"><IdentifierLink Field="computer" Value="@Report.ComputerId" /></dd>
 
                         <dt class="col-sm-4">Campaign ID:</dt>
-                        <dd class="col-sm-8"><code>@Report.CampaignId</code></dd>
+                        <dd class="col-sm-8"><IdentifierLink Field="campaign" Value="@Report.CampaignId" /></dd>
 
                         <dt class="col-sm-4">Campaign Sequence IDs:</dt>
                         <dd class="col-sm-8">
@@ -63,7 +63,7 @@ else if (Report != null)
                         </dd>
 
                         <dt class="col-sm-4">Process ID:</dt>
-                        <dd class="col-sm-8"><code>@Report.ProcessId</code></dd>
+                        <dd class="col-sm-8"><IdentifierLink Field="process" Value="@Report.ProcessId" /></dd>
                     </dl>
                 </div>
             </div>

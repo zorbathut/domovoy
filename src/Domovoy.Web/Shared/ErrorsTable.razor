@@ -1,0 +1,33 @@
+@using Error = Domovoy.Shared.Models.Error
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Severity</th>
+            <th>Message</th>
+            <th>Platform</th>
+            <th>Version</th>
+            <th>Environment</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var error in Items)
+        {
+            <tr>
+                <td><LocalTimestamp Value="@error.Timestamp" /></td>
+                <td><span class="badge bg-danger">@error.Severity</span></td>
+                <td>@(error.Message.Length > 50 ? error.Message.Substring(0, 50) + "..." : error.Message)</td>
+                <td>@error.Platform</td>
+                <td>@error.Version</td>
+                <td>@error.Environment</td>
+                <td><a href="/crashes/@error.Id" class="btn btn-sm btn-primary">Details</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Error> Items { get; set; } = Array.Empty<Error>();
+}

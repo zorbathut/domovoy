@@ -1,0 +1,141 @@
+@page "/by/{Field}/{Id:guid}"
+@using Domovoy.Web.Services
+@inject ReportViewService ReportService
+
+<PageTitle>Reports for @FieldLabel @Id - Domovoy</PageTitle>
+
+@if (FieldLabel == null)
+{
+    <div class="alert alert-warning">
+        <h4>Unknown identifier field</h4>
+        <p>"@Field" is not a recognized identifier. Use one of: user, computer, campaign, process.</p>
+    </div>
+}
+else
+{
+    <h1>Reports referencing @FieldLabel</h1>
+    <p class="text-muted"><code>@Id</code></p>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "errors" ? "active" : "")"
+                    @onclick='() => SwitchTab("errors")'>
+                Errors @(errorPage != null ? $"({errorPage.TotalCount})" : "")
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "events" ? "active" : "")"
+                    @onclick='() => SwitchTab("events")'>
+                Events @(eventPage != null ? $"({eventPage.TotalCount})" : "")
+            </button>
+        </li>
+    </ul>
+
+    @if (activeTab == "errors")
+    {
+        @if (errorPage == null)
+        {
+            <p><em>Loading errors...</em></p>
+        }
+        else if (errorPage.Items.Count == 0)
+        {
+            <p>No errors found.</p>
+        }
+        else
+        {
+            <ErrorsTable Items="errorPage.Items" />
+            <Pager CurrentPage="errorPageNum" PageSize="pageSize"
+                   TotalCount="errorPage.TotalCount" OnPageChange="OnErrorPageChange" />
+        }
+    }
+    else
+    {
+        @if (eventPage == null)
+        {
+            <p><em>Loading events...</em></p>
+        }
+        else if (eventPage.Items.Count == 0)
+        {
+            <p>No events found.</p>
+        }
+        else
+        {
+            <EventsTable Items="eventPage.Items" />
+            <Pager CurrentPage="eventPageNum" PageSize="pageSize"
+                   TotalCount="eventPage.TotalCount" OnPageChange="OnEventPageChange" />
+        }
+    }
+}
+
+@code {
+    private const int pageSize = 50;
+
+    [Parameter] public string Field { get; set; } = "";
+    [Parameter] public Guid Id { get; set; }
+
+    private string activeTab = "errors";
+    private int errorPageNum = 1;
+    private int eventPageNum = 1;
+    private PagedResult<Domovoy.Shared.Models.Error>? errorPage;
+    private PagedResult<Event>? eventPage;
+
+    private string? FieldLabel => Field?.ToLowerInvariant() switch
+    {
+        "user" => "User ID",
+        "computer" => "Computer ID",
+        "campaign" => "Campaign ID",
+        "process" => "Process ID",
+        _ => null
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (FieldLabel == null) return;
+        errorPageNum = 1;
+        eventPageNum = 1;
+        errorPage = null;
+        eventPage = null;
+        await LoadErrors();
+        await LoadEvents();
+    }
+
+    private (Guid? user, Guid? computer, Guid? campaign, Guid? process) FilterArgs() =>
+        Field.ToLowerInvariant() switch
+        {
+            "user" => (Id, null, null, null),
+            "computer" => (null, Id, null, null),
+            "campaign" => (null, null, Id, null),
+            "process" => (null, null, null, Id),
+            _ => (null, null, null, null)
+        };
+
+    private async Task LoadErrors()
+    {
+        var (u, c, ca, p) = FilterArgs();
+        errorPage = await ReportService.GetErrorsPageAsync(
+            page: errorPageNum, pageSize: pageSize,
+            userId: u, computerId: c, campaignId: ca, processId: p);
+    }
+
+    private async Task LoadEvents()
+    {
+        var (u, c, ca, p) = FilterArgs();
+        eventPage = await ReportService.GetEventsPageAsync(
+            page: eventPageNum, pageSize: pageSize,
+            userId: u, computerId: c, campaignId: ca, processId: p);
+    }
+
+    private void SwitchTab(string tab) => activeTab = tab;
+
+    private async Task OnErrorPageChange(int p)
+    {
+        errorPageNum = p;
+        await LoadErrors();
+    }
+
+    private async Task OnEventPageChange(int p)
+    {
+        eventPageNum = p;
+        await LoadEvents();
+    }
+}

@@ -406,6 +406,84 @@ public class WebUiTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ReportViewService_GetErrorsPageAsync_FiltersByIdentifier()
+    {
+        // Arrange
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var service = new ReportViewService(dbContext);
+
+        var targetUserId = Guid.CreateVersion7();
+        var match = CreateTestError(message: "match");
+        match.UserId = targetUserId;
+        var other = CreateTestError(message: "other");
+        dbContext.Errors.AddRange(match, other);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetErrorsPageAsync(page: 1, pageSize: 50, userId: targetUserId);
+
+        // Assert
+        result.TotalCount.Should().Be(1);
+        result.Items[0].Message.Should().Be("match");
+    }
+
+    [Fact]
+    public async Task IdentifierSearchPage_WithMatchingReports_ShowsBoth()
+    {
+        // Arrange
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var computerId = Guid.CreateVersion7();
+
+        var error = CreateTestError(message: "MyMatchingError");
+        error.ComputerId = computerId;
+        dbContext.Errors.Add(error);
+
+        var ev = new Event
+        {
+            Id = Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            Version = "1.0.0",
+            Platform = "Windows",
+            Environment = "Dev",
+            UserId = Guid.CreateVersion7(),
+            ComputerId = computerId,
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7(),
+            Category = "C",
+            Name = "MyMatchingEvent"
+        };
+        dbContext.Events.Add(ev);
+        await dbContext.SaveChangesAsync();
+
+        // Act - default tab is errors
+        var cut = _testContext!.Render<IdentifierSearch>(p => p
+            .Add(c => c.Field, "computer")
+            .Add(c => c.Id, computerId));
+        cut.WaitForAssertion(() => cut.Markup.Should().Contain("Errors (1)"), TimeSpan.FromSeconds(2));
+
+        // Assert
+        var markup = cut.Markup;
+        markup.Should().Contain("Computer ID");
+        markup.Should().Contain(computerId.ToString());
+        markup.Should().Contain("Events (1)");
+        markup.Should().Contain("MyMatchingError");
+    }
+
+    [Fact]
+    public async Task IdentifierSearchPage_WithUnknownField_ShowsErrorMessage()
+    {
+        // Act
+        var cut = _testContext!.Render<IdentifierSearch>(p => p
+            .Add(c => c.Field, "bogus")
+            .Add(c => c.Id, Guid.CreateVersion7()));
+        await Task.Delay(100);
+
+        // Assert
+        cut.Markup.Should().Contain("Unknown identifier field");
+    }
+
+    [Fact]
     public async Task ReportViewService_GetEventsPageAsync_PaginatesResults()
     {
         // Arrange

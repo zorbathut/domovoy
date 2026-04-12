@@ -1,0 +1,31 @@
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Category</th>
+            <th>Name</th>
+            <th>Platform</th>
+            <th>Version</th>
+            <th>Environment</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ev in Items)
+        {
+            <tr>
+                <td><LocalTimestamp Value="@ev.Timestamp" /></td>
+                <td><span class="badge bg-info">@ev.Category</span></td>
+                <td>@ev.Name</td>
+                <td>@ev.Platform</td>
+                <td>@ev.Version</td>
+                <td>@ev.Environment</td>
+                <td><a href="/events/@ev.Id" class="btn btn-sm btn-primary">Details</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Event> Items { get; set; } = Array.Empty<Event>();
+}
