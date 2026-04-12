@@ -203,7 +203,7 @@ public class WebUiTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ReportViewService_GetRecentErrorsAsync_ReturnsRecentErrors()
+    public async Task ReportViewService_GetErrorsPageAsync_ReturnsRecentErrors()
     {
         // Arrange
         await using var dbContext = _dbFixture.CreateDbContext();
@@ -214,12 +214,69 @@ public class WebUiTests : IAsyncLifetime
         await dbContext.SaveChangesAsync();
 
         // Act
-        var results = await service.GetRecentErrorsAsync(10);
+        var result = await service.GetErrorsPageAsync(page: 1, pageSize: 10);
 
         // Assert
-        results.Should().NotBeNull();
-        results.Should().HaveCount(1);
-        results[0].Message.Should().Be("Test message");
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(1);
+        result.TotalCount.Should().Be(1);
+        result.Items[0].Message.Should().Be("Test message");
+    }
+
+    [Fact]
+    public async Task ReportViewService_GetErrorsPageAsync_PaginatesResults()
+    {
+        // Arrange
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var service = new ReportViewService(dbContext);
+
+        var baseTime = DateTime.UtcNow;
+        for (int i = 0; i < 5; i++)
+        {
+            var e = CreateTestError(message: $"M{i}");
+            e.Timestamp = baseTime.AddSeconds(-i); // newest first when ordered desc
+            dbContext.Errors.Add(e);
+        }
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var page1 = await service.GetErrorsPageAsync(page: 1, pageSize: 2);
+        var page2 = await service.GetErrorsPageAsync(page: 2, pageSize: 2);
+        var page3 = await service.GetErrorsPageAsync(page: 3, pageSize: 2);
+
+        // Assert
+        page1.TotalCount.Should().Be(5);
+        page1.Items.Should().HaveCount(2);
+        page2.Items.Should().HaveCount(2);
+        page3.Items.Should().HaveCount(1);
+        page1.Items[0].Message.Should().Be("M0");
+        page2.Items[0].Message.Should().Be("M2");
+        page3.Items[0].Message.Should().Be("M4");
+    }
+
+    [Fact]
+    public async Task ReportViewService_GetErrorsPageAsync_FiltersByDateRange()
+    {
+        // Arrange
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var service = new ReportViewService(dbContext);
+
+        var now = DateTime.UtcNow;
+        var old = CreateTestError(message: "old"); old.Timestamp = now.AddDays(-10);
+        var mid = CreateTestError(message: "mid"); mid.Timestamp = now.AddDays(-5);
+        var fresh = CreateTestError(message: "fresh"); fresh.Timestamp = now;
+        dbContext.Errors.AddRange(old, mid, fresh);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetErrorsPageAsync(
+            page: 1, pageSize: 50,
+            startDate: now.AddDays(-7),
+            endDate: now.AddDays(-1));
+
+        // Assert
+        result.TotalCount.Should().Be(1);
+        result.Items[0].Message.Should().Be("mid");
     }
 
     [Fact]
@@ -244,7 +301,7 @@ public class WebUiTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ReportViewService_FilterErrorsAsync_FiltersByPlatform()
+    public async Task ReportViewService_GetErrorsPageAsync_FiltersByPlatform()
     {
         // Arrange
         await using var dbContext = _dbFixture.CreateDbContext();
@@ -259,10 +316,132 @@ public class WebUiTests : IAsyncLifetime
         await dbContext.SaveChangesAsync();
 
         // Act
-        var results = await service.FilterErrorsAsync(platform: "Windows");
+        var result = await service.GetErrorsPageAsync(page: 1, pageSize: 50, platform: "Windows");
 
         // Assert
-        results.Should().HaveCount(1);
-        results[0].Platform.Should().Be("Windows");
+        result.Items.Should().HaveCount(1);
+        result.Items[0].Platform.Should().Be("Windows");
+    }
+
+    [Fact]
+    public async Task EventsPage_WithEvents_DisplaysEventList()
+    {
+        // Arrange
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var ev = new Event
+        {
+            Id = Guid.CreateVersion7(),
+            Timestamp = DateTime.UtcNow,
+            Version = "1.2.3",
+            Platform = "Windows",
+            Environment = "Dev",
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7(),
+            Category = "Gameplay",
+            Name = "LevelCompleted"
+        };
+        dbContext.Events.Add(ev);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var cut = _testContext!.Render<Events>();
+        await Task.Delay(100);
+
+        // Assert
+        var markup = cut.Markup;
+        markup.Should().Contain("LevelCompleted");
+        markup.Should().Contain("Gameplay");
+        markup.Should().Contain("1.2.3");
+    }
+
+    [Fact]
+    public async Task EventsPage_WithNoEvents_ShowsEmptyMessage()
+    {
+        // Act
+        var cut = _testContext!.Render<Events>();
+        await Task.Delay(100);
+
+        // Assert
+        cut.Markup.Should().Contain("No events found");
+    }
+
+    [Fact]
+    public async Task EventDetailPage_WithValidId_DisplaysEventDetails()
+    {
+        // Arrange
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var eventId = Guid.CreateVersion7();
+        var ev = new Event
+        {
+            Id = eventId,
+            Timestamp = DateTime.UtcNow,
+            Version = "9.9.9",
+            Platform = "macOS",
+            Environment = "Release",
+            UserId = Guid.CreateVersion7(),
+            ComputerId = Guid.CreateVersion7(),
+            CampaignId = Guid.CreateVersion7(),
+            CampaignSequenceIds = [Guid.CreateVersion7()],
+            ProcessId = Guid.CreateVersion7(),
+            Category = "Tutorial",
+            Name = "TutorialFinished"
+        };
+        dbContext.Events.Add(ev);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var cut = _testContext!.Render<EventDetail>(p => p.Add(c => c.EventId, eventId));
+        await Task.Delay(100);
+
+        // Assert
+        var markup = cut.Markup;
+        markup.Should().Contain(eventId.ToString());
+        markup.Should().Contain("TutorialFinished");
+        markup.Should().Contain("Tutorial");
+        markup.Should().Contain("macOS");
+        markup.Should().Contain("9.9.9");
+    }
+
+    [Fact]
+    public async Task ReportViewService_GetEventsPageAsync_PaginatesResults()
+    {
+        // Arrange
+        await using var dbContext = _dbFixture.CreateDbContext();
+        var service = new ReportViewService(dbContext);
+
+        var baseTime = DateTime.UtcNow;
+        for (int i = 0; i < 4; i++)
+        {
+            dbContext.Events.Add(new Event
+            {
+                Id = Guid.CreateVersion7(),
+                Timestamp = baseTime.AddSeconds(-i),
+                Version = "1",
+                Platform = "P",
+                Environment = "Dev",
+                UserId = Guid.CreateVersion7(),
+                ComputerId = Guid.CreateVersion7(),
+                CampaignId = Guid.CreateVersion7(),
+                CampaignSequenceIds = [Guid.CreateVersion7()],
+                ProcessId = Guid.CreateVersion7(),
+                Category = "C",
+                Name = $"N{i}"
+            });
+        }
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var page1 = await service.GetEventsPageAsync(page: 1, pageSize: 2);
+        var page2 = await service.GetEventsPageAsync(page: 2, pageSize: 2);
+
+        // Assert
+        page1.TotalCount.Should().Be(4);
+        page1.Items.Should().HaveCount(2);
+        page2.Items.Should().HaveCount(2);
+        page1.Items[0].Name.Should().Be("N0");
+        page2.Items[0].Name.Should().Be("N2");
     }
 }

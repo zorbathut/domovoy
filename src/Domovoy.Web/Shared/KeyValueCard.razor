@@ -1,0 +1,22 @@
+@if (Data != null && Data.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5>@Title</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                @foreach (var kvp in Data.OrderBy(x => x.Key))
+                {
+                    <dt class="col-sm-3">@kvp.Key</dt>
+                    <dd class="col-sm-9"><code>@kvp.Value</code></dd>
+                }
+            </dl>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public Dictionary<string, object>? Data { get; set; }
+}

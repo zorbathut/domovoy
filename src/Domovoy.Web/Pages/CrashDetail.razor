@@ -1,193 +1,68 @@
 @page "/crashes/{CrashId:guid}"
 @using Domovoy.Web.Services
 @inject ReportViewService ReportService
-@inject NavigationManager Navigation
 
-<PageTitle>Error Detail - Domovoy</PageTitle>
+<ReportDetailLayout
+    PageTitle="Error Detail - Domovoy"
+    Heading="Error Report Details"
+    BackUrl="/crashes"
+    IdLabel="Error ID"
+    IsLoading="isLoading"
+    LoadingMessage="Loading error details..."
+    Report="error"
+    Attachments="attachments"
+    NotFoundHeading="Error Report Not Found"
+    NotFoundMessage="The requested error report could not be found.">
+    <OverviewExtras>
+        <dt class="col-sm-4">Severity:</dt>
+        <dd class="col-sm-8"><span class="badge bg-danger">@error!.Severity</span></dd>
+    </OverviewExtras>
+    <ChildContent>
+        <div class="card mb-3">
+            <div class="card-header"><h5>Error Message</h5></div>
+            <div class="card-body">
+                <p class="font-monospace">@error!.Message</p>
+            </div>
+        </div>
 
-@if (isLoading)
-{
-    <p><em>Loading error details...</em></p>
-}
-else if (error != null)
-{
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Error Report Details</h1>
-        <button class="btn btn-secondary" @onclick="GoBack">Back to List</button>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
+        @if (!string.IsNullOrEmpty(error.StackTrace))
+        {
             <div class="card mb-3">
-                <div class="card-header">
-                    <h5>Overview</h5>
-                </div>
+                <div class="card-header"><h5>Stack Trace</h5></div>
                 <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-4">Error ID:</dt>
-                        <dd class="col-sm-8"><code>@error.Id</code></dd>
-
-                        <dt class="col-sm-4">Severity:</dt>
-                        <dd class="col-sm-8"><span class="badge bg-danger">@error.Severity</span></dd>
-
-                        <dt class="col-sm-4">Platform:</dt>
-                        <dd class="col-sm-8">@error.Platform</dd>
-
-                        <dt class="col-sm-4">Version:</dt>
-                        <dd class="col-sm-8">@error.Version</dd>
-
-                        <dt class="col-sm-4">Environment:</dt>
-                        <dd class="col-sm-8">@error.Environment</dd>
-
-                        <dt class="col-sm-4">Timestamp:</dt>
-                        <dd class="col-sm-8"><LocalTimestamp Value="@error.Timestamp" /></dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5>Identifiers</h5>
-                </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-4">User ID:</dt>
-                        <dd class="col-sm-8"><code>@error.UserId</code></dd>
-
-                        <dt class="col-sm-4">Computer ID:</dt>
-                        <dd class="col-sm-8"><code>@error.ComputerId</code></dd>
-
-                        <dt class="col-sm-4">Campaign ID:</dt>
-                        <dd class="col-sm-8"><code>@error.CampaignId</code></dd>
-
-                        <dt class="col-sm-4">Campaign Sequence IDs:</dt>
-                        <dd class="col-sm-8">
-                            @foreach (var id in error.CampaignSequenceIds)
-                            {
-                                <code>@id</code><br />
-                            }
-                        </dd>
-
-                        <dt class="col-sm-4">Process ID:</dt>
-                        <dd class="col-sm-8"><code>@error.ProcessId</code></dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-3">
-        <div class="card-header">
-            <h5>Error Message</h5>
-        </div>
-        <div class="card-body">
-            <p class="font-monospace">@error.Message</p>
-        </div>
-    </div>
-
-    @if (!string.IsNullOrEmpty(error.StackTrace))
-    {
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5>Stack Trace</h5>
-            </div>
-            <div class="card-body">
-                <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
-                    @foreach (var line in error.StackTrace.Split('\n'))
-                    {
-                        <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
-                    }
-                </div>
-            </div>
-        </div>
-    }
-
-    @if (!string.IsNullOrEmpty(error.Log))
-    {
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5>Log</h5>
-            </div>
-            <div class="card-body">
-                <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
-                    @foreach (var line in error.Log.Split('\n'))
-                    {
-                        <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
-                    }
-                </div>
-            </div>
-        </div>
-    }
-
-    @if (error.Metadata != null && error.Metadata.Count > 0)
-    {
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5>Metadata</h5>
-            </div>
-            <div class="card-body">
-                <dl class="row">
-                    @foreach (var kvp in error.Metadata.OrderBy(x => x.Key))
-                    {
-                        <dt class="col-sm-3">@kvp.Key</dt>
-                        <dd class="col-sm-9"><code>@kvp.Value</code></dd>
-                    }
-                </dl>
-            </div>
-        </div>
-    }
-
-    @if (attachments != null && attachments.Count > 0)
-    {
-        <div class="card">
-            <div class="card-header">
-                <h5>Attachments</h5>
-            </div>
-            <div class="card-body">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Filename</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Uploaded</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var attachment in attachments)
+                    <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
+                        @foreach (var line in error.StackTrace.Split('\n'))
                         {
-                            <tr>
-                                <td>@attachment.Filename</td>
-                                <td>@attachment.ContentType</td>
-                                <td>@FormatFileSize(attachment.SizeBytes)</td>
-                                <td><LocalTimestamp Value="@attachment.CreatedAt" /></td>
-                                <td><a href="/api/attachments/@attachment.Id/download" class="btn btn-sm btn-outline-primary">Download</a></td>
-                            </tr>
+                            <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
-        </div>
-    }
-}
-else
-{
-    <div class="alert alert-warning">
-        <h4>Error Report Not Found</h4>
-        <p>The requested error report could not be found.</p>
-        <button class="btn btn-primary" @onclick="GoBack">Go Back</button>
-    </div>
-}
+        }
+
+        @if (!string.IsNullOrEmpty(error.Log))
+        {
+            <div class="card mb-3">
+                <div class="card-header"><h5>Log</h5></div>
+                <div class="card-body">
+                    <div class="bg-dark text-light p-3 font-monospace" style="font-size: 0.875em;">
+                        @foreach (var line in error.Log.Split('\n'))
+                        {
+                            <div style="white-space: pre-wrap; word-wrap: break-word; text-indent: hanging 3em;">@line</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </ChildContent>
+</ReportDetailLayout>
 
 @code {
     [Parameter]
     public Guid CrashId { get; set; }
 
     private Domovoy.Shared.Models.Error? error;
-    private List<Domovoy.Shared.Models.Attachment>? attachments;
+    private List<Attachment>? attachments;
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
@@ -198,17 +73,5 @@ else
             attachments = await ReportService.GetAttachmentsByReportIdAsync(CrashId);
         }
         isLoading = false;
-    }
-
-    private void GoBack()
-    {
-        Navigation.NavigateTo("/crashes");
-    }
-
-    private static string FormatFileSize(long bytes)
-    {
-        if (bytes < 1024) return $"{bytes} B";
-        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
-        return $"{bytes / (1024.0 * 1024.0):F1} MB";
     }
 }

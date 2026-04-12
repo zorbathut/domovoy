@@ -42,7 +42,7 @@ else if (stats != null && recentCrashes != null)
         </div>
     </div>
 
-    <h2>Recent Crashes</h2>
+    <h2>Recent Errors</h2>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -76,7 +76,8 @@ else if (stats != null && recentCrashes != null)
     protected override async Task OnInitializedAsync()
     {
         stats = await ReportService.GetReportStatisticsAsync();
-        recentCrashes = await ReportService.GetRecentErrorsAsync(10);
+        var page = await ReportService.GetErrorsPageAsync(page: 1, pageSize: 10);
+        recentCrashes = page.Items;
         isLoading = false;
     }
 }

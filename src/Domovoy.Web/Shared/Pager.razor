@@ -1,0 +1,73 @@
+@if (TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(CurrentPage <= 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => Go(CurrentPage - 1)" disabled="@(CurrentPage <= 1)">Prev</button>
+            </li>
+
+            @foreach (var p in PageNumbers)
+            {
+                if (p < 0)
+                {
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                }
+                else
+                {
+                    <li class="page-item @(p == CurrentPage ? "active" : "")">
+                        <button class="page-link" @onclick="() => Go(p)">@p</button>
+                    </li>
+                }
+            }
+
+            <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => Go(CurrentPage + 1)" disabled="@(CurrentPage >= TotalPages)">Next</button>
+            </li>
+        </ul>
+    </nav>
+    <p class="text-muted small">
+        Page @CurrentPage of @TotalPages — @TotalCount total
+    </p>
+}
+else if (TotalCount > 0)
+{
+    <p class="text-muted small">@TotalCount total</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public int CurrentPage { get; set; }
+    [Parameter, EditorRequired] public int PageSize { get; set; }
+    [Parameter, EditorRequired] public int TotalCount { get; set; }
+    [Parameter, EditorRequired] public EventCallback<int> OnPageChange { get; set; }
+
+    private int TotalPages => PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+
+    // Returns sequence of page numbers; -1 means an ellipsis gap.
+    private IEnumerable<int> PageNumbers
+    {
+        get
+        {
+            const int window = 2;
+            var pages = new List<int>();
+            int last = 0;
+            for (int p = 1; p <= TotalPages; p++)
+            {
+                bool nearEdges = p == 1 || p == TotalPages;
+                bool nearCurrent = Math.Abs(p - CurrentPage) <= window;
+                if (nearEdges || nearCurrent)
+                {
+                    if (last > 0 && p - last > 1) pages.Add(-1);
+                    pages.Add(p);
+                    last = p;
+                }
+            }
+            return pages;
+        }
+    }
+
+    private Task Go(int page)
+    {
+        if (page < 1 || page > TotalPages || page == CurrentPage) return Task.CompletedTask;
+        return OnPageChange.InvokeAsync(page);
+    }
+}

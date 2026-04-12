@@ -1,0 +1,45 @@
+@page "/events/{EventId:guid}"
+@using Domovoy.Web.Services
+@inject ReportViewService ReportService
+
+<ReportDetailLayout
+    PageTitle="Event Detail - Domovoy"
+    Heading="Event Report Details"
+    BackUrl="/events"
+    IdLabel="Event ID"
+    IsLoading="isLoading"
+    LoadingMessage="Loading event details..."
+    Report="ev"
+    Attachments="attachments"
+    NotFoundHeading="Event Report Not Found"
+    NotFoundMessage="The requested event report could not be found.">
+    <OverviewExtras>
+        <dt class="col-sm-4">Name:</dt>
+        <dd class="col-sm-8">@ev!.Name</dd>
+
+        <dt class="col-sm-4">Category:</dt>
+        <dd class="col-sm-8"><span class="badge bg-info">@ev.Category</span></dd>
+    </OverviewExtras>
+    <ChildContent>
+        <KeyValueCard Title="Data" Data="@ev!.Data" />
+    </ChildContent>
+</ReportDetailLayout>
+
+@code {
+    [Parameter]
+    public Guid EventId { get; set; }
+
+    private Event? ev;
+    private List<Attachment>? attachments;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ev = await ReportService.GetEventByIdAsync(EventId);
+        if (ev != null)
+        {
+            attachments = await ReportService.GetAttachmentsByReportIdAsync(EventId);
+        }
+        isLoading = false;
+    }
+}

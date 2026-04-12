@@ -9,6 +9,8 @@ using Domovoy.Shared.Models;
 
 namespace Domovoy.Web.Services;
 
+public record PagedResult<T>(List<T> Items, int TotalCount);
+
 public class ReportViewService
 {
     private readonly DomovoyDbContext _context;
@@ -18,57 +20,21 @@ public class ReportViewService
         _context = context;
     }
 
-    // Get recent reports of any type
-    public async Task<List<Report>> GetRecentReportsAsync(ReportType? type = null, int limit = 50)
-    {
-        var query = _context.Reports.AsQueryable();
-
-        if (type.HasValue)
-            query = query.Where(r => r.ReportType == type.Value);
-
-        return await query
-            .OrderByDescending(r => r.Timestamp)
-            .Take(limit)
-            .ToListAsync();
-    }
-
-    // Get report by ID (any type)
     public async Task<Report?> GetReportByIdAsync(Guid id)
     {
         return await _context.Reports.FindAsync(id);
     }
 
-    // Get recent events
-    public async Task<List<Event>> GetRecentEventsAsync(int limit = 50)
-    {
-        return await _context.Events
-            .OrderByDescending(e => e.Timestamp)
-            .Take(limit)
-            .ToListAsync();
-    }
-
-    // Get recent errors
-    public async Task<List<Error>> GetRecentErrorsAsync(int limit = 50)
-    {
-        return await _context.Errors
-            .OrderByDescending(e => e.Timestamp)
-            .Take(limit)
-            .ToListAsync();
-    }
-
-    // Get event by ID
     public async Task<Event?> GetEventByIdAsync(Guid id)
     {
         return await _context.Events.FindAsync(id);
     }
 
-    // Get error by ID
     public async Task<Error?> GetErrorByIdAsync(Guid id)
     {
         return await _context.Errors.FindAsync(id);
     }
 
-    // Get statistics
     public async Task<Dictionary<string, int>> GetReportStatisticsAsync()
     {
         var totalReports = await _context.Reports.CountAsync();
@@ -95,38 +61,9 @@ public class ReportViewService
         return stats;
     }
 
-    // Filter events
-    public async Task<List<Event>> FilterEventsAsync(
-        string? category = null,
-        string? platform = null,
-        string? version = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null)
-    {
-        var query = _context.Events.AsQueryable();
-
-        if (!string.IsNullOrEmpty(category))
-            query = query.Where(e => e.Category == category);
-
-        if (!string.IsNullOrEmpty(platform))
-            query = query.Where(e => EF.Functions.ILike(e.Platform, $"%{platform}%"));
-
-        if (!string.IsNullOrEmpty(version))
-            query = query.Where(e => EF.Functions.ILike(e.Version, $"%{version}%"));
-
-        if (startDate.HasValue)
-            query = query.Where(e => e.Timestamp >= startDate.Value);
-
-        if (endDate.HasValue)
-            query = query.Where(e => e.Timestamp <= endDate.Value);
-
-        return await query
-            .OrderByDescending(e => e.Timestamp)
-            .ToListAsync();
-    }
-
-    // Filter errors
-    public async Task<List<Error>> FilterErrorsAsync(
+    public async Task<PagedResult<Error>> GetErrorsPageAsync(
+        int page,
+        int pageSize,
         Severity? severity = null,
         string? platform = null,
         string? version = null,
@@ -154,12 +91,58 @@ public class ReportViewService
         if (endDate.HasValue)
             query = query.Where(e => e.Timestamp <= endDate.Value);
 
-        return await query
+        var total = await query.CountAsync();
+
+        var items = await query
             .OrderByDescending(e => e.Timestamp)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return new PagedResult<Error>(items, total);
     }
 
-    // Get attachments for a report
+    public async Task<PagedResult<Event>> GetEventsPageAsync(
+        int page,
+        int pageSize,
+        string? category = null,
+        string? platform = null,
+        string? version = null,
+        string? environment = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null)
+    {
+        var query = _context.Events.AsQueryable();
+
+        if (!string.IsNullOrEmpty(category))
+            query = query.Where(e => EF.Functions.ILike(e.Category, $"%{category}%"));
+
+        if (!string.IsNullOrEmpty(platform))
+            query = query.Where(e => EF.Functions.ILike(e.Platform, $"%{platform}%"));
+
+        if (!string.IsNullOrEmpty(version))
+            query = query.Where(e => EF.Functions.ILike(e.Version, $"%{version}%"));
+
+        if (!string.IsNullOrEmpty(environment))
+            query = query.Where(e => EF.Functions.ILike(e.Environment, $"%{environment}%"));
+
+        if (startDate.HasValue)
+            query = query.Where(e => e.Timestamp >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(e => e.Timestamp <= endDate.Value);
+
+        var total = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(e => e.Timestamp)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Event>(items, total);
+    }
+
     public async Task<List<Attachment>> GetAttachmentsByReportIdAsync(Guid reportId)
     {
         return await _context.Attachments

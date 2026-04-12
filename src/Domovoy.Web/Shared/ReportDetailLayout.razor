@@ -1,0 +1,140 @@
+@inject NavigationManager Navigation
+
+<PageTitle>@PageTitle</PageTitle>
+
+@if (IsLoading)
+{
+    <p><em>@LoadingMessage</em></p>
+}
+else if (Report != null)
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@Heading</h1>
+        <button class="btn btn-secondary" @onclick="GoBack">Back to List</button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header"><h5>Overview</h5></div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">@IdLabel:</dt>
+                        <dd class="col-sm-8"><code>@Report.Id</code></dd>
+
+                        @OverviewExtras
+
+                        <dt class="col-sm-4">Platform:</dt>
+                        <dd class="col-sm-8">@Report.Platform</dd>
+
+                        <dt class="col-sm-4">Version:</dt>
+                        <dd class="col-sm-8">@Report.Version</dd>
+
+                        <dt class="col-sm-4">Environment:</dt>
+                        <dd class="col-sm-8">@Report.Environment</dd>
+
+                        <dt class="col-sm-4">Timestamp:</dt>
+                        <dd class="col-sm-8"><LocalTimestamp Value="@Report.Timestamp" /></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header"><h5>Identifiers</h5></div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">User ID:</dt>
+                        <dd class="col-sm-8"><code>@Report.UserId</code></dd>
+
+                        <dt class="col-sm-4">Computer ID:</dt>
+                        <dd class="col-sm-8"><code>@Report.ComputerId</code></dd>
+
+                        <dt class="col-sm-4">Campaign ID:</dt>
+                        <dd class="col-sm-8"><code>@Report.CampaignId</code></dd>
+
+                        <dt class="col-sm-4">Campaign Sequence IDs:</dt>
+                        <dd class="col-sm-8">
+                            @foreach (var id in Report.CampaignSequenceIds)
+                            {
+                                <code>@id</code><br />
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">Process ID:</dt>
+                        <dd class="col-sm-8"><code>@Report.ProcessId</code></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @ChildContent
+
+    <KeyValueCard Title="Metadata" Data="@Report.Metadata" />
+
+    @if (Attachments != null && Attachments.Count > 0)
+    {
+        <div class="card">
+            <div class="card-header"><h5>Attachments</h5></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Uploaded</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var attachment in Attachments)
+                        {
+                            <tr>
+                                <td>@attachment.Filename</td>
+                                <td>@attachment.ContentType</td>
+                                <td>@FormatFileSize(attachment.SizeBytes)</td>
+                                <td><LocalTimestamp Value="@attachment.CreatedAt" /></td>
+                                <td><a href="/api/attachments/@attachment.Id/download" class="btn btn-sm btn-outline-primary">Download</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="alert alert-warning">
+        <h4>@NotFoundHeading</h4>
+        <p>@NotFoundMessage</p>
+        <button class="btn btn-primary" @onclick="GoBack">Go Back</button>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string PageTitle { get; set; } = "";
+    [Parameter, EditorRequired] public string Heading { get; set; } = "";
+    [Parameter, EditorRequired] public string BackUrl { get; set; } = "";
+    [Parameter] public string IdLabel { get; set; } = "Report ID";
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public string LoadingMessage { get; set; } = "Loading...";
+    [Parameter] public Report? Report { get; set; }
+    [Parameter] public List<Attachment>? Attachments { get; set; }
+    [Parameter] public string NotFoundHeading { get; set; } = "Report Not Found";
+    [Parameter] public string NotFoundMessage { get; set; } = "The requested report could not be found.";
+    [Parameter] public RenderFragment? OverviewExtras { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private void GoBack() => Navigation.NavigateTo(BackUrl);
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
+    }
+}

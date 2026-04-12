@@ -1,21 +1,15 @@
-@page "/crashes"
+@page "/events"
 @using Domovoy.Web.Services
 @inject ReportViewService ReportService
 
-<PageTitle>Errors - Domovoy</PageTitle>
+<PageTitle>Events - Domovoy</PageTitle>
 
-<h1>All Errors</h1>
+<h1>All Events</h1>
 
 <div class="row mb-3 g-2">
     <div class="col-md-2">
-        <label>Severity:</label>
-        <select class="form-control" @bind="selectedSeverity">
-            <option value="">(any)</option>
-            @foreach (var s in Enum.GetValues<Severity>())
-            {
-                <option value="@s">@s</option>
-            }
-        </select>
+        <label>Category:</label>
+        <input type="text" class="form-control" @bind="selectedCategory" placeholder="e.g., Gameplay" />
     </div>
     <div class="col-md-2">
         <label>Platform:</label>
@@ -45,7 +39,7 @@
 
 @if (isLoading)
 {
-    <p><em>Loading errors...</em></p>
+    <p><em>Loading events...</em></p>
 }
 else if (page != null && page.Items.Count > 0)
 {
@@ -53,8 +47,8 @@ else if (page != null && page.Items.Count > 0)
         <thead>
             <tr>
                 <th>Timestamp</th>
-                <th>Severity</th>
-                <th>Message</th>
+                <th>Category</th>
+                <th>Name</th>
                 <th>Platform</th>
                 <th>Version</th>
                 <th>Environment</th>
@@ -62,16 +56,16 @@ else if (page != null && page.Items.Count > 0)
             </tr>
         </thead>
         <tbody>
-            @foreach (var error in page.Items)
+            @foreach (var ev in page.Items)
             {
                 <tr>
-                    <td><LocalTimestamp Value="@error.Timestamp" /></td>
-                    <td><span class="badge bg-danger">@error.Severity</span></td>
-                    <td>@(error.Message.Length > 50 ? error.Message.Substring(0, 50) + "..." : error.Message)</td>
-                    <td>@error.Platform</td>
-                    <td>@error.Version</td>
-                    <td>@error.Environment</td>
-                    <td><a href="/crashes/@error.Id" class="btn btn-sm btn-primary">Details</a></td>
+                    <td><LocalTimestamp Value="@ev.Timestamp" /></td>
+                    <td><span class="badge bg-info">@ev.Category</span></td>
+                    <td>@ev.Name</td>
+                    <td>@ev.Platform</td>
+                    <td>@ev.Version</td>
+                    <td>@ev.Environment</td>
+                    <td><a href="/events/@ev.Id" class="btn btn-sm btn-primary">Details</a></td>
                 </tr>
             }
         </tbody>
@@ -81,17 +75,17 @@ else if (page != null && page.Items.Count > 0)
 }
 else
 {
-    <p>No errors found.</p>
+    <p>No events found.</p>
 }
 
 @code {
     private const int pageSize = 50;
 
-    private PagedResult<Domovoy.Shared.Models.Error>? page;
+    private PagedResult<Event>? page;
     private bool isLoading = true;
     private int currentPage = 1;
 
-    private string selectedSeverity = "";
+    private string? selectedCategory;
     private string? selectedPlatform;
     private string? selectedVersion;
     private string? selectedEnvironment;
@@ -106,11 +100,10 @@ else
     private async Task Load()
     {
         isLoading = true;
-        Severity? sev = string.IsNullOrEmpty(selectedSeverity) ? null : Enum.Parse<Severity>(selectedSeverity);
-        page = await ReportService.GetErrorsPageAsync(
+        page = await ReportService.GetEventsPageAsync(
             page: currentPage,
             pageSize: pageSize,
-            severity: sev,
+            category: string.IsNullOrEmpty(selectedCategory) ? null : selectedCategory,
             platform: string.IsNullOrEmpty(selectedPlatform) ? null : selectedPlatform,
             version: string.IsNullOrEmpty(selectedVersion) ? null : selectedVersion,
             environment: string.IsNullOrEmpty(selectedEnvironment) ? null : selectedEnvironment,
@@ -128,7 +121,7 @@ else
 
     private async Task ClearFilters()
     {
-        selectedSeverity = "";
+        selectedCategory = null;
         selectedPlatform = null;
         selectedVersion = null;
         selectedEnvironment = null;
