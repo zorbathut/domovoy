@@ -348,8 +348,14 @@ public class DiscordNotificationService : BackgroundService
             .AddField("Platform", report.Platform, inline: true)
             .AddField("Version", report.Version, inline: true)
             .AddField("Environment", report.Environment, inline: true)
-            .AddField("Report Time", report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true)
-            .AddField("Stack Trace", $"```\n{stackTrace}\n```", inline: false);
+            .AddField("Report Time", report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true);
+
+        if (report.GeneratedAt.HasValue)
+        {
+            embed.AddField("Generated", report.GeneratedAt.Value.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true);
+        }
+
+        embed.AddField("Stack Trace", $"```\n{stackTrace}\n```", inline: false);
 
         AddDetailUrl(embed, "crashes", report.Id);
 
@@ -379,6 +385,11 @@ public class DiscordNotificationService : BackgroundService
             .AddField("Version", report.Version, inline: true)
             .AddField("Environment", report.Environment, inline: true)
             .AddField("Report Time", report.Timestamp.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true);
+
+        if (report.GeneratedAt.HasValue)
+        {
+            embed.AddField("Generated", report.GeneratedAt.Value.ToString("yyyy-MM-dd HH:mm:ss UTC"), inline: true);
+        }
 
         if (report.Data is { Count: > 0 })
         {

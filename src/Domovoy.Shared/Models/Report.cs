@@ -8,6 +8,7 @@ public abstract class Report
 {
     public Guid Id { get; set; }
     public DateTime Timestamp { get; set; }
+    public DateTime? GeneratedAt { get; set; }
     public ReportType ReportType { get; protected set; }
 
     [Required]

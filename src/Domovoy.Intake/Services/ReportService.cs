@@ -86,6 +86,7 @@ public class ReportService
         report.CampaignSequenceIds = request.CampaignSequenceIds;
         report.ProcessId = request.ProcessId;
         report.Metadata = request.Metadata;
+        report.GeneratedAt = request.GeneratedAt;
     }
 
     private async Task CreateNotificationsForReportAsync(Guid reportId, DateTime now)

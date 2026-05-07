@@ -17,6 +17,7 @@ public class ReportDto
 {
     public Guid Id { get; set; }
     public DateTime Timestamp { get; set; }
+    public DateTime? GeneratedAt { get; set; }
     public string ReportType { get; set; } = string.Empty;
 
     // Common fields

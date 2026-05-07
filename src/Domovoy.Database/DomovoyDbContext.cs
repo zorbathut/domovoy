@@ -33,6 +33,7 @@ public class DomovoyDbContext : DbContext
 
             // Common fields
             entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => e.GeneratedAt);
 
             entity.Property(e => e.Version)
                 .IsRequired()

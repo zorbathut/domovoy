@@ -79,6 +79,7 @@ public class DomovoyClient : IDisposable
             CampaignSequenceIds = common.CampaignSequenceIds,
             ProcessId = common.ProcessId,
             Metadata = common.Metadata,
+            GeneratedAt = common.GeneratedAt,
             Category = category,
             Name = name,
             Data = data
@@ -120,6 +121,7 @@ public class DomovoyClient : IDisposable
             CampaignSequenceIds = common.CampaignSequenceIds,
             ProcessId = common.ProcessId,
             Metadata = common.Metadata,
+            GeneratedAt = common.GeneratedAt,
             Severity = severity,
             Message = message,
             StackTrace = stackTrace,

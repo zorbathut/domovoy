@@ -87,6 +87,7 @@ public class NotificationService
         {
             Id = report.Id,
             Timestamp = report.Timestamp,
+            GeneratedAt = report.GeneratedAt,
             Version = report.Version,
             Platform = report.Platform,
             Environment = report.Environment,

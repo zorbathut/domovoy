@@ -33,8 +33,14 @@ else if (Report != null)
                         <dt class="col-sm-4">Environment:</dt>
                         <dd class="col-sm-8">@Report.Environment</dd>
 
-                        <dt class="col-sm-4">Timestamp:</dt>
+                        <dt class="col-sm-4">Received:</dt>
                         <dd class="col-sm-8"><LocalTimestamp Value="@Report.Timestamp" /></dd>
+
+                        @if (Report.GeneratedAt.HasValue)
+                        {
+                            <dt class="col-sm-4">Generated:</dt>
+                            <dd class="col-sm-8"><LocalTimestamp Value="@Report.GeneratedAt.Value" /></dd>
+                        }
                     </dl>
                 </div>
             </div>

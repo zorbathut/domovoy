@@ -29,4 +29,6 @@ public class SubmitReportRequest
     public Guid ProcessId { get; set; }
 
     public Dictionary<string, object>? Metadata { get; set; }
+
+    public DateTime? GeneratedAt { get; set; }
 }
