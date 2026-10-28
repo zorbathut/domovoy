@@ -180,10 +180,11 @@ public class AttachmentTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
         reportId.Should().NotBeNull();
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes("crash dump data"));
-        var success = await client.SendAttachmentAsync(reportId!.Value, stream, "crash.dmp", "application/octet-stream");
+        var result = await client.SendAttachmentAsync(reportId!.Value, stream, "crash.dmp", "application/octet-stream");
 
         // Assert
-        success.Should().BeTrue();
+        result.Success.Should().BeTrue();
+        result.StatusCode.Should().Be(202);
 
         await using var dbContext = _dbFixture.CreateDbContext();
         var attachment = await dbContext.Attachments
@@ -192,5 +193,22 @@ public class AttachmentTests : IClassFixture<IntakeApiFactory>, IAsyncLifetime
 
         attachment.Should().NotBeNull();
         attachment!.Filename.Should().Be("crash.dmp");
+    }
+
+    [Fact]
+    public async Task ClientSendAttachmentAsync_ToNonexistentReport_ReportsNotFound()
+    {
+        // Arrange
+        var httpClient = _factory.CreateClient();
+        using var client = new DomovoyClient(_serverUrl, httpClient);
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes("crash dump data"));
+
+        // Act
+        var result = await client.SendAttachmentAsync(Guid.CreateVersion7(), stream, "crash.dmp", "application/octet-stream");
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.StatusCode.Should().Be(404);
+        result.Error.Should().Contain("not found");
     }
 }

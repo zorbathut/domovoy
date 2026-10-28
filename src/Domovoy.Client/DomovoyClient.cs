@@ -168,8 +168,8 @@ public class DomovoyClient : IDisposable
     /// <summary>
     /// Uploads an attachment for a previously submitted report.
     /// </summary>
-    /// <returns>True if upload succeeded, false otherwise.</returns>
-    public async Task<bool> SendAttachmentAsync(
+    /// <returns>The outcome; never throws for a failed upload.</returns>
+    public async Task<AttachmentUploadResult> SendAttachmentAsync(
         Guid reportId,
         Stream stream,
         string filename,
@@ -189,18 +189,47 @@ public class DomovoyClient : IDisposable
                 new System.Net.Http.Headers.MediaTypeHeaderValue(contentType ?? "application/octet-stream");
             content.Add(streamContent, "file", filename);
 
-            var response = await _httpClient.PostAsync(
-                $"/api/v1/reports/{reportId}/attachments",
-                content,
-                cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/reports/{reportId}/attachments") { Content = content };
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
-            return response.IsSuccessStatusCode;
+            string? error = null;
+            if (!response.IsSuccessStatusCode)
+            {
+                // A proxy refusing the body often sends its status and headers and then resets the connection, so the body is read only after the headers are in hand (ResponseHeadersRead above), and a failed read mustn't cost us the status we already have.
+                try
+                {
+                    error = Truncate(await response.Content.ReadAsStringAsync(cancellationToken));
+                }
+                catch (Exception ex)
+                {
+                    error = Truncate(ex.ToString());
+                }
+            }
+
+            return new AttachmentUploadResult
+            {
+                Success = response.IsSuccessStatusCode,
+                StatusCode = (int)response.StatusCode,
+                Server = response.Headers.Server.Count > 0 ? response.Headers.Server.ToString() : null,
+                Error = error,
+            };
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently fail - we don't want reporting to crash the app
-            return false;
+            // Don't let reporting crash the app; hand back the whole chain instead, since a proxy rejecting the body mid-upload often surfaces as an outer "error while copying content" wrapping the reset that says what happened.
+            return new AttachmentUploadResult
+            {
+                Success = false,
+                Error = Truncate(ex.ToString()),
+            };
         }
+    }
+
+    private const int MaxErrorLength = 1000;
+
+    private static string Truncate(string text)
+    {
+        return text.Length <= MaxErrorLength ? text : text.Substring(0, MaxErrorLength);
     }
 
     /// <summary>

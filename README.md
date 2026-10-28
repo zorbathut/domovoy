@@ -119,7 +119,11 @@ Guid? errorId = await client.SendErrorAsync(standard, new ErrorPayload
 if (reportId != null)
 {
     using var stream = File.OpenRead("screenshot.png");
-    await client.SendAttachmentAsync(reportId.Value, stream, "screenshot.png", "image/png");
+    var upload = await client.SendAttachmentAsync(reportId.Value, stream, "screenshot.png", "image/png");
+    if (!upload.Success)
+    {
+        // upload.StatusCode, upload.Server and upload.Error say where and why it was rejected
+    }
 }
 ```
 
